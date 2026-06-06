@@ -1,0 +1,5 @@
+# COMPACT per-clone session binding (do not commit)
+.compact/
+
+# Local Claude Code settings (per-clone)
+.claude/settings.local.json
