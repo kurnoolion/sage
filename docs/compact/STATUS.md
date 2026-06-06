@@ -13,15 +13,16 @@
 - 2026-06-05 Phase-0 literature review of 3GPP/telecom taxonomy/ontology/KG work (`docs/research/01-...`).
 - 2026-06-05 Agreed taxonomy approach D1–D4: two hierarchies (document + domain) joined by `DEFINED_IN`; UE-relevance filter; build order.
 - 2026-06-05 Pilot 1 — RRC connection establishment modeled end-to-end from TS 38.331 v19.2.0 (`docs/research/02-...`); produced a candidate seed schema (TBox).
+- 2026-06-05 Pilot 1b — RRC reconfiguration (5.3.5) modeled (`docs/research/03-...`); schema grew: ＋`UEVariable` entity, ＋`CONFIGURES`/`ON_FAILURE_INVOKES`/`READS`/`WRITES`/`ACTS_ON` relationships, ＋IE presence + INVOKES-guard attributes; sharpened the (asymmetric) granularity principle.
+- 2026-06-05 Built interactive RRC graph visualization (entities/relationships + grounding spec text) at `corpus/viz/rrc-graph.html` (gitignored — embeds 3GPP text).
 
 ## In progress
 
-- Phase-0 schema validation — started 2026-06-05. Candidate entity/relationship type set agreed as an **extensible seed**.
+- Phase-0 schema validation — started 2026-06-05. Seed schema: 11 entity types, ~21 relationship types; agreed **extensible**. One open question: procedure modes vs. variants (research doc 03 §4).
 
 ## Next
 
-- Pilot 1b: extend modeling to **RRC reconfiguration (5.3.5)** — stress the schema on a config-heavy procedure.
-- Pilot 2: **IMS** (TS 24.229) — prose-only stress test (no ASN.1 anchor).
+- Pilot 2: **IMS** (TS 24.229) — prose-only stress test (no ASN.1 anchor); tests the behavioral-edge discipline without a deterministic backbone.
 - Then promote D1–D4 + the seed schema into `DECISIONS.md` and populate `PROJECT.md` / `requirements.md` (formal `/switch-phase requirements`).
 
 ## Flags
