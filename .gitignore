@@ -3,3 +3,6 @@
 
 # Local Claude Code settings (per-clone)
 .claude/settings.local.json
+
+# Downloaded 3GPP specs (copyright 3GPP — do not commit/redistribute)
+corpus/
