@@ -6,3 +6,7 @@
 
 # Downloaded 3GPP specs (copyright 3GPP — do not commit/redistribute)
 corpus/
+
+# Python bytecode
+__pycache__/
+*.pyc

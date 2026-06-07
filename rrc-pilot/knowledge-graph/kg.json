@@ -1,0 +1,1361 @@
+{
+ "spec": "TS 38.331",
+ "version": "19.2.0",
+ "entity_count": 44,
+ "relation_count": 51,
+ "entities": [
+  {
+   "id": "P_setup",
+   "type": "Procedure",
+   "label": "RRC connection establishment",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3",
+    "external": false
+   }
+  },
+  {
+   "id": "P_reconfig",
+   "type": "Procedure",
+   "label": "RRC reconfiguration",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5",
+    "external": false
+   }
+  },
+  {
+   "id": "P_cellgroup",
+   "type": "Procedure",
+   "label": "Cell group configuration",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.5",
+    "external": false
+   }
+  },
+  {
+   "id": "P_rbconfig",
+   "type": "Procedure",
+   "label": "Radio bearer configuration",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.6",
+    "external": false
+   }
+  },
+  {
+   "id": "P_seckey",
+   "type": "Procedure",
+   "label": "AS security key update",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.7",
+    "external": false
+   }
+  },
+  {
+   "id": "P_uac",
+   "type": "Procedure",
+   "label": "Unified access control",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.14",
+    "external": false
+   }
+  },
+  {
+   "id": "P_measconfig",
+   "type": "Procedure",
+   "label": "Measurement configuration",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.5.2",
+    "external": false
+   }
+  },
+  {
+   "id": "P_condreconfig",
+   "type": "Procedure",
+   "label": "Conditional reconfiguration",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.13",
+    "external": false
+   }
+  },
+  {
+   "id": "P_reest",
+   "type": "Procedure",
+   "label": "RRC connection re-establishment",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.7",
+    "external": false
+   }
+  },
+  {
+   "id": "P_scgfail",
+   "type": "Procedure",
+   "label": "SCG failure information",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.7.3",
+    "external": false
+   }
+  },
+  {
+   "id": "M_setupreq",
+   "type": "Message",
+   "label": "RRCSetupRequest",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2/RRCSetupRequest",
+    "external": false
+   }
+  },
+  {
+   "id": "M_setup",
+   "type": "Message",
+   "label": "RRCSetup",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2/RRCSetup",
+    "external": false
+   }
+  },
+  {
+   "id": "M_setupcomplete",
+   "type": "Message",
+   "label": "RRCSetupComplete",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2/RRCSetupComplete",
+    "external": false
+   }
+  },
+  {
+   "id": "M_reject",
+   "type": "Message",
+   "label": "RRCReject",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2/RRCReject",
+    "external": false
+   }
+  },
+  {
+   "id": "M_reconfig",
+   "type": "Message",
+   "label": "RRCReconfiguration",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2/RRCReconfiguration",
+    "external": false
+   }
+  },
+  {
+   "id": "M_reconfigcomplete",
+   "type": "Message",
+   "label": "RRCReconfigurationComplete",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2/RRCReconfigurationComplete",
+    "external": false
+   }
+  },
+  {
+   "id": "IE_ueid",
+   "type": "InformationElement",
+   "label": "ue-Identity",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "external": false
+   }
+  },
+  {
+   "id": "IE_estcause",
+   "type": "InformationElement",
+   "label": "establishmentCause",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "external": false
+   }
+  },
+  {
+   "id": "IE_rbconfig",
+   "type": "InformationElement",
+   "label": "radioBearerConfig",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "external": false
+   }
+  },
+  {
+   "id": "IE_mastercg",
+   "type": "InformationElement",
+   "label": "masterCellGroup",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "external": false
+   }
+  },
+  {
+   "id": "IE_secondarycg",
+   "type": "InformationElement",
+   "label": "secondaryCellGroup",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "external": false
+   }
+  },
+  {
+   "id": "IE_measconfig",
+   "type": "InformationElement",
+   "label": "measConfig",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "external": false
+   }
+  },
+  {
+   "id": "IE_selplmn",
+   "type": "InformationElement",
+   "label": "selectedPLMN-Identity",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "external": false
+   }
+  },
+  {
+   "id": "IE_nasmsg",
+   "type": "InformationElement",
+   "label": "dedicatedNAS-Message",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "external": false
+   }
+  },
+  {
+   "id": "IE_reconfigwithsync",
+   "type": "InformationElement",
+   "label": "reconfigurationWithSync",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.3.2",
+    "external": false
+   }
+  },
+  {
+   "id": "IE_t304",
+   "type": "InformationElement",
+   "label": "t304",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.3.2",
+    "external": false
+   }
+  },
+  {
+   "id": "IE_masterkeyupdate",
+   "type": "InformationElement",
+   "label": "masterKeyUpdate",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.3.2",
+    "external": false
+   }
+  },
+  {
+   "id": "IE_condreconfig",
+   "type": "InformationElement",
+   "label": "conditionalReconfiguration",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.3.2",
+    "external": false
+   }
+  },
+  {
+   "id": "T_t300",
+   "type": "Timer",
+   "label": "T300",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3",
+    "external": false
+   }
+  },
+  {
+   "id": "T_t390",
+   "type": "Timer",
+   "label": "T390",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.4",
+    "external": false
+   }
+  },
+  {
+   "id": "T_t302",
+   "type": "Timer",
+   "label": "T302",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.4",
+    "external": false
+   }
+  },
+  {
+   "id": "T_t304",
+   "type": "Timer",
+   "label": "T304",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5",
+    "external": false
+   }
+  },
+  {
+   "id": "T_t420",
+   "type": "Timer",
+   "label": "T420",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.8.3",
+    "external": false
+   }
+  },
+  {
+   "id": "S_idle",
+   "type": "State",
+   "label": "RRC_IDLE",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "4.2.1",
+    "external": false
+   }
+  },
+  {
+   "id": "S_connected",
+   "type": "State",
+   "label": "RRC_CONNECTED",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "4.2.1",
+    "external": false
+   }
+  },
+  {
+   "id": "B_srb1",
+   "type": "Bearer",
+   "label": "SRB1",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "4.2.2",
+    "external": false
+   }
+  },
+  {
+   "id": "E_ullreq",
+   "type": "Event",
+   "label": "Upper-layer establishment request",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.2",
+    "external": false
+   }
+  },
+  {
+   "id": "E_t300exp",
+   "type": "Event",
+   "label": "T300 expiry",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.7",
+    "external": false
+   }
+  },
+  {
+   "id": "E_t304exp",
+   "type": "Event",
+   "label": "T304 expiry",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.8.3",
+    "external": false
+   }
+  },
+  {
+   "id": "V_condreconfig",
+   "type": "UEVariable",
+   "label": "VarConditionalReconfig",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.13",
+    "external": false
+   }
+  },
+  {
+   "id": "C_assec",
+   "type": "Condition",
+   "label": "AS security activated",
+   "defined_in": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.2",
+    "external": false
+   }
+  },
+  {
+   "id": "L_mac",
+   "type": "ProtocolLayer",
+   "label": "MAC",
+   "defined_in": {
+    "spec": "TS 38.321",
+    "version": null,
+    "clause": null,
+    "external": true
+   },
+   "domain_concept": "MAC"
+  },
+  {
+   "id": "L_rlc",
+   "type": "ProtocolLayer",
+   "label": "RLC",
+   "defined_in": {
+    "spec": "TS 38.322",
+    "version": null,
+    "clause": null,
+    "external": true
+   },
+   "domain_concept": "RLC"
+  },
+  {
+   "id": "L_pdcp",
+   "type": "ProtocolLayer",
+   "label": "PDCP",
+   "defined_in": {
+    "spec": "TS 38.323",
+    "version": null,
+    "clause": null,
+    "external": true
+   },
+   "domain_concept": "PDCP"
+  }
+ ],
+ "relations": [
+  {
+   "id": "r0",
+   "type": "TRIGGERS",
+   "from": "E_ullreq",
+   "to": "P_setup",
+   "modality": "prose",
+   "confidence": "med",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.2",
+    "anchor": "The UE initiates the procedure when upper layers request establishment of an RRC connection while the UE is in RRC_IDLE and it has acquired essential system information."
+   }
+  },
+  {
+   "id": "r1",
+   "type": "HAS_PRECONDITION",
+   "from": "P_setup",
+   "to": "S_idle",
+   "modality": "prose",
+   "confidence": "med",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.2",
+    "anchor": "while the UE is in RRC_IDLE and it has acquired essential system information"
+   }
+  },
+  {
+   "id": "r2",
+   "type": "EXCHANGES",
+   "from": "P_setup",
+   "to": "M_setupreq",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {
+    "direction": "UE->NW"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.2",
+    "anchor": "initiate transmission of the RRCSetupRequest message in accordance with 5.3.3.3"
+   }
+  },
+  {
+   "id": "r3",
+   "type": "EXCHANGES",
+   "from": "P_setup",
+   "to": "M_setup",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {
+    "direction": "NW->UE"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.4",
+    "anchor": "The UE shall perform the following actions upon reception of the RRCSetup"
+   }
+  },
+  {
+   "id": "r4",
+   "type": "EXCHANGES",
+   "from": "P_setup",
+   "to": "M_setupcomplete",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {
+    "direction": "UE->NW"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.4",
+    "anchor": "set the content of RRCSetupComplete message as follows"
+   }
+  },
+  {
+   "id": "r5",
+   "type": "ALTERNATIVE_OUTCOME",
+   "from": "P_setup",
+   "to": "M_reject",
+   "modality": "prose",
+   "confidence": "med",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.1",
+    "anchor": "Figure 5.3.3.1-2: RRC connection establishment, network reject"
+   }
+  },
+  {
+   "id": "r6",
+   "type": "STARTS",
+   "from": "P_setup",
+   "to": "T_t300",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.2",
+    "anchor": "start timer T300"
+   }
+  },
+  {
+   "id": "r7",
+   "type": "ESTABLISHES",
+   "from": "P_setup",
+   "to": "B_srb1",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.1",
+    "anchor": "RRC connection establishment involves SRB1 establishment"
+   }
+  },
+  {
+   "id": "r8",
+   "type": "TRANSITIONS_TO",
+   "from": "P_setup",
+   "to": "S_connected",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.4",
+    "anchor": "enter RRC_CONNECTED"
+   }
+  },
+  {
+   "id": "r9",
+   "type": "STOPS",
+   "from": "P_setup",
+   "to": "T_t300",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.4",
+    "anchor": "stop timer T300, T301, T319"
+   }
+  },
+  {
+   "id": "r10",
+   "type": "STOPS",
+   "from": "P_setup",
+   "to": "T_t390",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.4",
+    "anchor": "stop timer T390 for all access categories"
+   }
+  },
+  {
+   "id": "r11",
+   "type": "STOPS",
+   "from": "P_setup",
+   "to": "T_t302",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.4",
+    "anchor": "stop timer T302"
+   }
+  },
+  {
+   "id": "r12",
+   "type": "INVOKES",
+   "from": "P_setup",
+   "to": "P_uac",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.2",
+    "anchor": "perform the unified access control procedure as specified in 5.3.14"
+   }
+  },
+  {
+   "id": "r13",
+   "type": "INVOKES",
+   "from": "P_setup",
+   "to": "P_cellgroup",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {
+    "guard": "presence of masterCellGroup"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.4",
+    "anchor": "perform the cell group configuration procedure in accordance with the received masterCellGroup and as specified in 5.3.5.5"
+   }
+  },
+  {
+   "id": "r14",
+   "type": "INVOKES",
+   "from": "P_setup",
+   "to": "P_rbconfig",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {
+    "guard": "presence of radioBearerConfig"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.4",
+    "anchor": "perform the radio bearer configuration procedure in accordance with the received radioBearerConfig and as specified in 5.3.5.6"
+   }
+  },
+  {
+   "id": "r15",
+   "type": "CONTAINS",
+   "from": "M_setupreq",
+   "to": "IE_ueid",
+   "modality": "asn1",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "anchor": "ue-Identity"
+   }
+  },
+  {
+   "id": "r16",
+   "type": "CONTAINS",
+   "from": "M_setupreq",
+   "to": "IE_estcause",
+   "modality": "asn1",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "anchor": "establishmentCause"
+   }
+  },
+  {
+   "id": "r17",
+   "type": "CONTAINS",
+   "from": "M_setup",
+   "to": "IE_rbconfig",
+   "modality": "asn1",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "anchor": "radioBearerConfig"
+   }
+  },
+  {
+   "id": "r18",
+   "type": "CONTAINS",
+   "from": "M_setup",
+   "to": "IE_mastercg",
+   "modality": "asn1",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "anchor": "masterCellGroup"
+   }
+  },
+  {
+   "id": "r19",
+   "type": "CONTAINS",
+   "from": "M_setupcomplete",
+   "to": "IE_selplmn",
+   "modality": "asn1",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "anchor": "selectedPLMN-Identity"
+   }
+  },
+  {
+   "id": "r20",
+   "type": "CONTAINS",
+   "from": "M_setupcomplete",
+   "to": "IE_nasmsg",
+   "modality": "asn1",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "anchor": "dedicatedNAS-Message"
+   }
+  },
+  {
+   "id": "r21",
+   "type": "REUSED_BY",
+   "from": "M_setup",
+   "to": "P_reest",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "shared",
+   "attrs": {
+    "role": "re-establishment fallback"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.7.8",
+    "anchor": "Reception of the RRCSetup by the UE"
+   }
+  },
+  {
+   "id": "r22",
+   "type": "ON_EXPIRY_OF",
+   "from": "E_t300exp",
+   "to": "T_t300",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "estab",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.3.7",
+    "anchor": "if timer T300 expires:"
+   }
+  },
+  {
+   "id": "r23",
+   "type": "HAS_PRECONDITION",
+   "from": "P_reconfig",
+   "to": "S_connected",
+   "modality": "prose",
+   "confidence": "med",
+   "procedure_ctx": "reconf",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.2",
+    "anchor": "The Network may initiate the RRC reconfiguration procedure to a UE in RRC_CONNECTED"
+   }
+  },
+  {
+   "id": "r24",
+   "type": "EXCHANGES",
+   "from": "P_reconfig",
+   "to": "M_reconfig",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "direction": "NW->UE"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.3",
+    "anchor": "The UE shall perform the following actions upon reception of the RRCReconfiguration"
+   }
+  },
+  {
+   "id": "r25",
+   "type": "EXCHANGES",
+   "from": "P_reconfig",
+   "to": "M_reconfigcomplete",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "direction": "UE->NW"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.3",
+    "anchor": "RRCReconfigurationComplete"
+   }
+  },
+  {
+   "id": "r26",
+   "type": "CONTAINS",
+   "from": "M_reconfig",
+   "to": "IE_rbconfig",
+   "modality": "asn1",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "presence": "Need M"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "anchor": "radioBearerConfig"
+   }
+  },
+  {
+   "id": "r27",
+   "type": "CONTAINS",
+   "from": "M_reconfig",
+   "to": "IE_secondarycg",
+   "modality": "asn1",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "presence": "Cond SCG"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "anchor": "secondaryCellGroup"
+   }
+  },
+  {
+   "id": "r28",
+   "type": "CONTAINS",
+   "from": "M_reconfig",
+   "to": "IE_measconfig",
+   "modality": "asn1",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "presence": "Need M"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.2.2",
+    "anchor": "measConfig"
+   }
+  },
+  {
+   "id": "r29",
+   "type": "CONTAINS",
+   "from": "M_reconfig",
+   "to": "IE_mastercg",
+   "modality": "prose",
+   "confidence": "med",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "note": "presence-referenced"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.3",
+    "anchor": "if the RRCReconfiguration includes the masterCellGroup"
+   }
+  },
+  {
+   "id": "r30",
+   "type": "CONTAINS",
+   "from": "M_reconfig",
+   "to": "IE_masterkeyupdate",
+   "modality": "prose",
+   "confidence": "med",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "note": "presence-referenced"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.3",
+    "anchor": "if the RRCReconfiguration includes the masterKeyUpdate"
+   }
+  },
+  {
+   "id": "r31",
+   "type": "CONTAINS",
+   "from": "M_reconfig",
+   "to": "IE_condreconfig",
+   "modality": "prose",
+   "confidence": "med",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "note": "presence-referenced"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.3",
+    "anchor": "if the RRCReconfiguration includes the conditionalReconfiguration"
+   }
+  },
+  {
+   "id": "r32",
+   "type": "CONTAINS",
+   "from": "IE_mastercg",
+   "to": "IE_reconfigwithsync",
+   "modality": "asn1",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.3.2",
+    "anchor": "reconfigurationWithSync"
+   }
+  },
+  {
+   "id": "r33",
+   "type": "CONTAINS",
+   "from": "IE_reconfigwithsync",
+   "to": "IE_t304",
+   "modality": "asn1",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.3.2",
+    "anchor": "t304"
+   }
+  },
+  {
+   "id": "r34",
+   "type": "CONFIGURES",
+   "from": "IE_t304",
+   "to": "T_t304",
+   "modality": "asn1",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "6.3.2",
+    "anchor": "t304"
+   }
+  },
+  {
+   "id": "r35",
+   "type": "GOVERNS",
+   "from": "T_t304",
+   "to": "P_reconfig",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.8.3",
+    "anchor": "T304 expiry (Reconfiguration with sync Failure)"
+   }
+  },
+  {
+   "id": "r36",
+   "type": "ON_EXPIRY_OF",
+   "from": "E_t304exp",
+   "to": "T_t304",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.8.3",
+    "anchor": "T304 of the MCG expires"
+   }
+  },
+  {
+   "id": "r37",
+   "type": "GOVERNS",
+   "from": "T_t420",
+   "to": "P_reconfig",
+   "modality": "prose",
+   "confidence": "med",
+   "procedure_ctx": "reconf",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.8.3",
+    "anchor": "if T420 expires"
+   }
+  },
+  {
+   "id": "r38",
+   "type": "INVOKES",
+   "from": "P_reconfig",
+   "to": "P_cellgroup",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "guard": "presence of masterCellGroup"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.3",
+    "anchor": "if the RRCReconfiguration includes the masterCellGroup"
+   }
+  },
+  {
+   "id": "r39",
+   "type": "INVOKES",
+   "from": "P_reconfig",
+   "to": "P_rbconfig",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "guard": "presence of radioBearerConfig"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.3",
+    "anchor": "if the RRCReconfiguration message includes the radioBearerConfig"
+   }
+  },
+  {
+   "id": "r40",
+   "type": "INVOKES",
+   "from": "P_reconfig",
+   "to": "P_seckey",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "guard": "presence of masterKeyUpdate"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.3",
+    "anchor": "if the RRCReconfiguration includes the masterKeyUpdate"
+   }
+  },
+  {
+   "id": "r41",
+   "type": "INVOKES",
+   "from": "P_reconfig",
+   "to": "P_measconfig",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "guard": "presence of measConfig"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.3",
+    "anchor": "if the RRCReconfiguration message includes the measConfig"
+   }
+  },
+  {
+   "id": "r42",
+   "type": "INVOKES",
+   "from": "P_reconfig",
+   "to": "P_condreconfig",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "guard": "presence of conditionalReconfiguration"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.13.1",
+    "anchor": "based on a received ConditionalReconfiguration IE"
+   }
+  },
+  {
+   "id": "r43",
+   "type": "WRITES",
+   "from": "P_condreconfig",
+   "to": "V_condreconfig",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.3",
+    "anchor": "remove all the entries in the condReconfigList within the MCG and the SCG VarConditionalReconfig"
+   }
+  },
+  {
+   "id": "r44",
+   "type": "READS",
+   "from": "P_condreconfig",
+   "to": "V_condreconfig",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.13.1",
+    "anchor": "the UE maintains two independent VarConditionalReconfig"
+   }
+  },
+  {
+   "id": "r45",
+   "type": "ACTS_ON",
+   "from": "P_reconfig",
+   "to": "L_rlc",
+   "modality": "prose",
+   "confidence": "med",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "cross-spec": "TS 38.322"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.3",
+    "anchor": "release the RLC entity or entities as specified in TS 38.322"
+   }
+  },
+  {
+   "id": "r46",
+   "type": "ACTS_ON",
+   "from": "P_reconfig",
+   "to": "L_pdcp",
+   "modality": "prose",
+   "confidence": "med",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "cross-spec": "TS 38.323"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.3",
+    "anchor": "reconfigure the PDCP entity to release DAPS as specified in TS 38.323"
+   }
+  },
+  {
+   "id": "r47",
+   "type": "ACTS_ON",
+   "from": "P_reconfig",
+   "to": "L_mac",
+   "modality": "prose",
+   "confidence": "med",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "cross-spec": "TS 38.321"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.3",
+    "anchor": "reset the source MAC and release the source MAC configuration"
+   }
+  },
+  {
+   "id": "r48",
+   "type": "HAS_PRECONDITION",
+   "from": "P_reconfig",
+   "to": "C_assec",
+   "modality": "prose",
+   "confidence": "med",
+   "procedure_ctx": "reconf",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.2",
+    "anchor": "is performed only when AS security has been activated"
+   }
+  },
+  {
+   "id": "r49",
+   "type": "ON_FAILURE_INVOKES",
+   "from": "P_reconfig",
+   "to": "P_scgfail",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "guard": "inability to comply (SRB3)"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.8.2",
+    "anchor": "initiate the SCG failure information procedure as specified in clause 5.7.3"
+   }
+  },
+  {
+   "id": "r50",
+   "type": "ON_FAILURE_INVOKES",
+   "from": "P_reconfig",
+   "to": "P_reest",
+   "modality": "prose",
+   "confidence": "high",
+   "procedure_ctx": "reconf",
+   "attrs": {
+    "guard": "inability to comply (MCG)"
+   },
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": "5.3.5.8.2",
+    "anchor": "initiate the connection re-establishment procedure as specified in"
+   }
+  }
+ ]
+}

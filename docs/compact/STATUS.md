@@ -15,14 +15,16 @@
 - 2026-06-05 Pilot 1 — RRC connection establishment modeled end-to-end from TS 38.331 v19.2.0 (`docs/research/02-...`); produced a candidate seed schema (TBox).
 - 2026-06-05 Pilot 1b — RRC reconfiguration (5.3.5) modeled (`docs/research/03-...`); schema grew: ＋`UEVariable` entity, ＋`CONFIGURES`/`ON_FAILURE_INVOKES`/`READS`/`WRITES`/`ACTS_ON` relationships, ＋IE presence + INVOKES-guard attributes; sharpened the (asymmetric) granularity principle.
 - 2026-06-05 Built interactive RRC graph visualization (entities/relationships + grounding spec text) at `corpus/viz/rrc-graph.html` (gitignored — embeds 3GPP text).
+- 2026-06-06 Agreed **four-layer separation** (corpus / taxonomy / ontology / KG) and built+validated it for the RRC pilot under `rrc-pilot/` (0 errors, 0 warnings): corpus 1506 clauses, ontology 11 types/20 relations, KG 44 entities/51 relations, all provenance resolving. Viz refactored to consume the layers (`docs/research/04-...`).
 
 ## In progress
 
-- Phase-0 schema validation — started 2026-06-05. Seed schema: 11 entity types, ~21 relationship types; agreed **extensible**. One open question: procedure modes vs. variants (research doc 03 §4).
+- Phase-0 schema validation — seed schema (11 entity types, 20 relationship types) agreed **extensible**; now formalized as `rrc-pilot/ontology/ontology.json`. Open question: procedure modes vs. variants (research doc 03 §4).
 
 ## Next
 
-- Pilot 2: **IMS** (TS 24.229) — prose-only stress test (no ASN.1 anchor); tests the behavioral-edge discipline without a deterministic backbone.
+- Pilot 2: **IMS** (TS 24.229) — re-run the four-layer build on a prose-only spec (no ASN.1 anchor); tests the corpus/KG split + behavioral-edge discipline without a deterministic backbone.
+- When schema stabilizes across RRC+IMS: promote four-layer separation + seed schema to `DECISIONS.md`; pick production store (RDF/SKOS vs property graph).
 - Then promote D1–D4 + the seed schema into `DECISIONS.md` and populate `PROJECT.md` / `requirements.md` (formal `/switch-phase requirements`).
 
 ## Flags

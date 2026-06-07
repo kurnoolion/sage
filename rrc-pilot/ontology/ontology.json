@@ -1,0 +1,286 @@
+{
+ "spec_scope": "TS 38.331 19.2.0",
+ "entity_types": {
+  "ProtocolLayer": {
+   "desc": "A protocol-stack layer (RRC, MAC, RLC, PDCP, SDAP, PHY, NAS-MM/SM, IMS).",
+   "attrs": []
+  },
+  "Procedure": {
+   "desc": "A UE behavioural procedure defined in a clause.",
+   "attrs": [
+    "mode"
+   ]
+  },
+  "Message": {
+   "desc": "A signalling message (PDU).",
+   "attrs": []
+  },
+  "InformationElement": {
+   "desc": "A field inside a message or another IE.",
+   "attrs": [
+    "presence",
+    "needCode",
+    "conditionalPresence"
+   ]
+  },
+  "Timer": {
+   "desc": "A protocol timer (Txxx).",
+   "attrs": [
+    "value_domain"
+   ]
+  },
+  "State": {
+   "desc": "A UE RRC state.",
+   "attrs": []
+  },
+  "Event": {
+   "desc": "A trigger or failure event (e.g. timer expiry, upper-layer request).",
+   "attrs": []
+  },
+  "Condition": {
+   "desc": "A guarding condition on behaviour.",
+   "attrs": []
+  },
+  "Capability": {
+   "desc": "A UE capability/feature.",
+   "attrs": []
+  },
+  "Bearer": {
+   "desc": "A radio bearer (SRB/DRB/MRB).",
+   "attrs": []
+  },
+  "UEVariable": {
+   "desc": "A named UE state store (Var...).",
+   "attrs": []
+  }
+ },
+ "relationship_types": {
+  "DEFINED_IN": {
+   "domain": [
+    "*"
+   ],
+   "range": [
+    "Clause"
+   ],
+   "desc": "Entity's source/home clause (provenance).",
+   "attrs": []
+  },
+  "CONTAINS": {
+   "domain": [
+    "Message",
+    "InformationElement"
+   ],
+   "range": [
+    "InformationElement"
+   ],
+   "desc": "Structural containment (from ASN.1).",
+   "attrs": [
+    "presence"
+   ]
+  },
+  "HAS_DOMAIN": {
+   "domain": [
+    "InformationElement"
+   ],
+   "range": [
+    "InformationElement",
+    "Capability"
+   ],
+   "desc": "IE's value domain / enumerated type.",
+   "attrs": []
+  },
+  "EXCHANGES": {
+   "domain": [
+    "Procedure"
+   ],
+   "range": [
+    "Message"
+   ],
+   "desc": "Procedure sends/receives a message.",
+   "attrs": [
+    "direction"
+   ]
+  },
+  "REUSED_BY": {
+   "domain": [
+    "Message"
+   ],
+   "range": [
+    "Procedure"
+   ],
+   "desc": "Message is reused by another procedure.",
+   "attrs": [
+    "role"
+   ]
+  },
+  "STARTS": {
+   "domain": [
+    "Procedure"
+   ],
+   "range": [
+    "Timer"
+   ],
+   "desc": "Procedure starts a timer.",
+   "attrs": []
+  },
+  "STOPS": {
+   "domain": [
+    "Procedure"
+   ],
+   "range": [
+    "Timer"
+   ],
+   "desc": "Procedure stops a timer.",
+   "attrs": []
+  },
+  "TRANSITIONS_TO": {
+   "domain": [
+    "Procedure"
+   ],
+   "range": [
+    "State"
+   ],
+   "desc": "Procedure transitions the UE into a state.",
+   "attrs": []
+  },
+  "HAS_PRECONDITION": {
+   "domain": [
+    "Procedure"
+   ],
+   "range": [
+    "State",
+    "Condition"
+   ],
+   "desc": "Precondition for the procedure.",
+   "attrs": []
+  },
+  "TRIGGERS": {
+   "domain": [
+    "Event"
+   ],
+   "range": [
+    "Procedure"
+   ],
+   "desc": "Event triggers a procedure.",
+   "attrs": []
+  },
+  "ALTERNATIVE_OUTCOME": {
+   "domain": [
+    "Procedure"
+   ],
+   "range": [
+    "Message"
+   ],
+   "desc": "Alternative (e.g. reject) outcome.",
+   "attrs": []
+  },
+  "ESTABLISHES": {
+   "domain": [
+    "Procedure"
+   ],
+   "range": [
+    "Bearer"
+   ],
+   "desc": "Procedure establishes a bearer.",
+   "attrs": []
+  },
+  "INVOKES": {
+   "domain": [
+    "Procedure"
+   ],
+   "range": [
+    "Procedure"
+   ],
+   "desc": "Procedure invokes a sub-procedure.",
+   "attrs": [
+    "guard"
+   ]
+  },
+  "ON_EXPIRY_OF": {
+   "domain": [
+    "Event"
+   ],
+   "range": [
+    "Timer"
+   ],
+   "desc": "Event is the expiry of a timer.",
+   "attrs": []
+  },
+  "CONFIGURES": {
+   "domain": [
+    "InformationElement"
+   ],
+   "range": [
+    "Timer"
+   ],
+   "desc": "IE delivers/configures a timer value.",
+   "attrs": []
+  },
+  "GOVERNS": {
+   "domain": [
+    "Timer"
+   ],
+   "range": [
+    "Procedure"
+   ],
+   "desc": "Timer supervises a procedure.",
+   "attrs": []
+  },
+  "READS": {
+   "domain": [
+    "Procedure"
+   ],
+   "range": [
+    "UEVariable"
+   ],
+   "desc": "Procedure reads a UE variable.",
+   "attrs": []
+  },
+  "WRITES": {
+   "domain": [
+    "Procedure"
+   ],
+   "range": [
+    "UEVariable"
+   ],
+   "desc": "Procedure writes a UE variable.",
+   "attrs": []
+  },
+  "ACTS_ON": {
+   "domain": [
+    "Procedure"
+   ],
+   "range": [
+    "ProtocolLayer"
+   ],
+   "desc": "Procedure acts on another layer's entity.",
+   "attrs": [
+    "cross-spec"
+   ]
+  },
+  "ON_FAILURE_INVOKES": {
+   "domain": [
+    "Procedure"
+   ],
+   "range": [
+    "Procedure"
+   ],
+   "desc": "On failure, procedure invokes another.",
+   "attrs": [
+    "guard"
+   ]
+  }
+ },
+ "edge_metadata": {
+  "modality": [
+   "asn1",
+   "prose",
+   "curated"
+  ],
+  "confidence": [
+   "high",
+   "med",
+   "low"
+  ]
+ }
+}
