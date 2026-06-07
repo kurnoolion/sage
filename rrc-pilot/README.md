@@ -94,9 +94,23 @@ normative text). 100% **text** coverage lives in the corpus; the ontology/KG aim
 ## Rebuild
 
 ```bash
-python3 rrc-pilot/build_layers.py        # writes corpus + ontology + concept-scheme + corpus-index + kg, validates
-python3 corpus/viz/build_rrc_graph.py    # renders the viz by CONSUMING kg.json + corpus store
+python3 rrc-pilot/build_layers.py        # builds + validates all layers, then regenerates the KG view
+# (add --no-view to skip the viewer)
 ```
+
+## Viewing the KG (incremental)
+
+`build_layers.py` regenerates `rrc-pilot/viz/kg-view.html` — a **generic, data-driven,
+self-contained** viewer (the script `viz/build_kg_view.py` is reusable for any `kg.json`;
+the HTML is gitignored because it embeds spec prose). Open it via `file://` — no server.
+
+Workflow: **rebuild → refresh the browser tab.** The viewer:
+- colours nodes from the ontology's entity types and auto-builds **focus buttons** from the
+  data's `procedure_ctx` values;
+- toggles for **Corpus clauses** (Hierarchy A) and **Concept scheme** (`IN_LAYER`/`BROADER`);
+- **highlights what's new since you last opened it** (green rings, via `localStorage`), with
+  a **Mark all as seen** reset and a stats panel (counts by type + "N new") — so as the KG
+  grows clause-by-clause you immediately see exactly what was added.
 
 ## How the concept scheme is used
 
@@ -113,4 +127,6 @@ In the visualization, toggle **Concept scheme** to show the concepts (diamonds) 
 - **Store-agnostic** plain JSON; doesn't prejudge the RDF/SKOS-vs-property-graph decision.
 - **3GPP doc-structure finding:** clause 6 keys ASN.1 message/IE defs under named
   `– <Name>` pseudo-headings, captured as corpus keys like `6.2.2/RRCSetupRequest`.
-- The visualization is a **view** over the layers, not a source of truth.
+- The visualization is a **view** over the layers, not a source of truth. At full
+  multi-spec scale (10⁴–10⁵ nodes) the eventual viewer is the chosen store's browser
+  (Neo4j/Memgraph); this self-contained viewer carries the pilots.

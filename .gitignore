@@ -10,3 +10,6 @@ corpus/
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Generated KG view HTML (embeds spec prose)
+rrc-pilot/viz/*.html

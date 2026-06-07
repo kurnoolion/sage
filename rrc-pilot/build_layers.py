@@ -221,6 +221,14 @@ def main():
     for e in errs: print("  ERR ", e)
     print("warnings:", len(warns))
     for w in warns: print("  warn", w)
+    if "--no-view" not in sys.argv:                 # regenerate the KG viewer
+        import subprocess
+        viz = os.path.join(PILOT, "viz/build_kg_view.py")
+        try:
+            r = subprocess.run([sys.executable, viz], capture_output=True, text=True)
+            print("\n=== view ===\n" + (r.stdout or r.stderr).strip())
+        except Exception as ex:
+            print("view regeneration skipped:", ex)
     return 1 if errs else 0
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@
 - 2026-06-05 Built interactive RRC graph visualization (entities/relationships + grounding spec text) at `corpus/viz/rrc-graph.html` (gitignored — embeds 3GPP text).
 - 2026-06-06 Agreed **four-layer separation** (corpus / taxonomy / ontology / KG) and built+validated it for the RRC pilot under `rrc-pilot/` (0 errors, 0 warnings). Viz refactored to consume the layers (`docs/research/04-...`).
 - 2026-06-06 Clarified to **3 layers + adjuncts**: taxonomy folds into the ontology (entity-type hierarchy via `subtype_of`); document taxonomy becomes the **corpus index**; added a curated **domain concept scheme** (SKOS) connected via `IN_LAYER` (entity→layer) + `BROADER`. Rebuilt 0/0: ontology 14 types/22 relations, KG 53 entities (incl. 12 concepts)/103 relations. Viz shows concepts behind a toggle.
+- 2026-06-06 Built a **generic, data-driven KG viewer** (`rrc-pilot/viz/build_kg_view.py`, committable; HTML output gitignored) wired into `build_layers.py`. Colours/focus derived from ontology+data; toggles for corpus clauses + concept scheme; **highlights nodes/edges new since last view** (localStorage) + stats panel — for incremental inspection as the KG grows. Workflow: rebuild → refresh tab.
 
 ## In progress
 
