@@ -15,19 +15,29 @@ SOURCE_FILE = "38331-j20.docx"
 # ---------------------------------------------------------------------------
 # ONTOLOGY (TBox) — entity types and relationship types with domain->range.
 # ---------------------------------------------------------------------------
+# Entity-type hierarchy (the *taxonomy* of types) now lives inside the ontology
+# via `subtype_of`. `Entity` is the root; `DomainRoot`/`Stratum`/`ProtocolLayer`
+# are the structural types whose instances form the domain concept scheme.
 ENTITY_TYPES = {
-    "ProtocolLayer":      {"desc": "A protocol-stack layer (RRC, MAC, RLC, PDCP, SDAP, PHY, NAS-MM/SM, IMS).", "attrs": []},
-    "Procedure":          {"desc": "A UE behavioural procedure defined in a clause.", "attrs": ["mode"]},
-    "Message":            {"desc": "A signalling message (PDU).", "attrs": []},
-    "InformationElement": {"desc": "A field inside a message or another IE.", "attrs": ["presence", "needCode", "conditionalPresence"]},
-    "Timer":              {"desc": "A protocol timer (Txxx).", "attrs": ["value_domain"]},
-    "State":              {"desc": "A UE RRC state.", "attrs": []},
-    "Event":              {"desc": "A trigger or failure event (e.g. timer expiry, upper-layer request).", "attrs": []},
-    "Condition":          {"desc": "A guarding condition on behaviour.", "attrs": []},
-    "Capability":         {"desc": "A UE capability/feature.", "attrs": []},
-    "Bearer":             {"desc": "A radio bearer (SRB/DRB/MRB).", "attrs": []},
-    "UEVariable":         {"desc": "A named UE state store (Var...).", "attrs": []},
+    "Entity":             {"desc": "Root of the entity-type hierarchy.", "subtype_of": None, "attrs": []},
+    "DomainRoot":         {"desc": "Top of the domain concept scheme (the UE).", "subtype_of": "Entity", "attrs": []},
+    "Stratum":            {"desc": "A protocol stratum (Access / Non-Access).", "subtype_of": "Entity", "attrs": []},
+    "ProtocolLayer":      {"desc": "A protocol-stack layer (RRC, MAC, RLC, PDCP, SDAP, PHY, NAS-MM/SM, IMS).", "subtype_of": "Entity", "attrs": []},
+    "Procedure":          {"desc": "A UE behavioural procedure defined in a clause.", "subtype_of": "Entity", "attrs": ["mode"]},
+    "Message":            {"desc": "A signalling message (PDU).", "subtype_of": "Entity", "attrs": []},
+    "InformationElement": {"desc": "A field inside a message or another IE.", "subtype_of": "Entity", "attrs": ["presence", "needCode", "conditionalPresence"]},
+    "Timer":              {"desc": "A protocol timer (Txxx).", "subtype_of": "Entity", "attrs": ["value_domain"]},
+    "State":              {"desc": "A UE RRC state.", "subtype_of": "Entity", "attrs": []},
+    "Event":              {"desc": "A trigger or failure event (e.g. timer expiry, upper-layer request).", "subtype_of": "Entity", "attrs": []},
+    "Condition":          {"desc": "A guarding condition on behaviour.", "subtype_of": "Entity", "attrs": []},
+    "Capability":         {"desc": "A UE capability/feature.", "subtype_of": "Entity", "attrs": []},
+    "Bearer":             {"desc": "A radio bearer (SRB/DRB/MRB).", "subtype_of": "Entity", "attrs": []},
+    "UEVariable":         {"desc": "A named UE state store (Var...).", "subtype_of": "Entity", "attrs": []},
 }
+
+# Domain entity types that get classified under a ProtocolLayer via IN_LAYER.
+DOMAIN_ENTITY_TYPES = ["Procedure", "Message", "InformationElement", "Timer",
+                       "State", "Event", "Condition", "Capability", "Bearer", "UEVariable"]
 
 # relationship type -> (domain types, range types, description, allowed attrs)
 RELATIONSHIP_TYPES = {
@@ -51,25 +61,35 @@ RELATIONSHIP_TYPES = {
     "WRITES":             (["Procedure"], ["UEVariable"], "Procedure writes a UE variable.", []),
     "ACTS_ON":            (["Procedure"], ["ProtocolLayer"], "Procedure acts on another layer's entity.", ["cross-spec"]),
     "ON_FAILURE_INVOKES": (["Procedure"], ["Procedure"], "On failure, procedure invokes another.", ["guard"]),
+    # links to the domain concept scheme
+    "IN_LAYER":           (DOMAIN_ENTITY_TYPES, ["ProtocolLayer"], "Classifies a domain entity under its protocol layer.", []),
+    "BROADER":            (["ProtocolLayer", "Stratum"], ["Stratum", "DomainRoot"], "SKOS broader within the concept scheme.", []),
 }
 
 # ---------------------------------------------------------------------------
-# DOMAIN TAXONOMY — SKOS-style broader/narrower concept hierarchy.
+# DOMAIN CONCEPT SCHEME (DCS) — curated SKOS-style scheme of the UE protocol
+# stack. Each concept is also a KG instance of its ontology `type`. Concept ids
+# are prefixed "C_" so they never collide with extracted-entity ids.
+# id -> (label, ontology type, broader concept id, in_scope)
 # ---------------------------------------------------------------------------
-DOMAIN_TAXONOMY = {
-    "UE":  {"broader": None, "label": "User Equipment"},
-    "AS":  {"broader": "UE", "label": "Access Stratum"},
-    "NAS": {"broader": "UE", "label": "Non-Access Stratum"},
-    "RRC":  {"broader": "AS", "label": "Radio Resource Control"},
-    "PDCP": {"broader": "AS", "label": "Packet Data Convergence Protocol"},
-    "RLC":  {"broader": "AS", "label": "Radio Link Control"},
-    "MAC":  {"broader": "AS", "label": "Medium Access Control"},
-    "SDAP": {"broader": "AS", "label": "Service Data Adaptation Protocol"},
-    "PHY":  {"broader": "AS", "label": "Physical layer"},
-    "NAS-MM": {"broader": "NAS", "label": "NAS Mobility Management"},
-    "NAS-SM": {"broader": "NAS", "label": "NAS Session Management"},
-    "IMS":  {"broader": "NAS", "label": "IP Multimedia Subsystem (service stratum)"},
+CONCEPT_SCHEME = "UE-protocol-domain"
+CONCEPTS = {
+    "C_UE":   ("User Equipment", "DomainRoot", None, True),
+    "C_AS":   ("Access Stratum", "Stratum", "C_UE", True),
+    "C_NAS":  ("Non-Access Stratum", "Stratum", "C_UE", True),
+    "C_RRC":  ("Radio Resource Control", "ProtocolLayer", "C_AS", True),
+    "C_PDCP": ("Packet Data Convergence Protocol", "ProtocolLayer", "C_AS", True),
+    "C_RLC":  ("Radio Link Control", "ProtocolLayer", "C_AS", True),
+    "C_MAC":  ("Medium Access Control", "ProtocolLayer", "C_AS", True),
+    "C_SDAP": ("Service Data Adaptation Protocol", "ProtocolLayer", "C_AS", False),
+    "C_PHY":  ("Physical layer", "ProtocolLayer", "C_AS", False),
+    "C_NAS-MM": ("NAS Mobility Management", "ProtocolLayer", "C_NAS", False),
+    "C_NAS-SM": ("NAS Session Management", "ProtocolLayer", "C_NAS", False),
+    "C_IMS":  ("IP Multimedia Subsystem", "ProtocolLayer", "C_NAS", False),
 }
+
+# Map a spec to the ProtocolLayer concept its entities belong to (for IN_LAYER).
+SPEC_LAYER = {"TS 38.331": "C_RRC"}
 
 # Document-taxonomy organisational chain (above the clause tree, which is
 # extracted from the docx at build time).
@@ -132,13 +152,9 @@ ENTITIES = {
  "E_t304exp":("T304 expiry","Event","5.3.5.8.3","T304 expiry (reconfiguration with sync failure)."),
  "V_condreconfig":("VarConditionalReconfig","UEVariable","5.3.5.13","UE store of conditional reconfigurations."),
  "C_assec":("AS security activated","Condition","5.3.5.2","AS security has been activated."),
- "L_mac":("MAC","ProtocolLayer","TS 38.321","Medium Access Control (other spec)."),
- "L_rlc":("RLC","ProtocolLayer","TS 38.322","Radio Link Control (other spec)."),
- "L_pdcp":("PDCP","ProtocolLayer","TS 38.323","Packet Data Convergence Protocol (other spec)."),
 }
-
-# Which DOMAIN_TAXONOMY concept each ProtocolLayer instance maps to.
-LAYER_CONCEPT = {"L_mac": "MAC", "L_rlc": "RLC", "L_pdcp": "PDCP"}
+# Note: the layers acted upon (MAC/RLC/PDCP) are the DCS concepts C_MAC/C_RLC/C_PDCP,
+# not separate entities — see CONCEPTS above.
 
 # Relationship instances:
 # (from, to, rel, modality, confidence, clause, proc, attrs_str, quote_anchor)
@@ -213,11 +229,11 @@ FACTS = [
    "remove all the entries in the condReconfigList within the MCG and the SCG VarConditionalReconfig"),
  ("P_condreconfig","V_condreconfig","READS","prose","high","5.3.5.13.1","reconf","",
    "the UE maintains two independent VarConditionalReconfig"),
- ("P_reconfig","L_rlc","ACTS_ON","prose","med","5.3.5.3","reconf","cross-spec: TS 38.322",
+ ("P_reconfig","C_RLC","ACTS_ON","prose","med","5.3.5.3","reconf","cross-spec: TS 38.322",
    "release the RLC entity or entities as specified in TS 38.322"),
- ("P_reconfig","L_pdcp","ACTS_ON","prose","med","5.3.5.3","reconf","cross-spec: TS 38.323",
+ ("P_reconfig","C_PDCP","ACTS_ON","prose","med","5.3.5.3","reconf","cross-spec: TS 38.323",
    "reconfigure the PDCP entity to release DAPS as specified in TS 38.323"),
- ("P_reconfig","L_mac","ACTS_ON","prose","med","5.3.5.3","reconf","cross-spec: TS 38.321",
+ ("P_reconfig","C_MAC","ACTS_ON","prose","med","5.3.5.3","reconf","cross-spec: TS 38.321",
    "reset the source MAC and release the source MAC configuration"),
  ("P_reconfig","C_assec","HAS_PRECONDITION","prose","med","5.3.5.2","reconf","",
    "is performed only when AS security has been activated"),

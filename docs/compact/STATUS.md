@@ -15,7 +15,8 @@
 - 2026-06-05 Pilot 1 — RRC connection establishment modeled end-to-end from TS 38.331 v19.2.0 (`docs/research/02-...`); produced a candidate seed schema (TBox).
 - 2026-06-05 Pilot 1b — RRC reconfiguration (5.3.5) modeled (`docs/research/03-...`); schema grew: ＋`UEVariable` entity, ＋`CONFIGURES`/`ON_FAILURE_INVOKES`/`READS`/`WRITES`/`ACTS_ON` relationships, ＋IE presence + INVOKES-guard attributes; sharpened the (asymmetric) granularity principle.
 - 2026-06-05 Built interactive RRC graph visualization (entities/relationships + grounding spec text) at `corpus/viz/rrc-graph.html` (gitignored — embeds 3GPP text).
-- 2026-06-06 Agreed **four-layer separation** (corpus / taxonomy / ontology / KG) and built+validated it for the RRC pilot under `rrc-pilot/` (0 errors, 0 warnings): corpus 1506 clauses, ontology 11 types/20 relations, KG 44 entities/51 relations, all provenance resolving. Viz refactored to consume the layers (`docs/research/04-...`).
+- 2026-06-06 Agreed **four-layer separation** (corpus / taxonomy / ontology / KG) and built+validated it for the RRC pilot under `rrc-pilot/` (0 errors, 0 warnings). Viz refactored to consume the layers (`docs/research/04-...`).
+- 2026-06-06 Clarified to **3 layers + adjuncts**: taxonomy folds into the ontology (entity-type hierarchy via `subtype_of`); document taxonomy becomes the **corpus index**; added a curated **domain concept scheme** (SKOS) connected via `IN_LAYER` (entity→layer) + `BROADER`. Rebuilt 0/0: ontology 14 types/22 relations, KG 53 entities (incl. 12 concepts)/103 relations. Viz shows concepts behind a toggle.
 
 ## In progress
 

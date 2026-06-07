@@ -1,0 +1,78 @@
+{
+ "scheme": "UE-protocol-domain",
+ "note": "Curated protocol-stack concepts; each is a KG instance of its ontology type.",
+ "concepts": {
+  "C_UE": {
+   "label": "User Equipment",
+   "type": "DomainRoot",
+   "broader": null,
+   "in_scope": true
+  },
+  "C_AS": {
+   "label": "Access Stratum",
+   "type": "Stratum",
+   "broader": "C_UE",
+   "in_scope": true
+  },
+  "C_NAS": {
+   "label": "Non-Access Stratum",
+   "type": "Stratum",
+   "broader": "C_UE",
+   "in_scope": true
+  },
+  "C_RRC": {
+   "label": "Radio Resource Control",
+   "type": "ProtocolLayer",
+   "broader": "C_AS",
+   "in_scope": true
+  },
+  "C_PDCP": {
+   "label": "Packet Data Convergence Protocol",
+   "type": "ProtocolLayer",
+   "broader": "C_AS",
+   "in_scope": true
+  },
+  "C_RLC": {
+   "label": "Radio Link Control",
+   "type": "ProtocolLayer",
+   "broader": "C_AS",
+   "in_scope": true
+  },
+  "C_MAC": {
+   "label": "Medium Access Control",
+   "type": "ProtocolLayer",
+   "broader": "C_AS",
+   "in_scope": true
+  },
+  "C_SDAP": {
+   "label": "Service Data Adaptation Protocol",
+   "type": "ProtocolLayer",
+   "broader": "C_AS",
+   "in_scope": false
+  },
+  "C_PHY": {
+   "label": "Physical layer",
+   "type": "ProtocolLayer",
+   "broader": "C_AS",
+   "in_scope": false
+  },
+  "C_NAS-MM": {
+   "label": "NAS Mobility Management",
+   "type": "ProtocolLayer",
+   "broader": "C_NAS",
+   "in_scope": false
+  },
+  "C_NAS-SM": {
+   "label": "NAS Session Management",
+   "type": "ProtocolLayer",
+   "broader": "C_NAS",
+   "in_scope": false
+  },
+  "C_IMS": {
+   "label": "IP Multimedia Subsystem",
+   "type": "ProtocolLayer",
+   "broader": "C_NAS",
+   "in_scope": false
+  }
+ }
+}

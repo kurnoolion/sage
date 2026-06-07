@@ -56,6 +56,31 @@ dotted number. Naïve dotted-number keying collapsed them (739 vs 1508). The cor
 named units as keys like `6.2.2/RRCSetupRequest`, so message provenance points at the exact ASN.1
 definition. (Precise ASN.1 *field*-level anchoring still needs a real ASN.1 parser — future work.)
 
+## Refinement (2026-06-06): 3 layers, not 4 — taxonomy folds in
+
+On reflection, "taxonomy as a fourth peer layer" over-separated things. An ontology already
+*contains* a taxonomy (its type hierarchy). The clearer model:
+
+- **Ontology** (= entity-type hierarchy via `subtype_of` + relationship types + axioms) — the
+  type taxonomy now lives **inside** `ontology.json`.
+- **Knowledge graph** (instances).
+- **Corpus** (verbatim text) — the old "document taxonomy" is its **index**
+  (`corpus-index/document-index.json`), not a peer of the ontology.
+
+Plus a curated **domain concept scheme** (`concept-scheme/domain-concept-scheme.json`,
+SKOS-style) — the protocol-stack skeleton `UE → AS/NAS → RRC/MAC/…/IMS`. It is **not** a
+separate layer; it's an adjunct of the ontology+KG (its concepts are KG instances of ontology
+types). It connects via:
+- ontology **types** each concept (`RRC` is a `ProtocolLayer`, `AS` a `Stratum`);
+- KG entities link up via **`IN_LAYER`** (the faceting axis);
+- concepts nest via **`BROADER`**; document index maps spec→concept ("covers").
+
+Uses: faceted navigation/scoping, cross-spec/cross-SDO anchoring (the stable hub for adding
+NAS/IMS/other SDOs), roll-up reasoning, and grounding/validation of extracted triples.
+
+Rebuilt 0/0: ontology **14 entity types / 22 relationship types**; KG **53 entities** (41
+extracted + 12 concepts) / **103 relations** (51 facts + 41 `IN_LAYER` + 11 `BROADER`).
+
 ## Store-agnostic
 
 All layers are plain JSON — deliberately neutral on the deferred RDF/SKOS-vs-property-graph store

@@ -1,8 +1,9 @@
 {
  "spec": "TS 38.331",
  "version": "19.2.0",
- "entity_count": 44,
- "relation_count": 51,
+ "entity_count": 53,
+ "relation_count": 103,
+ "concept_scheme": "UE-protocol-domain",
  "entities": [
   {
    "id": "P_setup",
@@ -456,43 +457,1023 @@
    }
   },
   {
-   "id": "L_mac",
-   "type": "ProtocolLayer",
-   "label": "MAC",
+   "id": "C_UE",
+   "type": "DomainRoot",
+   "label": "User Equipment",
+   "concept": true,
+   "in_scheme": "UE-protocol-domain",
+   "in_scope": true,
    "defined_in": {
-    "spec": "TS 38.321",
-    "version": null,
-    "clause": null,
-    "external": true
-   },
-   "domain_concept": "MAC"
+    "curated": true
+   }
   },
   {
-   "id": "L_rlc",
-   "type": "ProtocolLayer",
-   "label": "RLC",
+   "id": "C_AS",
+   "type": "Stratum",
+   "label": "Access Stratum",
+   "concept": true,
+   "in_scheme": "UE-protocol-domain",
+   "in_scope": true,
    "defined_in": {
-    "spec": "TS 38.322",
-    "version": null,
-    "clause": null,
-    "external": true
-   },
-   "domain_concept": "RLC"
+    "curated": true
+   }
   },
   {
-   "id": "L_pdcp",
-   "type": "ProtocolLayer",
-   "label": "PDCP",
+   "id": "C_NAS",
+   "type": "Stratum",
+   "label": "Non-Access Stratum",
+   "concept": true,
+   "in_scheme": "UE-protocol-domain",
+   "in_scope": true,
    "defined_in": {
-    "spec": "TS 38.323",
-    "version": null,
-    "clause": null,
-    "external": true
-   },
-   "domain_concept": "PDCP"
+    "curated": true
+   }
+  },
+  {
+   "id": "C_RRC",
+   "type": "ProtocolLayer",
+   "label": "Radio Resource Control",
+   "concept": true,
+   "in_scheme": "UE-protocol-domain",
+   "in_scope": true,
+   "defined_in": {
+    "curated": true
+   }
+  },
+  {
+   "id": "C_PDCP",
+   "type": "ProtocolLayer",
+   "label": "Packet Data Convergence Protocol",
+   "concept": true,
+   "in_scheme": "UE-protocol-domain",
+   "in_scope": true,
+   "defined_in": {
+    "curated": true
+   }
+  },
+  {
+   "id": "C_RLC",
+   "type": "ProtocolLayer",
+   "label": "Radio Link Control",
+   "concept": true,
+   "in_scheme": "UE-protocol-domain",
+   "in_scope": true,
+   "defined_in": {
+    "curated": true
+   }
+  },
+  {
+   "id": "C_MAC",
+   "type": "ProtocolLayer",
+   "label": "Medium Access Control",
+   "concept": true,
+   "in_scheme": "UE-protocol-domain",
+   "in_scope": true,
+   "defined_in": {
+    "curated": true
+   }
+  },
+  {
+   "id": "C_SDAP",
+   "type": "ProtocolLayer",
+   "label": "Service Data Adaptation Protocol",
+   "concept": true,
+   "in_scheme": "UE-protocol-domain",
+   "in_scope": false,
+   "defined_in": {
+    "curated": true
+   }
+  },
+  {
+   "id": "C_PHY",
+   "type": "ProtocolLayer",
+   "label": "Physical layer",
+   "concept": true,
+   "in_scheme": "UE-protocol-domain",
+   "in_scope": false,
+   "defined_in": {
+    "curated": true
+   }
+  },
+  {
+   "id": "C_NAS-MM",
+   "type": "ProtocolLayer",
+   "label": "NAS Mobility Management",
+   "concept": true,
+   "in_scheme": "UE-protocol-domain",
+   "in_scope": false,
+   "defined_in": {
+    "curated": true
+   }
+  },
+  {
+   "id": "C_NAS-SM",
+   "type": "ProtocolLayer",
+   "label": "NAS Session Management",
+   "concept": true,
+   "in_scheme": "UE-protocol-domain",
+   "in_scope": false,
+   "defined_in": {
+    "curated": true
+   }
+  },
+  {
+   "id": "C_IMS",
+   "type": "ProtocolLayer",
+   "label": "IP Multimedia Subsystem",
+   "concept": true,
+   "in_scheme": "UE-protocol-domain",
+   "in_scope": false,
+   "defined_in": {
+    "curated": true
+   }
   }
  ],
  "relations": [
+  {
+   "id": "il_P_setup",
+   "type": "IN_LAYER",
+   "from": "P_setup",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_P_reconfig",
+   "type": "IN_LAYER",
+   "from": "P_reconfig",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_P_cellgroup",
+   "type": "IN_LAYER",
+   "from": "P_cellgroup",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_P_rbconfig",
+   "type": "IN_LAYER",
+   "from": "P_rbconfig",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_P_seckey",
+   "type": "IN_LAYER",
+   "from": "P_seckey",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_P_uac",
+   "type": "IN_LAYER",
+   "from": "P_uac",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_P_measconfig",
+   "type": "IN_LAYER",
+   "from": "P_measconfig",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_P_condreconfig",
+   "type": "IN_LAYER",
+   "from": "P_condreconfig",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_P_reest",
+   "type": "IN_LAYER",
+   "from": "P_reest",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_P_scgfail",
+   "type": "IN_LAYER",
+   "from": "P_scgfail",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_M_setupreq",
+   "type": "IN_LAYER",
+   "from": "M_setupreq",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_M_setup",
+   "type": "IN_LAYER",
+   "from": "M_setup",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_M_setupcomplete",
+   "type": "IN_LAYER",
+   "from": "M_setupcomplete",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_M_reject",
+   "type": "IN_LAYER",
+   "from": "M_reject",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_M_reconfig",
+   "type": "IN_LAYER",
+   "from": "M_reconfig",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_M_reconfigcomplete",
+   "type": "IN_LAYER",
+   "from": "M_reconfigcomplete",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_IE_ueid",
+   "type": "IN_LAYER",
+   "from": "IE_ueid",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_IE_estcause",
+   "type": "IN_LAYER",
+   "from": "IE_estcause",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_IE_rbconfig",
+   "type": "IN_LAYER",
+   "from": "IE_rbconfig",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_IE_mastercg",
+   "type": "IN_LAYER",
+   "from": "IE_mastercg",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_IE_secondarycg",
+   "type": "IN_LAYER",
+   "from": "IE_secondarycg",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_IE_measconfig",
+   "type": "IN_LAYER",
+   "from": "IE_measconfig",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_IE_selplmn",
+   "type": "IN_LAYER",
+   "from": "IE_selplmn",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_IE_nasmsg",
+   "type": "IN_LAYER",
+   "from": "IE_nasmsg",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_IE_reconfigwithsync",
+   "type": "IN_LAYER",
+   "from": "IE_reconfigwithsync",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_IE_t304",
+   "type": "IN_LAYER",
+   "from": "IE_t304",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_IE_masterkeyupdate",
+   "type": "IN_LAYER",
+   "from": "IE_masterkeyupdate",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_IE_condreconfig",
+   "type": "IN_LAYER",
+   "from": "IE_condreconfig",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_T_t300",
+   "type": "IN_LAYER",
+   "from": "T_t300",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_T_t390",
+   "type": "IN_LAYER",
+   "from": "T_t390",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_T_t302",
+   "type": "IN_LAYER",
+   "from": "T_t302",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_T_t304",
+   "type": "IN_LAYER",
+   "from": "T_t304",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_T_t420",
+   "type": "IN_LAYER",
+   "from": "T_t420",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_S_idle",
+   "type": "IN_LAYER",
+   "from": "S_idle",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_S_connected",
+   "type": "IN_LAYER",
+   "from": "S_connected",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_B_srb1",
+   "type": "IN_LAYER",
+   "from": "B_srb1",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_E_ullreq",
+   "type": "IN_LAYER",
+   "from": "E_ullreq",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_E_t300exp",
+   "type": "IN_LAYER",
+   "from": "E_t300exp",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_E_t304exp",
+   "type": "IN_LAYER",
+   "from": "E_t304exp",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_V_condreconfig",
+   "type": "IN_LAYER",
+   "from": "V_condreconfig",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "il_C_assec",
+   "type": "IN_LAYER",
+   "from": "C_assec",
+   "to": "C_RRC",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": "TS 38.331",
+    "version": "19.2.0",
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "br_C_AS",
+   "type": "BROADER",
+   "from": "C_AS",
+   "to": "C_UE",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "br_C_NAS",
+   "type": "BROADER",
+   "from": "C_NAS",
+   "to": "C_UE",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "br_C_RRC",
+   "type": "BROADER",
+   "from": "C_RRC",
+   "to": "C_AS",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "br_C_PDCP",
+   "type": "BROADER",
+   "from": "C_PDCP",
+   "to": "C_AS",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "br_C_RLC",
+   "type": "BROADER",
+   "from": "C_RLC",
+   "to": "C_AS",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "br_C_MAC",
+   "type": "BROADER",
+   "from": "C_MAC",
+   "to": "C_AS",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "br_C_SDAP",
+   "type": "BROADER",
+   "from": "C_SDAP",
+   "to": "C_AS",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "br_C_PHY",
+   "type": "BROADER",
+   "from": "C_PHY",
+   "to": "C_AS",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "br_C_NAS-MM",
+   "type": "BROADER",
+   "from": "C_NAS-MM",
+   "to": "C_NAS",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "br_C_NAS-SM",
+   "type": "BROADER",
+   "from": "C_NAS-SM",
+   "to": "C_NAS",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
+  {
+   "id": "br_C_IMS",
+   "type": "BROADER",
+   "from": "C_IMS",
+   "to": "C_NAS",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "concept",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   }
+  },
   {
    "id": "r0",
    "type": "TRIGGERS",
@@ -1255,7 +2236,7 @@
    "id": "r45",
    "type": "ACTS_ON",
    "from": "P_reconfig",
-   "to": "L_rlc",
+   "to": "C_RLC",
    "modality": "prose",
    "confidence": "med",
    "procedure_ctx": "reconf",
@@ -1273,7 +2254,7 @@
    "id": "r46",
    "type": "ACTS_ON",
    "from": "P_reconfig",
-   "to": "L_pdcp",
+   "to": "C_PDCP",
    "modality": "prose",
    "confidence": "med",
    "procedure_ctx": "reconf",
@@ -1291,7 +2272,7 @@
    "id": "r47",
    "type": "ACTS_ON",
    "from": "P_reconfig",
-   "to": "L_mac",
+   "to": "C_MAC",
    "modality": "prose",
    "confidence": "med",
    "procedure_ctx": "reconf",

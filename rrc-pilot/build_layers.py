@@ -73,13 +73,19 @@ def build_corpus():
     write_json(os.path.join(CORPUS_DIR, "clauses.json"), corpus)
     return clauses, tree
 
-# --- 2. TAXONOMY (structure only, no text) ----------------------------------
-def build_taxonomy(tree):
-    doc_tax = {"organisation": M.ORG, "clause_tree": tree, "clause_count": len(tree)}
-    write_json(os.path.join(PILOT, "taxonomy/document-taxonomy.json"), doc_tax)
-    dom_tax = {"scheme": "UE protocol-domain taxonomy (SKOS-style)",
-               "concepts": M.DOMAIN_TAXONOMY}
-    write_json(os.path.join(PILOT, "taxonomy/domain-taxonomy.json"), dom_tax)
+# --- 2a. CORPUS INDEX (the document taxonomy — structure of the corpus) ------
+def build_corpus_index(tree):
+    idx = {"organisation": M.ORG, "clause_tree": tree, "clause_count": len(tree)}
+    write_json(os.path.join(PILOT, "corpus-index/document-index.json"), idx)
+
+# --- 2b. DOMAIN CONCEPT SCHEME (SKOS view) ----------------------------------
+def build_concept_scheme():
+    concepts = {cid: {"label": lbl, "type": typ, "broader": br, "in_scope": insc}
+                for cid, (lbl, typ, br, insc) in M.CONCEPTS.items()}
+    scheme = {"scheme": M.CONCEPT_SCHEME,
+              "note": "Curated protocol-stack concepts; each is a KG instance of its ontology type.",
+              "concepts": concepts}
+    write_json(os.path.join(PILOT, "concept-scheme/domain-concept-scheme.json"), scheme)
 
 # --- 3. ONTOLOGY (TBox) ------------------------------------------------------
 def build_ontology():
@@ -101,18 +107,34 @@ def parse_attrs(s):
     return {"note": s}
 
 def build_kg():
-    entities = []
+    entities, relations = [], []
+    # extracted entities
     for eid, (label, typ, clause, _gloss) in M.ENTITIES.items():
         ext = clause.startswith("TS ")
         prov = {"spec": clause if ext else M.SPEC,
                 "version": None if ext else M.VERSION,
-                "clause": None if ext else clause,
-                "external": ext}
-        ent = {"id": eid, "type": typ, "label": label, "defined_in": prov}
-        if eid in M.LAYER_CONCEPT:
-            ent["domain_concept"] = M.LAYER_CONCEPT[eid]
-        entities.append(ent)
-    relations = []
+                "clause": None if ext else clause, "external": ext}
+        entities.append({"id": eid, "type": typ, "label": label, "defined_in": prov})
+        # IN_LAYER: classify entity under its spec's protocol layer
+        layer = M.SPEC_LAYER.get(prov["spec"])
+        if layer:
+            relations.append({"id": "il_%s" % eid, "type": "IN_LAYER", "from": eid,
+                "to": layer, "modality": "curated", "confidence": "high",
+                "procedure_ctx": "concept", "attrs": {},
+                "provenance": {"spec": M.SPEC, "version": M.VERSION, "clause": None,
+                               "anchor": None, "curated": True}})
+    # concept-scheme entities (curated upper instances) + BROADER edges
+    for cid, (label, typ, broader, insc) in M.CONCEPTS.items():
+        entities.append({"id": cid, "type": typ, "label": label, "concept": True,
+                         "in_scheme": M.CONCEPT_SCHEME, "in_scope": insc,
+                         "defined_in": {"curated": True}})
+        if broader:
+            relations.append({"id": "br_%s" % cid, "type": "BROADER", "from": cid,
+                "to": broader, "modality": "curated", "confidence": "high",
+                "procedure_ctx": "concept", "attrs": {},
+                "provenance": {"spec": None, "version": None, "clause": None,
+                               "anchor": None, "curated": True}})
+    # extracted relations
     for i, (s, d, rel, mod, conf, clause, proc, attrs, quote) in enumerate(M.FACTS):
         relations.append({
             "id": "r%d" % i, "type": rel, "from": s, "to": d,
@@ -123,6 +145,7 @@ def build_kg():
         })
     kg = {"spec": M.SPEC, "version": M.VERSION,
           "entity_count": len(entities), "relation_count": len(relations),
+          "concept_scheme": M.CONCEPT_SCHEME,
           "entities": entities, "relations": relations}
     write_json(os.path.join(PILOT, "knowledge-graph/kg.json"), kg)
     return kg
@@ -145,11 +168,13 @@ def validate(kg, onto, clauses):
     for e in kg["entities"]:
         if e["type"] not in etypes:
             errs.append("entity %s has undeclared type %s" % (e["id"], e["type"]))
-    # entity provenance resolves into corpus (38.331 only)
+    # entity provenance resolves into corpus (38.331 only; curated/external skipped)
     for e in kg["entities"]:
         p = e["defined_in"]
-        if not p["external"] and p["clause"] not in clauses:
-            warns.append("entity %s defined_in clause %s not in corpus" % (e["id"], p["clause"]))
+        if p.get("curated") or p.get("external"):
+            continue
+        if p.get("clause") not in clauses:
+            warns.append("entity %s defined_in clause %s not in corpus" % (e["id"], p.get("clause")))
     # relations: types, domain/range, provenance
     for r in kg["relations"]:
         if r["type"] not in rtypes:
@@ -164,6 +189,8 @@ def validate(kg, onto, clauses):
             errs.append("relation %s (%s): from-type %s not in domain %s" % (r["id"], r["type"], ft, dom))
         if rng != ["*"] and tt and tt not in rng:
             errs.append("relation %s (%s): to-type %s not in range %s" % (r["id"], r["type"], tt, rng))
+        if r["provenance"].get("curated") or r["provenance"]["clause"] is None:
+            continue
         cl = r["provenance"]["clause"]
         if cl not in clauses:
             warns.append("relation %s provenance clause %s not in corpus" % (r["id"], cl))
@@ -178,15 +205,17 @@ def validate(kg, onto, clauses):
 
 def main():
     clauses, tree = build_corpus()
-    build_taxonomy(tree)
+    build_corpus_index(tree)
+    build_concept_scheme()
     onto = build_ontology()
     kg = build_kg()
     errs, warns = validate(kg, onto, clauses)
     print("=== RRC pilot layers built ===")
-    print("corpus  : %d clauses (38.331 %s)" % (len(clauses), M.VERSION))
-    print("taxonomy: document spine (%d clauses) + domain (%d concepts)" % (len(tree), len(M.DOMAIN_TAXONOMY)))
-    print("ontology: %d entity types, %d relationship types" % (len(onto["entity_types"]), len(onto["relationship_types"])))
-    print("kg      : %d entities, %d relations" % (kg["entity_count"], kg["relation_count"]))
+    print("corpus      : %d clauses (38.331 %s)" % (len(clauses), M.VERSION))
+    print("corpus-index: document spine (%d clauses)" % len(tree))
+    print("concept-scheme: %d domain concepts" % len(M.CONCEPTS))
+    print("ontology    : %d entity types (incl. hierarchy), %d relationship types" % (len(onto["entity_types"]), len(onto["relationship_types"])))
+    print("kg          : %d entities (incl. concepts), %d relations" % (kg["entity_count"], kg["relation_count"]))
     print("\n=== validation ===")
     print("errors  :", len(errs))
     for e in errs: print("  ERR ", e)

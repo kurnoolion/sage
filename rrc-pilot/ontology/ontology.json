@@ -1,22 +1,41 @@
 {
  "spec_scope": "TS 38.331 19.2.0",
  "entity_types": {
+  "Entity": {
+   "desc": "Root of the entity-type hierarchy.",
+   "subtype_of": null,
+   "attrs": []
+  },
+  "DomainRoot": {
+   "desc": "Top of the domain concept scheme (the UE).",
+   "subtype_of": "Entity",
+   "attrs": []
+  },
+  "Stratum": {
+   "desc": "A protocol stratum (Access / Non-Access).",
+   "subtype_of": "Entity",
+   "attrs": []
+  },
   "ProtocolLayer": {
    "desc": "A protocol-stack layer (RRC, MAC, RLC, PDCP, SDAP, PHY, NAS-MM/SM, IMS).",
+   "subtype_of": "Entity",
    "attrs": []
   },
   "Procedure": {
    "desc": "A UE behavioural procedure defined in a clause.",
+   "subtype_of": "Entity",
    "attrs": [
     "mode"
    ]
   },
   "Message": {
    "desc": "A signalling message (PDU).",
+   "subtype_of": "Entity",
    "attrs": []
   },
   "InformationElement": {
    "desc": "A field inside a message or another IE.",
+   "subtype_of": "Entity",
    "attrs": [
     "presence",
     "needCode",
@@ -25,32 +44,39 @@
   },
   "Timer": {
    "desc": "A protocol timer (Txxx).",
+   "subtype_of": "Entity",
    "attrs": [
     "value_domain"
    ]
   },
   "State": {
    "desc": "A UE RRC state.",
+   "subtype_of": "Entity",
    "attrs": []
   },
   "Event": {
    "desc": "A trigger or failure event (e.g. timer expiry, upper-layer request).",
+   "subtype_of": "Entity",
    "attrs": []
   },
   "Condition": {
    "desc": "A guarding condition on behaviour.",
+   "subtype_of": "Entity",
    "attrs": []
   },
   "Capability": {
    "desc": "A UE capability/feature.",
+   "subtype_of": "Entity",
    "attrs": []
   },
   "Bearer": {
    "desc": "A radio bearer (SRB/DRB/MRB).",
+   "subtype_of": "Entity",
    "attrs": []
   },
   "UEVariable": {
    "desc": "A named UE state store (Var...).",
+   "subtype_of": "Entity",
    "attrs": []
   }
  },
@@ -269,6 +295,37 @@
    "attrs": [
     "guard"
    ]
+  },
+  "IN_LAYER": {
+   "domain": [
+    "Procedure",
+    "Message",
+    "InformationElement",
+    "Timer",
+    "State",
+    "Event",
+    "Condition",
+    "Capability",
+    "Bearer",
+    "UEVariable"
+   ],
+   "range": [
+    "ProtocolLayer"
+   ],
+   "desc": "Classifies a domain entity under its protocol layer.",
+   "attrs": []
+  },
+  "BROADER": {
+   "domain": [
+    "ProtocolLayer",
+    "Stratum"
+   ],
+   "range": [
+    "Stratum",
+    "DomainRoot"
+   ],
+   "desc": "SKOS broader within the concept scheme.",
+   "attrs": []
   }
  },
  "edge_metadata": {
