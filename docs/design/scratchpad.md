@@ -490,3 +490,49 @@ newer 3GPP release than its Oct-2025 reqs.
 ## H.10 Next reads to finalize the contract
 NORA TDD **§6 Knowledge Graph Model**, `core/src/graph/builder.py`, **§7.3 Graph Scoping**,
 **§8.3 Compliance Agent**; inspect a real `reference_index.json` + `spec_parsed.json` to lock formats.
+
+## H.11 Resolutions (2026-06-07)
+
+**Boundary — DECIDED: anchor + augment.** Our KG is the authoritative 3GPP substrate; NORA's
+`standards/`+`taxonomy/` become consumers/adapters; proprietary MNO features with no 3GPP relation
+stay in NORA.
+
+**Requirement→3GPP anchoring — three tiers** (the link *type* carries the meaning):
+1. **Spec-behaviour** req (override/change a timer/IE/procedure) → fine-grained **delta** edge
+   (`OVERRIDES`/`EXTENDS`/`EXCLUDES`/`MANDATES`) to a *specific 3GPP entity*.
+2. **Feature-related** req (UX "turn on VoWiFi in settings"; entitlement "check eligibility";
+   enablement on/off) → **associative** edge (`CONCERNS`/`RELATES_TO`/typed `HAS_UX`/
+   `GATED_BY_ENTITLEMENT`) to the 3GPP **feature/concept** (VoWiFi) — NOT to a clause/entity.
+3. **Purely proprietary** (Android app UI etc.) → **no anchor**; NORA-only.
+- Mechanism: NORA `feature:VoWiFi` `maps_to` our concept `VoWiFi`; all tier-1/2 reqs attach to the
+  feature → transitively connected. The **concept scheme is the hub for the whole feature surface**
+  (spec behaviour + deltas + entitlement + UX) → compare MNOs' *complete* VoWiFi offering.
+- Caveats: feature↔concept is **many-to-many/optional** (MNO marketing bundles ≠ one 3GPP construct);
+  **entitlement is partly standardised (GSMA TS.43)** → today associative to the concept, **future
+  delta to a GSMA entity** once multi-SDO lands (the concept scheme is the multi-SDO hub for exactly
+  this). Keep tier-2 links clearly typed so they're never confused with compliance deltas.
+
+**Pipeline ownership — DECIDED: option A.** `3gpp-kg` owns the **entire 3GPP vertical**
+(download → parse → corpus → ontology → KG → change-tracking) and becomes a **standalone, general
+3GPP knowledge base** (not NORA-dependent). NORA owns the MNO vertical and consumes our outputs.
+- **Interface NORA → 3gpp-kg = a plain `(spec, release)` manifest** (NORA derives it from its
+  confidential citation index; hands us only the list). **No MNO data crosses into this repo.**
+- **Seam refinement**: the truly shared concern is **generic document extraction**
+  (PDF/DOC/DOCX → text/structure) — both projects need it → eventually a **shared library**.
+  *Download + 3GPP section-parse belong here* (3GPP-specific). Short-term: reuse NORA's `standards/`
+  ingest code (vendored, marked for extraction) to move fast; converge on the split later.
+
+**Coverage — DECIDED: driven by NORA's spec list.** We build the KG for the `(spec, release)` set
+NORA provides (MNO corpus is LTE-era: 24.301, 36.331, 24.008 …) — likely re-pointing from the
+current NR/IMS pilots. Build for **M specs × N releases** from that manifest.
+
+**Mixed-order / sparse ingestion — handled by design.** Snapshots-as-source + order-independent
+`derive()` ⇒ ingestion order irrelevant; re-derive on every addition/correction. Refinement for
+**non-contiguous releases**: change boundaries are resolved only to the granularity of *ingested*
+releases — `introduced_in` is the first **observed** release (a lower bound, `introduced_at_floor`),
+self-correcting as earlier releases land; boundaries recorded **relative to `observed_in`**, never
+fabricating an exact uningested release. Consumers treat `introduced_in` as observed-set-relative.
+
+**Still open (for the contract, after the NORA deep-read)**: id-alignment (feature/section/
+release_num ↔ our ids); the per-release **projection API** NORA consumes; the shared doc-extract
+library boundary; where/how delta + associative edges are represented (NORA-side vs shared ontology).
