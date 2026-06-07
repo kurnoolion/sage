@@ -221,14 +221,16 @@ def main():
     for e in errs: print("  ERR ", e)
     print("warnings:", len(warns))
     for w in warns: print("  warn", w)
-    if "--no-view" not in sys.argv:                 # regenerate the KG viewer
+    if "--no-view" not in sys.argv:                 # regenerate the viewers
         import subprocess
-        viz = os.path.join(PILOT, "viz/build_kg_view.py")
-        try:
-            r = subprocess.run([sys.executable, viz], capture_output=True, text=True)
-            print("\n=== view ===\n" + (r.stdout or r.stderr).strip())
-        except Exception as ex:
-            print("view regeneration skipped:", ex)
+        print("\n=== views ===")
+        for v in ("viz/build_kg_view.py", "viz/build_concept_view.py"):
+            try:
+                r = subprocess.run([sys.executable, os.path.join(PILOT, v)],
+                                   capture_output=True, text=True)
+                print((r.stdout or r.stderr).strip())
+            except Exception as ex:
+                print("skipped %s: %s" % (v, ex))
     return 1 if errs else 0
 
 if __name__ == "__main__":

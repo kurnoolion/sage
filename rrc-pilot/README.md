@@ -67,15 +67,53 @@ in corpus clause `5.3.3.2`.
 | "Which timer does RRC setup start, and where is that defined?" | Knowledge graph |
 | "What exactly does the spec say at that point?" | Corpus |
 
-### Two adjuncts (not peer layers)
+### Three hierarchies — don't confuse them
 
-- **Domain concept scheme** (`concept-scheme/domain-concept-scheme.json`) — curated
-  protocol-stack skeleton `UE → AS/NAS → RRC/MAC/…/IMS` (SKOS-style). Each concept is a KG
-  instance of its ontology type and the cross-spec/SDO **hub**. *Example:* `RRC` is a
-  `ProtocolLayer`; `RRC —BROADER→ AS —BROADER→ UE`; `P_setup —IN_LAYER→ RRC`.
-- **Corpus index** (`corpus-index/document-index.json`) — the corpus's table of contents:
-  org chain + clause tree (titles only, no body). *Example:* `3GPP/RAN2 → series 38 → 38.331
-  → 5 → 5.3 → 5.3.3 → 5.3.3.2 "Initiation"`.
+There are **three** hierarchies. Only the **type hierarchy** lives in the ontology; the
+other two are their own files.
+
+| Hierarchy | Organizes | File | Tree edge |
+|---|---|---|---|
+| **Type hierarchy** | kinds of entities | `ontology/ontology.json` | `subtype_of` |
+| **Domain hierarchy** (concept scheme) | the protocol stack | `concept-scheme/domain-concept-scheme.json` | `broader` |
+| **Document hierarchy** (corpus index) | the spec's structure | `corpus-index/document-index.json` | `parent` |
+
+The **type hierarchy** was *folded into* the ontology: each entity type carries a
+`subtype_of` (root `Entity`), so there is no separate "type taxonomy" file — read
+`ontology.json` to see it. The other two were **not** folded in.
+
+#### Domain hierarchy (concept scheme)
+
+The curated protocol stack `UE → AS/NAS → RRC/MAC/…/IMS`, SKOS-style. Each concept is a KG
+**instance** whose `type` is an *ontology* entity type, and whose `broader` is its parent in
+the tree. KG entities attach via `IN_LAYER`. It's the cross-spec/SDO **hub**.
+
+*Example 1 — RRC (in v1 scope, populated):*
+```
+concept  C_RRC   type=ProtocolLayer   broader=C_AS        # C_RRC → C_AS → C_UE
+fact     P_setup (RRC connection establishment) --IN_LAYER--> C_RRC
+         (41 RRC entities currently classified here)
+```
+*Example 2 — IMS (out of v1 scope, empty until the IMS pilot):*
+```
+concept  C_IMS   type=ProtocolLayer   broader=C_NAS       # C_IMS → C_NAS → C_UE
+         (0 entities now; fills when TS 24.229 is modelled)
+```
+So `type` → ontology, `broader` → the domain tree, `IN_LAYER` → the KG. View it as a graph:
+`rrc-pilot/viz/concept-view.html` (top-down tree, each box showing its `IN_LAYER` count).
+
+#### Document hierarchy (corpus index)
+
+The corpus's table of contents: the org chain + clause tree (titles only, no body text).
+Each clause node carries a `parent`. It pairs with the **corpus** (same clause keys), and KG
+provenance / `DEFINED_IN` point at clauses indexed here.
+
+*Example:*
+```
+org        3GPP → TSG RAN → RAN2 → series 38 → TS 38.331 (Rel-19, v19.2.0)
+clause     5.3.3.2 "Initiation"   parent=5.3.3   (→ 5.3 → 5 → spec root)
+```
+Browse it visually via the **Corpus clauses** toggle in `kg-view.html`.
 
 **Why ontology/KG are kept separate from the corpus:** the structured layers are *selective*
 (you reason/traverse over them); the corpus is *complete/verbatim* (you retrieve exact
@@ -100,9 +138,13 @@ python3 rrc-pilot/build_layers.py        # builds + validates all layers, then r
 
 ## Viewing the KG (incremental)
 
-`build_layers.py` regenerates `rrc-pilot/viz/kg-view.html` — a **generic, data-driven,
-self-contained** viewer (the script `viz/build_kg_view.py` is reusable for any `kg.json`;
-the HTML is gitignored because it embeds spec prose). Open it via `file://` — no server.
+`build_layers.py` regenerates two self-contained viewers (HTML gitignored — embeds spec
+prose; the generator scripts under `viz/` are committed and reusable):
+- **`viz/kg-view.html`** — the knowledge graph (entities + relationships + corpus).
+- **`viz/concept-view.html`** — the **domain hierarchy** as a top-down tree (concepts +
+  `BROADER`), each concept showing its `IN_LAYER` entity count and v1-scope status.
+
+Open either via `file://` — no server.
 
 Workflow: **rebuild → refresh the browser tab.** The viewer:
 - colours nodes from the ontology's entity types and auto-builds **focus buttons** from the
