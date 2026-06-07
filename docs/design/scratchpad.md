@@ -1,196 +1,293 @@
 # Design scratch pad
 
-**Status**: living working notes — NOT authoritative. We distill this into the formal design
-doc later. Decided items live in `docs/compact/DECISIONS.md`; this captures reasoning, the
-not-yet-formalized change-tracking/derivation model, open decisions, and risks.
+**Status**: living working notes — NOT authoritative. This is the running capture of *all* our
+design discussions and explanations; we distill it into the formal design doc when ready.
+Terse decisions live in `docs/compact/DECISIONS.md` (D-001…); phase-0 findings in
+`docs/research/01–04`; the runnable baseline in `rrc-pilot/README.md`. This pad keeps the
+**reasoning and explanations** in one place.
 
-**Scope of this pad (so far)**: multi-release modelling + change tracking + the derivation
-pipeline shape. Established context (the 3 layers, ontology/KG/corpus split, concept scheme,
-extraction approach) is in `DECISIONS.md` D-001…D-011 and `rrc-pilot/README.md` — not repeated
-here except where change-tracking touches it.
-
----
-
-## 0. Established context (pointers, already decided)
-
-- 3 layers: **corpus** (verbatim, per-version), **ontology** (schema), **KG** (text-free
-  instances + provenance). [D-003, D-004]
-- KG indexes, doesn't re-encode; per-edge `modality`/`confidence`. [D-005]
-- Extensible seed schema. [D-006]; store deferred [D-007]; validation invariants
-  `KG ⊨ ontology`, `KG ⊨ corpus` [D-008].
-- Extraction = curated gold seed + few-shot + on-prem local model; deterministic-first;
-  validation guardrail; review queue. [D-010]
-- Multi-release = shared identity + versioned assertions; `Release` first-class; lifecycle
-  fields `observed_in`/`introduced_in`/`valid_until`/`supersedes`; provenance is a **per-version
-  list**. [D-011]
+## Contents
+- A. Project & approach (1–3)
+- B. Conceptual model — the explanations (4–10)
+- C. Artifacts, schema & invariants (11–13)
+- D. Versioning & change tracking (14–15)
+- E. Extraction pipeline (16)
+- F. Open decisions & risks (17)
+- G. Decision index (18)
 
 ---
 
-## 1. Foundation — the two commitments everything rests on
+# A. Project & approach
 
-**(a) Deterministic, semantic keys** (release-agnostic) so two releases' facts are recognized
-as the same fact:
-- **Entity key** = `type | canonical-name | layer`  (e.g. `Timer|T300|RRC`).
-- **Relation key** = `from-key | predicate | to-key [| role]`. Identity-affecting only;
-  `guard`/`direction`/`needCode`/value are **versioned attributes**, not part of the key.
-- **Attribute-timeline key** = `(owner-key, attribute-name)`  (e.g. `(Timer|T300|RRC, value)`).
-- **Assertion id** = content-derived (`owner|attr|valid_from`), so re-derivation is stable.
+## 1. What we're building / scope  [D-001]
+A **taxonomy + knowledge graph of UE-related 3GPP specifications** — and the corpus behind it.
+Deliverables are **data artifacts**, not an app. The MNO device-requirements Q&A bot (the original
+motivation) and any serving runtime are **out of scope**. UE-relevance is the standing filter.
+Possible future extension to GSMA / OMA / IETF (the concept scheme is the hub that makes that clean).
 
-> If ids were insertion-order/random, none of the diff/merge/idempotency works. Deterministic
-> content-derived ids are the linchpin.
+## 2. Prior work (lit review highlights)  [docs/research/01]
+- Existing 3GPP/telecom KG work is **RAG-first, not taxonomy-first** — KGs built to boost a bot,
+  so the ontologies are shallow/partial. A clean, validated UE taxonomy-as-artifact is the gap.
+- **UE-vs-network split is essentially unaddressed** (Telco-oRAG even says so).
+- Reusable from others: series-numbering as a corpus axis, typed nodes + provenance metadata,
+  hybrid deterministic+LLM extraction with triple validation, TSpec-LLM corpus, TeleQnA eval.
+- Not reusable: their ontologies (wrong WG — SA2/SA5, not RAN2/CT1; retrieval-shaped).
 
-**(b) Snapshots are the source of truth; the unified KG is a derived projection** (event-sourcing).
-- Each extraction run emits an **immutable per-`(spec, version)` snapshot**: sets of entity-keys,
-  relation-keys, attribute observations `(key → value)`, each with that version's provenance.
-- A **pure `derive()`** folds *all* snapshots + the alias map + review decisions → the unified KG
-  (with lifecycle + value-assertions). The unified KG is **never hand-mutated**; it's recomputed.
-- This single choice gives: order-independent diffs, idempotent re-ingest, minimal churn.
-
-```
-extract(version) ─► snapshot[(spec,version)]  (immutable, append-only)
-                         │
-   alias-map ──────────► derive()  ─►  unified KG (lifecycle + assertions, deterministic ids)
-   review-decisions ────►
-```
+## 3. Pilots & method
+- **RRC pilot** (TS 38.331): hand-curated a small KG from clauses **5.3.3** (connection
+  establishment) and **5.3.5** (reconfiguration) to *validate the schema/method*, not to be
+  complete. This produced the seed ontology and the granularity findings.
+- **IMS pilot** (TS 24.229): entire spec ingested into the corpus (2096 clauses, 488 tables,
+  6 MB). KG extraction is the upcoming pipeline (can't hand-author a 1000-page prose spec).
+- Method: hand-curate → validate schema → build extraction pipeline for scale.
 
 ---
 
-## 2. Computing `introduced_in` / `removed_in` / `supersedes`
+# B. Conceptual model — the explanations
 
-`derive()` walks releases ascending, reconciling by key.
+## 4. The three layers  [D-003]
+| | **Ontology** | **Knowledge graph** | **Corpus** |
+|---|---|---|---|
+| Role | the **schema** | the **data** | the **source** |
+| Holds | entity *types*, relationship *types* (`domain→range`), `subtype_of`, attributes | *instances* + typed relationships, **text-free**, with provenance refs | complete **verbatim** clause text (prose + ASN.1/tables), addressable |
+| Answers | "What **can** exist & relate?" | "What **does** exist & relate, and where?" | "What does the spec **actually say**?" |
+| Churn | small, stable | grows with each fact | fixed per spec version |
 
-**Presence lifecycle (entities & relations):**
-- key in snapshot N, unseen before → `introduced_in = N`, `observed_in = [N]`.
-- key in N and earlier → append N to `observed_in` (no lifecycle change).
-- key seen through N-1, **absent** in N → `removed_in = N`, `valid_until = N-1`.
+**One fact across all three** (`RRC connection establishment starts T300`):
+- Ontology: `Procedure`,`Timer` types + rule `STARTS: Procedure→Timer` (never names T300).
+- KG: `P_setup(Procedure) --STARTS--> T_t300(Timer)`, modality=prose, prov→clause 5.3.3.2 anchor "start timer T300" (no prose stored).
+- Corpus: clause 5.3.3.2 verbatim "…start timer T300…" (no notion of STARTS/Procedure).
 
-**Value lifecycle (`supersedes`) — per attribute timeline `(owner, attr)` with value `v_N`:**
-- no prior open assertion → open (`value=v_N, valid_from=N`).
-- `v_N == current open value` → extend (append N to its `observed_in`).
-- `v_N != current value` → **close** current (`valid_until = N-1`) + **open** new
-  (`value=v_N, valid_from=N, supersedes=<prev id>`).
+Connections: **KG→Ontology** (every `type` declared; endpoints obey `domain/range`) and
+**KG→Corpus** (provenance resolves). Both are enforced (see §13).
 
-`supersedes` is set exactly at a value change. A→B→A yields a 3-link chain (the second A is a new
-assertion) — correct, it changed twice.
+## 5. Taxonomy vs ontology
+A **taxonomy** is just a hierarchy (mostly is-a / broader-narrower). An **ontology** is the
+hierarchy **plus** arbitrary typed relationships (domain→range), attributes, and rules — it lets
+you *reason*, not just classify. So **an ontology contains a taxonomy**: a taxonomy is "an
+ontology with only is-a edges." → We folded the **type hierarchy into the ontology** (`subtype_of`,
+root `Entity`); there is no separate "type taxonomy" file. [D-004]
 
-**Caveats to bake in (honesty):**
-- **`introduced_in` at the corpus floor is a lower bound.** Earliest ingested release = Rel-15 ⇒
-  things there get `introduced_in = Rel-15` but we can't know about Rel-14. Flag
-  `introduced_at_floor: true`; don't assert false precision.
-- **Absence ≠ removal** (could be extraction miss). Prefer **explicit deletion signals** —
-  3GPP "Void" clauses, change marks — over inferring from absence; low-confidence disappearance →
-  **review item**, not auto `removed_in`.
+## 6. Ontology vs KG
+- **Ontology = schema (TBox)**: the *kinds* of things and *kinds* of links. Small, stable.
+- **KG = data (ABox)**: the *specific* things and links, with provenance. Large, grows.
+- Analogies: schema:rows, class:objects, grammar:sentences, legend:map.
+- The seam: every instance's `type` (instance-of) points back to the ontology; the
+  `domain/range` check is that relationship made operational. `P_setup —STARTS→ T_t300` is *valid*
+  only because the ontology declares `STARTS: Procedure→Timer`.
+- Subtlety: the **concept scheme** blurs the line — concepts (`RRC`) are KG *instances* of
+  ontology types yet act as schema-like vocabulary (normal for SKOS).
 
----
+## 7. Should 100% verbatim prose be in the ontology/KG?  — No  [D-003]
+Two goals with opposite success criteria: **structured reasoning** (ontology/KG — inherently
+*selective/lossy*; abstraction is the value) vs **retrieval of exact normative text** (corpus —
+*complete/verbatim*; for a compliance-grade spec the exact words are load-bearing). One artifact
+can't serve both. **Losslessness comes from the KG *linking* to the complete corpus, not from
+encoding prose as graph.** Coverage targets: ~100% **text** coverage in the corpus; ~100%
+**conceptual** coverage (vs competency questions) in the ontology/KG. Chasing text coverage in the
+KG is a non-goal and the way these projects drown.
 
-## 3. Value-assertions — keying & merging (SCD-2)
+## 8. The three hierarchies (don't confuse them)  [D-004]
+| Hierarchy | Organizes | File | Tree edge | In ontology? |
+|---|---|---|---|---|
+| **Type** | kinds of entities | `ontology/ontology.json` | `subtype_of` | **Yes (folded in)** |
+| **Domain** (concept scheme) | the protocol stack | `concept-scheme/domain-concept-scheme.json` | `broader` | No (adjunct) |
+| **Document** (corpus index) | the spec's structure | `corpus-index/document-index.json` | `parent` | No (pairs w/ corpus) |
 
-- Timeline keyed `(owner-key, attr-name)`; individual assertions are **segments** of it.
-- `derive()` collects per-release observations `release → value`, sorts by release, **coalesces
-  consecutive equal values into one segment** (`valid_from..valid_until`). Coalescing *is* the
-  merge.
-- Each segment carries its **own per-version provenance list** (releases/clauses asserting that
-  value).
-- Needs a **value-normalization** fn per attribute type (ASN.1 enum compared as a *set*; timer
-  compared numerically) — else cosmetic reordering yields false "changes". Real, testable
-  component.
-- Same machinery for **relation attributes** (changed `guard` = value-assertion on the relation,
-  not a new relation).
+- **Type**: `Entity → Procedure/Message/Timer/…` via `subtype_of`.
+- **Domain example**: `C_RRC(type ProtocolLayer) broader C_AS broader C_UE`; `P_setup IN_LAYER C_RRC`.
+- **Document example**: `3GPP/RAN2 → series 38 → 38.331 → 5 → 5.3 → 5.3.3 → 5.3.3.2 "Initiation"`.
 
----
+## 9. Domain concept scheme (DCS)
+- **What**: curated SKOS-style protocol stack `UE → AS/NAS → RRC/MAC/…/IMS`. Each concept is a KG
+  **instance** typed by the ontology (`RRC` is a `ProtocolLayer`, `AS` a `Stratum`).
+- **Why**: the stable **cross-release / cross-SDO hub** — the join point for adding NAS/IMS/other
+  SDOs; the primary faceting axis.
+- **How connected**: ontology **types** each concept; KG entities attach via **`IN_LAYER`**;
+  concepts nest via **`BROADER`**; document index maps spec→concept.
+- **How used**: faceted navigation/scoping ("all RRC procedures"), cross-spec anchoring, roll-up
+  reasoning (by stratum), and grounding/validation of extracted triples.
+- Viewable as a top-down tree: `rrc-pilot/viz/concept-view.html` (each concept shows its
+  `IN_LAYER` count + v1-scope).
 
-## 4. Churn-free re-ingestion of corrected versions
-
-3GPP ships many versions per release (v19.1.0 → v19.2.0 corrections).
-- **Re-ingest = replace that one `(spec, version)` snapshot** (idempotent by key) → **re-derive**.
-- **Content-derived ids + deterministically sorted output** ⇒ unchanged facts serialize
-  byte-identically ⇒ git/DB diff shows *only* what the correction changed. (Random ids would
-  reshuffle everything → false churn. This is *why* ids are deterministic.)
-- **Representative version per release**: KG keeps one version per release as the provenance
-  representative (latest within the release); a correction updates that entry
-  (`19.1.0 → 19.2.0`) + any changed facts. Sub-release churn doesn't leak into release-level
-  lifecycle.
-- Net: re-running the whole pipeline is safe and near-noiselessly idempotent.
-
----
-
-## 5. Review queue — renames & ambiguous merges
-
-Presence diff naively reads a **rename** as `remove(old)+introduce(new)` → severs identity/history.
-So `derive()` runs a **rename/merge detector** before finalizing.
-
-**Match a disappeared key (release N) against keys new in N, using signals:**
-- label similarity (edit distance), same type + layer;
-- **structural overlap** — shares most incident relations (renamed procedure keeps its edges) —
-  usually strongest;
-- same/adjacent clause; explicit spec signals (documented renames; `-rNN` suffix pattern).
-
-**Never auto-merge identity.** Above a similarity floor → **review item**:
-> "Possible rename: `oldKey` (gone Rel-N) ↔ `newKey` (new Rel-N) — sim 0.9, 7/8 shared neighbours.
-> [confirm-rename / keep-separate / split / merge]"
-
-- Human (domain-validator surface, D-010) decides → written to a **durable alias/decision file**
-  that feeds the *next* `derive()` (recorded once; re-derivation never re-asks).
-- On confirm-rename: old+new collapse to one identity; `introduced_in` inherits from old; node
-  gets `renamed_in: Rel-N`, `aka: [oldName]`.
-- Same queue absorbs: **value conflicts** (same key, different values in one release),
-  **splits/merges**, and **low-confidence LLM triples** that pass schema but were model-flagged.
+## 10. Granularity principle (asymmetric) + modality/confidence  [D-005]
+The KG **indexes** the specs, it does not **re-encode** them. Restraint is **asymmetric**:
+- **Layer C (ASN.1 containment)** — deterministic, cheap → **fully materialize** (even deep), with
+  presence attributes (`Need M/N/S`, `Cond …`).
+- **Layer D (behavioural prose)** — fuzzy, explosive → **selective**; materialize only edges that
+  answer a competency question; the exact nested `shall` logic stays in the linked corpus.
+Every edge carries `modality` (asn1/prose/curated) + `confidence`. **Competency questions are the
+test** for whether an edge earns its place. (Discovered on RRC 5.3.3/5.3.5; IMS is prose-only so
+the deterministic half largely vanishes — the real test of the discipline.)
 
 ---
 
-## 6. Implied pipeline architecture
+# C. Artifacts, schema & invariants
 
-```
-per-release:  UE-relevance filter → deterministic extractors → LLM extractor (few-shot)
-              → validate (KG ⊨ ontology, KG ⊨ corpus) → snapshot[(spec,version)]
-cross-release: derive(snapshots, alias-map, review-decisions) → unified KG
-              → emit review items for unresolved identity/conflict/low-confidence
-outputs: kg.json (deterministic, sorted) + review/*.md + views
-```
-- Deterministic + idempotent end-to-end; LLM only ever sees one release's text.
-- Lifecycle/history computed by `derive()`, never authored by the LLM.
+## 11. Artifact layout & commit policy  [D-009]
+| Artifact | Path | Committed? |
+|---|---|---|
+| Corpus store (verbatim clauses + tables, per version) | `corpus/store/<spec>-<ver>/clauses.json` | No (3GPP copyright) |
+| Document index (structure, per version) | `corpus/store/<…>/document-index.json` (RRC's at `rrc-pilot/corpus-index/`) | structure only |
+| Ontology (TBox) | `rrc-pilot/ontology/ontology.json` | Yes |
+| Concept scheme (DCS) | `rrc-pilot/concept-scheme/domain-concept-scheme.json` | Yes |
+| Knowledge graph (ABox) | `rrc-pilot/knowledge-graph/kg.json` | Yes (short anchors only) |
+| Tooling | `corpus/build_corpus.py`, `rrc-pilot/build_layers.py`, `rrc-pilot/viz/*.py` | Yes |
+| Generated viewer HTML | `rrc-pilot/viz/*.html` | No (embeds prose) |
+
+- Single source of truth for the RRC pilot facts: `rrc-pilot/rrc_model.py`; `build_layers.py`
+  compiles + validates + regenerates views. Corpus rebuilt from public specs via `build_corpus.py`.
+- **Store-agnostic JSON** for now [D-007] — doesn't prejudge RDF/SKOS vs property graph.
+- *Note (open)*: multi-spec layout — `rrc-pilot/` is RRC-named; the doc index lives in two
+  conventions (RRC under `rrc-pilot/corpus-index/`, IMS under `corpus/store/`). Reconcile into a
+  shared multi-spec layout (`specs/<spec>/…` + shared global `ontology/`, `concept-scheme/`).
+
+## 12. Schema seed (current — extensible) [D-006]
+**Entity types (15)**: Entity (root) · DomainRoot · Stratum · ProtocolLayer · Procedure · Message ·
+InformationElement · Timer · State · Event · Condition · Capability · Bearer · UEVariable · Release.
+**Relationship types (24)**: DEFINED_IN · CONTAINS · HAS_DOMAIN · EXCHANGES · REUSED_BY · STARTS ·
+STOPS · TRANSITIONS_TO · HAS_PRECONDITION · TRIGGERS · ALTERNATIVE_OUTCOME · ESTABLISHES · INVOKES ·
+ON_EXPIRY_OF · CONFIGURES · GOVERNS · READS · WRITES · ACTS_ON · ON_FAILURE_INVOKES · IN_LAYER ·
+BROADER · NEXT_RELEASE · SUPERSEDES.
+**Edge attrs**: modality, confidence, + relation-specific (direction, optional/needCode, guard, role).
+**Expected IMS additions**: NetworkElement/Role (UE, P-/S-/I-CSCF…), SIPMethod, SIPHeader,
+IdentityType, SIP timers. (Seed grows per spec; that's normal, not drift.)
+
+Schema-growth history (evidence it's working): RRC 5.3.3 → seed; 5.3.5 → +UEVariable, +CONFIGURES,
+ON_FAILURE_INVOKES, READS, WRITES, ACTS_ON, IE presence attrs, INVOKES guard; layer refactor →
++IN_LAYER/BROADER; versioning → +Release/NEXT_RELEASE/SUPERSEDES + lifecycle fields.
+
+## 13. Validation invariants  [D-008]
+Build must pass, zero errors:
+- **KG ⊨ ontology** — every entity/relation type declared; every relation's `from`/`to` obey the
+  declared `domain`/`range`.
+- **KG ⊨ corpus** — every (non-curated) provenance entry's clause resolves and its anchor locates
+  in that clause's text (incl. named ASN.1 sub-units like `6.2.2/RRCSetupRequest`).
+- **Release fields** — `observed_in`/`introduced_in`/`valid_until` ∈ known releases; `supersedes`
+  refs an existing id.
+These double as the **hallucination guardrail** for automated extraction (non-conforming triples
+rejected/queued).
 
 ---
 
-## 7. Open decisions to lock (candidates)
+# D. Versioning & change tracking
 
-- **D-012 (proposed): change-tracking / derivation model** — snapshots-as-truth + pure `derive()`
-  + content-derived ids + review queue (this whole pad). Record when we start the pipeline.
-- **`-rNN` suffix handling** — lean: keep the suffixed name as the canonical id (genuinely distinct
-  ASN.1 fields) but read the suffix as an `introduced_in` signal; only collapse `foo`↔`foo-r16`
-  via review/alias. Decide explicitly.
-- **Value normalization** per attribute type — define the canonical-form functions (enum=set, etc.).
-- **Removal-detection policy** — explicit Void/change-mark vs. absence; confidence threshold → review.
-- **Representative-version policy** — latest-in-release for provenance; confirm.
-- **`introduced_at_floor` flag** — adopt to mark lower-bound introductions.
-- **Rename-similarity floor** + which signals weighted how.
+## 14. Multi-release model  [D-011]
+Shared identity + versioned assertions (NOT separate graphs):
+- **Release-agnostic identity** — node id is semantic (`type+name+layer`), never the clause number.
+- **`Release` is first-class**, ordered via `NEXT_RELEASE`.
+- **Every entity/relation release-stamped**: `observed_in`, `introduced_in`, `valid_until`
+  (null=current), `supersedes`. Unchanged facts stored once with an open range → size O(distinct
+  facts), not O(facts × releases).
+- **Provenance is a per-version list** `[{release, spec, version, clause, anchor}, …]` — clause
+  recorded per version, so **renumbering is captured**, identity independent of clause number.
+- **Time-varying attributes = sets of immutable value-assertions** (SCD-2); all prior values kept.
+- **Lifecycle is computed, not extracted** (see §15).
 
-## 8. Risks / hard parts
+## 15. Change-tracking / derivation model  (proposed D-012)
 
-- **Name canonicalization** (suffixes, abbreviations, synonyms) — main source of bad merges → review.
-- **Absence-as-removal** unreliable → rely on explicit signals + confidence.
-- **Value normalization** sloppiness → false change history.
-- **Entity resolution at scale** — structural-overlap matching across thousands of nodes needs to
-  be efficient.
-- **`introduced_in` is only a lower bound** until the earliest relevant release is ingested.
-
-## 9. Worked examples
-
-**T300 value, two changes:**
+### 15.1 Foundation — two commitments everything rests on
+**(a) Deterministic semantic keys**: entity `type|canonical-name|layer`; relation
+`from|predicate|to[|role]` (attrs like guard/value are versioned, not in the key); attribute
+timeline `(owner-key, attr)`; assertion id content-derived (`owner|attr|valid_from`).
+**(b) Snapshots are the source of truth; the unified KG is a derived projection** (event-sourcing):
 ```
-A1 value=v1 valid Rel-15..Rel-16  (supersedes —)   prov: [Rel-15 §x, Rel-16 §y]
-A2 value=v2 valid Rel-17..Rel-18  (supersedes A1)   prov: [Rel-17 §z, Rel-18 §z]
-A3 value=v3 valid Rel-19..(open)  (supersedes A2)   prov: [Rel-19 §5.3.x]
+extract(version) → snapshot[(spec,version)]   (immutable, append-only)
+alias-map, review-decisions ─┐
+                             └→ derive() → unified KG (lifecycle + assertions, deterministic ids)
 ```
-"value at Rel-17" = segment covering Rel-17 (A2); "current" = A3; "history" = A1→A2→A3.
+The unified KG is never hand-mutated; it's recomputed. This gives order-independent diffs,
+idempotent re-ingest, minimal churn.
 
-**Clause renumbering (same fact):**
-```
-P_setup --STARTS--> T300
-  provenance: [ {Rel-17, v17, clause 5.3.3.4, "start timer T300"},
-                {Rel-19, v19, clause 5.3.3.2, "start timer T300"} ]   # number changed, fact didn't
-```
+### 15.2 Computing introduced_in / removed_in / supersedes
+Walk releases ascending, reconcile by key.
+- **Presence**: key new → `introduced_in=N`; in both → append `observed_in`; gone in N →
+  `removed_in=N`, `valid_until=N-1`.
+- **Value** (per `(owner,attr)` with value v_N): new → open; equal → extend; **changed → close
+  current (valid_until=N-1) + open new (supersedes=prev)**. A→B→A = 3-link chain (correct).
+- Caveats: `introduced_in` at the earliest ingested release is a **lower bound** (flag
+  `introduced_at_floor`); **absence ≠ removal** — prefer explicit "Void"/change-marks; low-confidence
+  disappearance → review.
 
-**Rename (review-gated):** `foo` gone in Rel-18, `bar` new in Rel-18, 0.9 similarity, 7/8 shared
-neighbours → review → confirm → unified node `bar` with `aka:[foo]`, `renamed_in: Rel-18`,
-`introduced_in` inherited from `foo`.
+### 15.3 Value-assertions — keying/merging (SCD-2)
+Timeline `(owner, attr)`; collect per-release `release→value`, sort, **coalesce consecutive equal
+values into segments** (`valid_from..valid_until`) — coalescing *is* the merge. Each segment carries
+its own provenance list. Needs a **value-normalization** fn per attr type (enum=set, timer=numeric)
+or you get false changes. Same for relation attributes (changed guard = value-assertion, not new edge).
+
+### 15.4 Churn-free re-ingestion of corrected versions
+Re-ingest = **replace that one `(spec,version)` snapshot** → re-derive. **Content-derived ids +
+sorted output** ⇒ unchanged facts serialize byte-identically ⇒ diff shows only real changes.
+**Representative version per release** (latest within release) for provenance; corrections update
+that entry + changed facts; sub-release churn doesn't leak into release-level lifecycle.
+
+### 15.5 Review queue — renames & ambiguous merges
+Presence diff naively reads a rename as remove+add (severs identity). A **detector** matches a
+disappeared key against new keys via: label similarity, same type+layer, **structural overlap**
+(shares most edges — strongest), adjacent clause, explicit signals (`-rNN`, documented renames).
+**Never auto-merge identity** — emit a **review item** (confirm-rename / keep-separate / split /
+merge). Human decision → **durable alias/decision file** feeding the next `derive()` (recorded once;
+never re-asked). On confirm: collapse to one identity, inherit `introduced_in`, add
+`renamed_in`/`aka`. Same queue: value conflicts, splits/merges, low-confidence LLM triples.
+
+---
+
+# E. Extraction pipeline
+
+## 16. Approach  [D-010]
+Curated **gold seed** of example facts per doc + a **few-shot prompt** (examples + ontology + clause
+text → schema-valid JSON triples); **deterministic pass first** (clause graph, cross-refs, SIP
+vocab, tables, roles) to provide canonical anchors; **on-prem local model** (OpenAI-compatible
+endpoint) does the behavioural prose extraction over **UE-relevant** clauses; outputs **validated**
+(§13), **deduplicated/entity-resolved**, low-confidence → **review queue**. Gold seed doubles as the
+precision/recall eval set. One shared ontology; per-doc examples + prompt; model-agnostic client.
+Pipeline shape:
+```
+per-release:  UE filter → deterministic extractors → LLM extractor → validate → snapshot
+cross-release: derive(snapshots, alias-map, review-decisions) → unified KG + review items + views
+```
+Division of labour: human owns schema/examples/prompt/validation; on-prem compute owns volume.
+
+---
+
+# F. Open decisions & risks
+
+## 17. Open / to-lock
+- **D-007** store choice (RDF/SKOS vs property graph) — defer until schema stabilizes across
+  RRC+IMS. Versioned facts: edge-properties (PG) vs reification/named-graphs-per-release (RDF).
+- **D-012** change-tracking/derivation model (this §15) — record when pipeline starts.
+- **`-rNN` suffix handling** — lean: keep suffixed name as canonical id; read suffix as
+  `introduced_in` signal; collapse only via review/alias.
+- **Value-normalization** functions per attribute type.
+- **Removal-detection** policy (explicit Void/change-mark vs absence + confidence).
+- **Representative-version** policy (latest-in-release).
+- **`introduced_at_floor`** flag adoption; **rename-similarity floor** + signal weighting.
+- **Multi-spec repo layout** (§11 note) — shared `specs/<spec>/` + global ontology/concept-scheme.
+- **Procedure modes vs variants** (RRC reconfig-with-sync cases) — research 03 §4.
+- **Stakeholder map / domain-validator + eval-data channels** — still TODO (PROJECT.md Open Qs).
+
+### Risks
+- Name canonicalization (suffixes/abbrevs/synonyms) — main source of bad merges → review.
+- Absence-as-removal unreliable → explicit signals + confidence.
+- Value-normalization sloppiness → false history.
+- Entity resolution at scale (structural matching over many nodes) must be efficient.
+- `introduced_in` only a lower bound until earliest relevant release ingested.
+- IMS is prose-only (no ASN.1 backbone) → behavioural-edge discipline under maximal stress.
+
+---
+
+# G. Decision index
+- **D-001** UE-focused taxonomy+KG; bot out of scope
+- **D-002** two hierarchies joined by DEFINED_IN
+- **D-003** three-layer separation; 100% text only in corpus
+- **D-004** type hierarchy folded into ontology; concept-scheme + corpus-index adjuncts
+- **D-005** granularity principle (asymmetric) + modality/confidence
+- **D-006** extensible seed schema
+- **D-007** store-agnostic now; store choice deferred *(open)*
+- **D-008** validation invariants (KG ⊨ ontology, KG ⊨ corpus)
+- **D-009** corpus copyright / commit policy
+- **D-010** extraction: curated seed + few-shot + on-prem model
+- **D-011** multi-release: shared identity + versioned assertions + per-version provenance
+- **D-012** *(proposed)* change-tracking / derivation model (§15)
+
+*(Full text in `docs/compact/DECISIONS.md`.)*
