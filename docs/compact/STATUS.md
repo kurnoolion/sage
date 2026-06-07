@@ -31,6 +31,8 @@
 - When schema stabilizes across RRC+IMS: promote four-layer separation + seed schema to `DECISIONS.md`; pick production store (RDF/SKOS vs property graph).
 - Then promote D1–D4 + the seed schema into `DECISIONS.md` and populate `PROJECT.md` / `requirements.md` (formal `/switch-phase requirements`).
 
+- 2026-06-07 Recorded design decisions **D-001…D-011** in `DECISIONS.md`. Baked **multi-release fields** (D-011) into the schema: `Release` entity type + `NEXT_RELEASE`/`SUPERSEDES`; every entity/relation stamped `observed_in`/`introduced_in`/`valid_until`/`supersedes` (now `Rel-19`); validation extended. Rebuilt 0/0.
+
 ## Flags
 
 - Stakeholder map deferred — no domain-validator or eval-data channel named yet (v1 risk).

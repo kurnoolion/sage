@@ -78,6 +78,11 @@
    "desc": "A named UE state store (Var...).",
    "subtype_of": "Entity",
    "attrs": []
+  },
+  "Release": {
+   "desc": "A 3GPP release (Rel-15…); ordered via NEXT_RELEASE.",
+   "subtype_of": "Entity",
+   "attrs": []
   }
  },
  "relationship_types": {
@@ -325,6 +330,26 @@
     "DomainRoot"
    ],
    "desc": "SKOS broader within the concept scheme.",
+   "attrs": []
+  },
+  "NEXT_RELEASE": {
+   "domain": [
+    "Release"
+   ],
+   "range": [
+    "Release"
+   ],
+   "desc": "Release ordering (Rel-N → Rel-N+1).",
+   "attrs": []
+  },
+  "SUPERSEDES": {
+   "domain": [
+    "*"
+   ],
+   "range": [
+    "*"
+   ],
+   "desc": "A versioned assertion supersedes a prior one.",
    "attrs": []
   }
  },

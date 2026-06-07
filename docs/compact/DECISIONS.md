@@ -134,6 +134,39 @@ validation + review queue contain hallucination.
 **Consequences**: Per-doc gold examples + prompt; one shared ontology; a model-agnostic client.
 Pipeline to be designed/built after the upcoming discussion.
 
+## D-011: Multi-release modelling — shared identity + versioned assertions
+**Status**: Active
+**Date**: 2026-06-07
+**Context**: We will ingest many 3GPP releases (Rel-15…19+) of each spec. A release is a
+snapshot of evolving entities; we must keep history without duplicating unchanged content.
+**Decision**:
+- **Corpus**: per-version snapshots (already), one frozen version per release; provenance is
+  `(spec, version, clause)` — already release-aware.
+- **Ontology + concept scheme**: cumulative / release-agnostic (one shared schema; new
+  types/concepts get an optional `introduced_in`).
+- **KG**:
+  1. **Release-agnostic entity identity** — ids are semantic (`type+name+layer`), never the
+     clause number (clauses renumber across releases). One node per logical entity.
+  2. **`Release` is a first-class entity** (ordered via `NEXT_RELEASE`).
+  3. **Every entity/relation/attribute is release-stamped** with `observed_in` (releases we've
+     ingested it from), `introduced_in`, `valid_until` (null = current), and `supersedes`.
+     Unchanged facts are stored once with an open range — size is O(distinct facts), not
+     O(facts × releases).
+  4. **Time-varying attributes are sets of immutable value-assertions** (SCD-2 / bitemporal):
+     a change adds a new assertion (`valid_from..valid_until` + provenance + `supersedes`); all
+     prior values are retained and independently traceable. Querying a value at release N =
+     the assertion whose range covers N; "current" = the open assertion.
+  5. **Lifecycle is computed, not extracted** — extract each release as an independent snapshot;
+     a deterministic **diff** step opens/closes assertions and builds the `supersedes` chain.
+**Why**: Shared identity + versioned assertions deduplicates, makes "what changed between
+releases" a first-class query, keeps the LLM reasoning about one release at a time, and
+preserves full history with per-release provenance.
+**Consequences**: Release fields are baked into the schema from day one (stamped `Rel-19` now;
+`introduced_in` backfilled by the diff as earlier releases land). Feeds **D-007**: versioned
+facts are edge-properties in a property graph vs. reification / named-graphs-per-release in RDF.
+**Alternatives considered**: Separate KG per release — rejected (massive duplication; no
+first-class change tracking; cross-release questions need graph diffs).
+
 <!--
 Template for new entries:
 

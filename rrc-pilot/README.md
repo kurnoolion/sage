@@ -120,6 +120,31 @@ Browse it visually via the **Corpus clauses** toggle in `kg-view.html`.
 normative text). 100% **text** coverage lives in the corpus; the ontology/KG aim for
 **conceptual** coverage vs. competency questions, not text coverage. See `docs/research/04-*`.
 
+## Multiple releases (D-011)
+
+Releases are modelled by **shared entity identity + versioned assertions**, not separate graphs:
+
+- **Identity is release-agnostic** — a node's id is semantic (`type+name+layer`), never the
+  clause number (clauses renumber across releases). `T300` is one node across all releases.
+- **`Release` is a first-class entity**, ordered via `NEXT_RELEASE` (`Rel-15 → … → Rel-19`).
+- **Every entity & relation is release-stamped**: `observed_in` (releases ingested from),
+  `introduced_in`, `valid_until` (null = current), `supersedes`. Unchanged facts are stored
+  once with an open range — size is O(distinct facts), not O(facts × releases).
+- **Time-varying attributes are sets of immutable value-assertions** (SCD-2). All prior values
+  are kept; e.g. T300:
+  ```
+  A1 value=v1 valid Rel-15..Rel-16   A2 value=v2 valid Rel-17..Rel-18 (supersedes A1)
+  A3 value=v3 valid Rel-19..(open)   (supersedes A2)
+  ```
+  "value at Rel-17" = the assertion covering Rel-17 (A2); "current" = the open one (A3); each
+  points at its own release's corpus clause.
+- **Lifecycle is computed, not extracted** — extract each release as an independent snapshot;
+  a deterministic diff opens/closes assertions and builds the `supersedes` chain.
+
+Corpus stays per-version (one frozen version per release); provenance is already
+`(spec, version, clause)`. Currently only Rel-19 is ingested, so everything is `observed_in:
+[Rel-19]` with `introduced_in: null` until earlier releases backfill it.
+
 ## Files
 
 - `rrc_model.py` — **single source of truth**: instances (FACTS), ontology (entity-type

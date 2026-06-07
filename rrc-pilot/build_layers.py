@@ -106,47 +106,66 @@ def parse_attrs(s):
         k, v = s.split(": ", 1); return {k.strip(): v.strip()}
     return {"note": s}
 
+def release_of(version):
+    try: return "Rel-%d" % int(str(version).split(".")[0])
+    except Exception: return None
+
+def life(version, agnostic=False):
+    """Lifecycle fields stamped on every entity/relation (D-011)."""
+    r = release_of(version)
+    return {"observed_in": ([] if agnostic or not r else [r]),
+            "introduced_in": None, "valid_until": None, "supersedes": None}
+
 def build_kg():
     entities, relations = [], []
+    cur = release_of(M.VERSION)
     # extracted entities
     for eid, (label, typ, clause, _gloss) in M.ENTITIES.items():
         ext = clause.startswith("TS ")
         prov = {"spec": clause if ext else M.SPEC,
                 "version": None if ext else M.VERSION,
                 "clause": None if ext else clause, "external": ext}
-        entities.append({"id": eid, "type": typ, "label": label, "defined_in": prov})
-        # IN_LAYER: classify entity under its spec's protocol layer
+        e = {"id": eid, "type": typ, "label": label, "defined_in": prov}
+        e.update(life(None if ext else M.VERSION))     # external: unknown release
+        entities.append(e)
         layer = M.SPEC_LAYER.get(prov["spec"])
         if layer:
-            relations.append({"id": "il_%s" % eid, "type": "IN_LAYER", "from": eid,
-                "to": layer, "modality": "curated", "confidence": "high",
-                "procedure_ctx": "concept", "attrs": {},
-                "provenance": {"spec": M.SPEC, "version": M.VERSION, "clause": None,
-                               "anchor": None, "curated": True}})
-    # concept-scheme entities (curated upper instances) + BROADER edges
+            r = {"id": "il_%s" % eid, "type": "IN_LAYER", "from": eid, "to": layer,
+                 "modality": "curated", "confidence": "high", "procedure_ctx": "concept",
+                 "attrs": {}, "provenance": {"spec": M.SPEC, "version": M.VERSION,
+                 "clause": None, "anchor": None, "curated": True}}
+            r.update(life(M.VERSION)); relations.append(r)
+    # concept-scheme entities (release-agnostic) + BROADER
     for cid, (label, typ, broader, insc) in M.CONCEPTS.items():
-        entities.append({"id": cid, "type": typ, "label": label, "concept": True,
-                         "in_scheme": M.CONCEPT_SCHEME, "in_scope": insc,
-                         "defined_in": {"curated": True}})
+        e = {"id": cid, "type": typ, "label": label, "concept": True,
+             "in_scheme": M.CONCEPT_SCHEME, "in_scope": insc, "defined_in": {"curated": True}}
+        e.update(life(None, agnostic=True)); entities.append(e)
         if broader:
-            relations.append({"id": "br_%s" % cid, "type": "BROADER", "from": cid,
-                "to": broader, "modality": "curated", "confidence": "high",
-                "procedure_ctx": "concept", "attrs": {},
-                "provenance": {"spec": None, "version": None, "clause": None,
-                               "anchor": None, "curated": True}})
+            r = {"id": "br_%s" % cid, "type": "BROADER", "from": cid, "to": broader,
+                 "modality": "curated", "confidence": "high", "procedure_ctx": "concept",
+                 "attrs": {}, "provenance": {"spec": None, "version": None, "clause": None,
+                 "anchor": None, "curated": True}}
+            r.update(life(None, agnostic=True)); relations.append(r)
+    # Release reference entities + NEXT_RELEASE timeline (D-011)
+    for rid in M.RELEASES:
+        e = {"id": rid, "type": "Release", "label": rid, "defined_in": {"curated": True}}
+        e.update(life(None, agnostic=True)); e["observed_in"] = [rid] if rid == cur else []
+        entities.append(e)
+    for a, b in zip(M.RELEASES, M.RELEASES[1:]):
+        r = {"id": "nx_%s" % b, "type": "NEXT_RELEASE", "from": a, "to": b,
+             "modality": "curated", "confidence": "high", "procedure_ctx": "_release",
+             "attrs": {}, "provenance": {"spec": None, "version": None, "clause": None,
+             "anchor": None, "curated": True}}
+        r.update(life(None, agnostic=True)); relations.append(r)
     # extracted relations
     for i, (s, d, rel, mod, conf, clause, proc, attrs, quote) in enumerate(M.FACTS):
-        relations.append({
-            "id": "r%d" % i, "type": rel, "from": s, "to": d,
-            "modality": mod, "confidence": conf, "procedure_ctx": proc,
-            "attrs": parse_attrs(attrs),
-            "provenance": {"spec": M.SPEC, "version": M.VERSION,
-                           "clause": clause, "anchor": quote},
-        })
-    kg = {"spec": M.SPEC, "version": M.VERSION,
+        r = {"id": "r%d" % i, "type": rel, "from": s, "to": d, "modality": mod,
+             "confidence": conf, "procedure_ctx": proc, "attrs": parse_attrs(attrs),
+             "provenance": {"spec": M.SPEC, "version": M.VERSION, "clause": clause, "anchor": quote}}
+        r.update(life(M.VERSION)); relations.append(r)
+    kg = {"spec": M.SPEC, "version": M.VERSION, "current_release": cur, "releases": M.RELEASES,
           "entity_count": len(entities), "relation_count": len(relations),
-          "concept_scheme": M.CONCEPT_SCHEME,
-          "entities": entities, "relations": relations}
+          "concept_scheme": M.CONCEPT_SCHEME, "entities": entities, "relations": relations}
     write_json(os.path.join(PILOT, "knowledge-graph/kg.json"), kg)
     return kg
 
@@ -201,6 +220,19 @@ def validate(kg, onto, clauses):
                 w = anc.split(" ")
                 if not any(" ".join(w[st:]) in hay for st in range(1, max(1, len(w) - 2))):
                     warns.append("relation %s anchor not found in %s: %r" % (r["id"], cl, anc[:40]))
+    # release lifecycle fields (D-011)
+    relset = set(getattr(M, "RELEASES", []))
+    allids = set(by_id) | {r["id"] for r in kg["relations"]}
+    def chk_life(obj, what):
+        for rid in obj.get("observed_in", []) or []:
+            if rid not in relset: errs.append("%s %s observed_in %s not a known release" % (what, obj["id"], rid))
+        for f in ("introduced_in", "valid_until"):
+            v = obj.get(f)
+            if v is not None and v not in relset: errs.append("%s %s %s=%s not a known release" % (what, obj["id"], f, v))
+        if obj.get("supersedes") is not None and obj["supersedes"] not in allids:
+            errs.append("%s %s supersedes unknown id %s" % (what, obj["id"], obj["supersedes"]))
+    for e in kg["entities"]: chk_life(e, "entity")
+    for r in kg["relations"]: chk_life(r, "relation")
     return errs, warns
 
 def main():

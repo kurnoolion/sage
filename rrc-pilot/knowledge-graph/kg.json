@@ -1,8 +1,16 @@
 {
  "spec": "TS 38.331",
  "version": "19.2.0",
- "entity_count": 53,
- "relation_count": 103,
+ "current_release": "Rel-19",
+ "releases": [
+  "Rel-15",
+  "Rel-16",
+  "Rel-17",
+  "Rel-18",
+  "Rel-19"
+ ],
+ "entity_count": 58,
+ "relation_count": 107,
  "concept_scheme": "UE-protocol-domain",
  "entities": [
   {
@@ -14,7 +22,13 @@
     "version": "19.2.0",
     "clause": "5.3.3",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "P_reconfig",
@@ -25,7 +39,13 @@
     "version": "19.2.0",
     "clause": "5.3.5",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "P_cellgroup",
@@ -36,7 +56,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.5",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "P_rbconfig",
@@ -47,7 +73,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.6",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "P_seckey",
@@ -58,7 +90,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.7",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "P_uac",
@@ -69,7 +107,13 @@
     "version": "19.2.0",
     "clause": "5.3.14",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "P_measconfig",
@@ -80,7 +124,13 @@
     "version": "19.2.0",
     "clause": "5.5.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "P_condreconfig",
@@ -91,7 +141,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.13",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "P_reest",
@@ -102,7 +158,13 @@
     "version": "19.2.0",
     "clause": "5.3.7",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "P_scgfail",
@@ -113,7 +175,13 @@
     "version": "19.2.0",
     "clause": "5.7.3",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "M_setupreq",
@@ -124,7 +192,13 @@
     "version": "19.2.0",
     "clause": "6.2.2/RRCSetupRequest",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "M_setup",
@@ -135,7 +209,13 @@
     "version": "19.2.0",
     "clause": "6.2.2/RRCSetup",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "M_setupcomplete",
@@ -146,7 +226,13 @@
     "version": "19.2.0",
     "clause": "6.2.2/RRCSetupComplete",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "M_reject",
@@ -157,7 +243,13 @@
     "version": "19.2.0",
     "clause": "6.2.2/RRCReject",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "M_reconfig",
@@ -168,7 +260,13 @@
     "version": "19.2.0",
     "clause": "6.2.2/RRCReconfiguration",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "M_reconfigcomplete",
@@ -179,7 +277,13 @@
     "version": "19.2.0",
     "clause": "6.2.2/RRCReconfigurationComplete",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "IE_ueid",
@@ -190,7 +294,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "IE_estcause",
@@ -201,7 +311,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "IE_rbconfig",
@@ -212,7 +328,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "IE_mastercg",
@@ -223,7 +345,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "IE_secondarycg",
@@ -234,7 +362,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "IE_measconfig",
@@ -245,7 +379,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "IE_selplmn",
@@ -256,7 +396,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "IE_nasmsg",
@@ -267,7 +413,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "IE_reconfigwithsync",
@@ -278,7 +430,13 @@
     "version": "19.2.0",
     "clause": "6.3.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "IE_t304",
@@ -289,7 +447,13 @@
     "version": "19.2.0",
     "clause": "6.3.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "IE_masterkeyupdate",
@@ -300,7 +464,13 @@
     "version": "19.2.0",
     "clause": "6.3.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "IE_condreconfig",
@@ -311,7 +481,13 @@
     "version": "19.2.0",
     "clause": "6.3.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "T_t300",
@@ -322,7 +498,13 @@
     "version": "19.2.0",
     "clause": "5.3.3",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "T_t390",
@@ -333,7 +515,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.4",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "T_t302",
@@ -344,7 +532,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.4",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "T_t304",
@@ -355,7 +549,13 @@
     "version": "19.2.0",
     "clause": "5.3.5",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "T_t420",
@@ -366,7 +566,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.8.3",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "S_idle",
@@ -377,7 +583,13 @@
     "version": "19.2.0",
     "clause": "4.2.1",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "S_connected",
@@ -388,7 +600,13 @@
     "version": "19.2.0",
     "clause": "4.2.1",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "B_srb1",
@@ -399,7 +617,13 @@
     "version": "19.2.0",
     "clause": "4.2.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "E_ullreq",
@@ -410,7 +634,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "E_t300exp",
@@ -421,7 +651,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.7",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "E_t304exp",
@@ -432,7 +668,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.8.3",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "V_condreconfig",
@@ -443,7 +685,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.13",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "C_assec",
@@ -454,7 +702,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.2",
     "external": false
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "C_UE",
@@ -465,7 +719,11 @@
    "in_scope": true,
    "defined_in": {
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "C_AS",
@@ -476,7 +734,11 @@
    "in_scope": true,
    "defined_in": {
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "C_NAS",
@@ -487,7 +749,11 @@
    "in_scope": true,
    "defined_in": {
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "C_RRC",
@@ -498,7 +764,11 @@
    "in_scope": true,
    "defined_in": {
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "C_PDCP",
@@ -509,7 +779,11 @@
    "in_scope": true,
    "defined_in": {
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "C_RLC",
@@ -520,7 +794,11 @@
    "in_scope": true,
    "defined_in": {
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "C_MAC",
@@ -531,7 +809,11 @@
    "in_scope": true,
    "defined_in": {
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "C_SDAP",
@@ -542,7 +824,11 @@
    "in_scope": false,
    "defined_in": {
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "C_PHY",
@@ -553,7 +839,11 @@
    "in_scope": false,
    "defined_in": {
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "C_NAS-MM",
@@ -564,7 +854,11 @@
    "in_scope": false,
    "defined_in": {
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "C_NAS-SM",
@@ -575,7 +869,11 @@
    "in_scope": false,
    "defined_in": {
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "C_IMS",
@@ -586,7 +884,73 @@
    "in_scope": false,
    "defined_in": {
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
+  },
+  {
+   "id": "Rel-15",
+   "type": "Release",
+   "label": "Rel-15",
+   "defined_in": {
+    "curated": true
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
+  },
+  {
+   "id": "Rel-16",
+   "type": "Release",
+   "label": "Rel-16",
+   "defined_in": {
+    "curated": true
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
+  },
+  {
+   "id": "Rel-17",
+   "type": "Release",
+   "label": "Rel-17",
+   "defined_in": {
+    "curated": true
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
+  },
+  {
+   "id": "Rel-18",
+   "type": "Release",
+   "label": "Rel-18",
+   "defined_in": {
+    "curated": true
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
+  },
+  {
+   "id": "Rel-19",
+   "type": "Release",
+   "label": "Rel-19",
+   "defined_in": {
+    "curated": true
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   }
  ],
  "relations": [
@@ -605,7 +969,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_P_reconfig",
@@ -622,7 +992,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_P_cellgroup",
@@ -639,7 +1015,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_P_rbconfig",
@@ -656,7 +1038,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_P_seckey",
@@ -673,7 +1061,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_P_uac",
@@ -690,7 +1084,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_P_measconfig",
@@ -707,7 +1107,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_P_condreconfig",
@@ -724,7 +1130,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_P_reest",
@@ -741,7 +1153,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_P_scgfail",
@@ -758,7 +1176,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_M_setupreq",
@@ -775,7 +1199,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_M_setup",
@@ -792,7 +1222,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_M_setupcomplete",
@@ -809,7 +1245,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_M_reject",
@@ -826,7 +1268,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_M_reconfig",
@@ -843,7 +1291,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_M_reconfigcomplete",
@@ -860,7 +1314,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_IE_ueid",
@@ -877,7 +1337,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_IE_estcause",
@@ -894,7 +1360,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_IE_rbconfig",
@@ -911,7 +1383,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_IE_mastercg",
@@ -928,7 +1406,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_IE_secondarycg",
@@ -945,7 +1429,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_IE_measconfig",
@@ -962,7 +1452,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_IE_selplmn",
@@ -979,7 +1475,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_IE_nasmsg",
@@ -996,7 +1498,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_IE_reconfigwithsync",
@@ -1013,7 +1521,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_IE_t304",
@@ -1030,7 +1544,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_IE_masterkeyupdate",
@@ -1047,7 +1567,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_IE_condreconfig",
@@ -1064,7 +1590,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_T_t300",
@@ -1081,7 +1613,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_T_t390",
@@ -1098,7 +1636,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_T_t302",
@@ -1115,7 +1659,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_T_t304",
@@ -1132,7 +1682,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_T_t420",
@@ -1149,7 +1705,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_S_idle",
@@ -1166,7 +1728,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_S_connected",
@@ -1183,7 +1751,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_B_srb1",
@@ -1200,7 +1774,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_E_ullreq",
@@ -1217,7 +1797,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_E_t300exp",
@@ -1234,7 +1820,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_E_t304exp",
@@ -1251,7 +1843,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_V_condreconfig",
@@ -1268,7 +1866,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "il_C_assec",
@@ -1285,7 +1889,13 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "br_C_AS",
@@ -1302,7 +1912,11 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "br_C_NAS",
@@ -1319,7 +1933,11 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "br_C_RRC",
@@ -1336,7 +1954,11 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "br_C_PDCP",
@@ -1353,7 +1975,11 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "br_C_RLC",
@@ -1370,7 +1996,11 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "br_C_MAC",
@@ -1387,7 +2017,11 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "br_C_SDAP",
@@ -1404,7 +2038,11 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "br_C_PHY",
@@ -1421,7 +2059,11 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "br_C_NAS-MM",
@@ -1438,7 +2080,11 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "br_C_NAS-SM",
@@ -1455,7 +2101,11 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "br_C_IMS",
@@ -1472,7 +2122,95 @@
     "clause": null,
     "anchor": null,
     "curated": true
-   }
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
+  },
+  {
+   "id": "nx_Rel-16",
+   "type": "NEXT_RELEASE",
+   "from": "Rel-15",
+   "to": "Rel-16",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "_release",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
+  },
+  {
+   "id": "nx_Rel-17",
+   "type": "NEXT_RELEASE",
+   "from": "Rel-16",
+   "to": "Rel-17",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "_release",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
+  },
+  {
+   "id": "nx_Rel-18",
+   "type": "NEXT_RELEASE",
+   "from": "Rel-17",
+   "to": "Rel-18",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "_release",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
+  },
+  {
+   "id": "nx_Rel-19",
+   "type": "NEXT_RELEASE",
+   "from": "Rel-18",
+   "to": "Rel-19",
+   "modality": "curated",
+   "confidence": "high",
+   "procedure_ctx": "_release",
+   "attrs": {},
+   "provenance": {
+    "spec": null,
+    "version": null,
+    "clause": null,
+    "anchor": null,
+    "curated": true
+   },
+   "observed_in": [],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r0",
@@ -1488,7 +2226,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.2",
     "anchor": "The UE initiates the procedure when upper layers request establishment of an RRC connection while the UE is in RRC_IDLE and it has acquired essential system information."
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r1",
@@ -1504,7 +2248,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.2",
     "anchor": "while the UE is in RRC_IDLE and it has acquired essential system information"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r2",
@@ -1522,7 +2272,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.2",
     "anchor": "initiate transmission of the RRCSetupRequest message in accordance with 5.3.3.3"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r3",
@@ -1540,7 +2296,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.4",
     "anchor": "The UE shall perform the following actions upon reception of the RRCSetup"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r4",
@@ -1558,7 +2320,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.4",
     "anchor": "set the content of RRCSetupComplete message as follows"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r5",
@@ -1574,7 +2342,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.1",
     "anchor": "Figure 5.3.3.1-2: RRC connection establishment, network reject"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r6",
@@ -1590,7 +2364,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.2",
     "anchor": "start timer T300"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r7",
@@ -1606,7 +2386,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.1",
     "anchor": "RRC connection establishment involves SRB1 establishment"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r8",
@@ -1622,7 +2408,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.4",
     "anchor": "enter RRC_CONNECTED"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r9",
@@ -1638,7 +2430,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.4",
     "anchor": "stop timer T300, T301, T319"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r10",
@@ -1654,7 +2452,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.4",
     "anchor": "stop timer T390 for all access categories"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r11",
@@ -1670,7 +2474,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.4",
     "anchor": "stop timer T302"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r12",
@@ -1686,7 +2496,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.2",
     "anchor": "perform the unified access control procedure as specified in 5.3.14"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r13",
@@ -1704,7 +2520,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.4",
     "anchor": "perform the cell group configuration procedure in accordance with the received masterCellGroup and as specified in 5.3.5.5"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r14",
@@ -1722,7 +2544,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.4",
     "anchor": "perform the radio bearer configuration procedure in accordance with the received radioBearerConfig and as specified in 5.3.5.6"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r15",
@@ -1738,7 +2566,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "anchor": "ue-Identity"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r16",
@@ -1754,7 +2588,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "anchor": "establishmentCause"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r17",
@@ -1770,7 +2610,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "anchor": "radioBearerConfig"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r18",
@@ -1786,7 +2632,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "anchor": "masterCellGroup"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r19",
@@ -1802,7 +2654,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "anchor": "selectedPLMN-Identity"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r20",
@@ -1818,7 +2676,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "anchor": "dedicatedNAS-Message"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r21",
@@ -1836,7 +2700,13 @@
     "version": "19.2.0",
     "clause": "5.3.7.8",
     "anchor": "Reception of the RRCSetup by the UE"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r22",
@@ -1852,7 +2722,13 @@
     "version": "19.2.0",
     "clause": "5.3.3.7",
     "anchor": "if timer T300 expires:"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r23",
@@ -1868,7 +2744,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.2",
     "anchor": "The Network may initiate the RRC reconfiguration procedure to a UE in RRC_CONNECTED"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r24",
@@ -1886,7 +2768,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.3",
     "anchor": "The UE shall perform the following actions upon reception of the RRCReconfiguration"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r25",
@@ -1904,7 +2792,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.3",
     "anchor": "RRCReconfigurationComplete"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r26",
@@ -1922,7 +2816,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "anchor": "radioBearerConfig"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r27",
@@ -1940,7 +2840,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "anchor": "secondaryCellGroup"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r28",
@@ -1958,7 +2864,13 @@
     "version": "19.2.0",
     "clause": "6.2.2",
     "anchor": "measConfig"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r29",
@@ -1976,7 +2888,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.3",
     "anchor": "if the RRCReconfiguration includes the masterCellGroup"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r30",
@@ -1994,7 +2912,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.3",
     "anchor": "if the RRCReconfiguration includes the masterKeyUpdate"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r31",
@@ -2012,7 +2936,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.3",
     "anchor": "if the RRCReconfiguration includes the conditionalReconfiguration"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r32",
@@ -2028,7 +2958,13 @@
     "version": "19.2.0",
     "clause": "6.3.2",
     "anchor": "reconfigurationWithSync"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r33",
@@ -2044,7 +2980,13 @@
     "version": "19.2.0",
     "clause": "6.3.2",
     "anchor": "t304"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r34",
@@ -2060,7 +3002,13 @@
     "version": "19.2.0",
     "clause": "6.3.2",
     "anchor": "t304"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r35",
@@ -2076,7 +3024,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.8.3",
     "anchor": "T304 expiry (Reconfiguration with sync Failure)"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r36",
@@ -2092,7 +3046,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.8.3",
     "anchor": "T304 of the MCG expires"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r37",
@@ -2108,7 +3068,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.8.3",
     "anchor": "if T420 expires"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r38",
@@ -2126,7 +3092,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.3",
     "anchor": "if the RRCReconfiguration includes the masterCellGroup"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r39",
@@ -2144,7 +3116,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.3",
     "anchor": "if the RRCReconfiguration message includes the radioBearerConfig"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r40",
@@ -2162,7 +3140,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.3",
     "anchor": "if the RRCReconfiguration includes the masterKeyUpdate"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r41",
@@ -2180,7 +3164,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.3",
     "anchor": "if the RRCReconfiguration message includes the measConfig"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r42",
@@ -2198,7 +3188,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.13.1",
     "anchor": "based on a received ConditionalReconfiguration IE"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r43",
@@ -2214,7 +3210,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.3",
     "anchor": "remove all the entries in the condReconfigList within the MCG and the SCG VarConditionalReconfig"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r44",
@@ -2230,7 +3232,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.13.1",
     "anchor": "the UE maintains two independent VarConditionalReconfig"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r45",
@@ -2248,7 +3256,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.3",
     "anchor": "release the RLC entity or entities as specified in TS 38.322"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r46",
@@ -2266,7 +3280,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.3",
     "anchor": "reconfigure the PDCP entity to release DAPS as specified in TS 38.323"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r47",
@@ -2284,7 +3304,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.3",
     "anchor": "reset the source MAC and release the source MAC configuration"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r48",
@@ -2300,7 +3326,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.2",
     "anchor": "is performed only when AS security has been activated"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r49",
@@ -2318,7 +3350,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.8.2",
     "anchor": "initiate the SCG failure information procedure as specified in clause 5.7.3"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   },
   {
    "id": "r50",
@@ -2336,7 +3374,13 @@
     "version": "19.2.0",
     "clause": "5.3.5.8.2",
     "anchor": "initiate the connection re-establishment procedure as specified in"
-   }
+   },
+   "observed_in": [
+    "Rel-19"
+   ],
+   "introduced_in": null,
+   "valid_until": null,
+   "supersedes": null
   }
  ]
 }

@@ -33,7 +33,16 @@ ENTITY_TYPES = {
     "Capability":         {"desc": "A UE capability/feature.", "subtype_of": "Entity", "attrs": []},
     "Bearer":             {"desc": "A radio bearer (SRB/DRB/MRB).", "subtype_of": "Entity", "attrs": []},
     "UEVariable":         {"desc": "A named UE state store (Var...).", "subtype_of": "Entity", "attrs": []},
+    "Release":            {"desc": "A 3GPP release (Rel-15…); ordered via NEXT_RELEASE.", "subtype_of": "Entity", "attrs": []},
 }
+
+# Release universe we plan to ingest (ordered). cur = derived from the spec version.
+RELEASES = ["Rel-15", "Rel-16", "Rel-17", "Rel-18", "Rel-19"]
+# Lifecycle fields stamped on every entity & relation (see D-011):
+#   observed_in: [Release]   releases we've actually ingested this fact from
+#   introduced_in: Release|None   (None = unknown until earlier releases land)
+#   valid_until: Release|None      (None = still current)
+#   supersedes: id|None            (for versioned/changed assertions)
 
 # Domain entity types that get classified under a ProtocolLayer via IN_LAYER.
 DOMAIN_ENTITY_TYPES = ["Procedure", "Message", "InformationElement", "Timer",
@@ -64,6 +73,9 @@ RELATIONSHIP_TYPES = {
     # links to the domain concept scheme
     "IN_LAYER":           (DOMAIN_ENTITY_TYPES, ["ProtocolLayer"], "Classifies a domain entity under its protocol layer.", []),
     "BROADER":            (["ProtocolLayer", "Stratum"], ["Stratum", "DomainRoot"], "SKOS broader within the concept scheme.", []),
+    # versioning (D-011)
+    "NEXT_RELEASE":       (["Release"], ["Release"], "Release ordering (Rel-N → Rel-N+1).", []),
+    "SUPERSEDES":         (["*"], ["*"], "A versioned assertion supersedes a prior one.", []),
 }
 
 # ---------------------------------------------------------------------------
