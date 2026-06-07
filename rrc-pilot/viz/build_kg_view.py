@@ -43,26 +43,44 @@ etypes = list(ONTO.get("entity_types", {}).keys()) or sorted({e["type"] for e in
 COLORS = {t: (BASE.get(t) or FALLBACK[i % len(FALLBACK)]) for i, t in enumerate(etypes)}
 CLAUSE_BG, CLAUSE_BORDER = "#fff7e6", "#b8860b"
 
-def prov_text(d):
-    if d.get("curated"):  return "Curated domain concept (concept scheme). Not from a clause."
-    if d.get("external"): return "Defined in external spec: %s" % d.get("spec")
-    c = CLAUSES.get(d.get("clause") or "")
-    if not c: return "(clause %s — corpus not loaded)" % d.get("clause")
+CURREL = KG.get("current_release")
+
+def pick(plist):
+    """Choose the provenance record to display: the current-release clause record if
+    present, else any clause record, else the first (external/curated)."""
+    plist = plist or [{"curated": True}]
+    crecs = [p for p in plist if p.get("clause")]
+    if crecs:
+        for p in crecs:
+            if p.get("release") == CURREL: return p
+        return crecs[0]
+    return plist[0]
+
+def prov_text(plist):
+    p = pick(plist)
+    if p.get("curated"):  return "Curated (concept scheme / release) — not from a clause."
+    if p.get("external"): return "Defined in external spec: %s" % p.get("spec")
+    c = CLAUSES.get(p.get("clause") or "")
+    if not c: return "(clause %s — corpus not loaded)" % p.get("clause")
     num = c.get("number");  num = num if (num and num[:1].isdigit()) else c["key"]
-    return "Clause %s — %s\n\n%s" % (num, c["title"], (c["text"] or "(container clause)")[:700])
+    extra = "" if len([x for x in plist if x.get("clause")]) < 2 else \
+            " [also: %s]" % ", ".join("%s§%s" % (x.get("release"), x.get("clause")) for x in plist if x.get("clause") and x is not p)
+    return "Clause %s — %s%s\n\n%s" % (num, c["title"], extra, (c["text"] or "(container clause)")[:700])
 
 # --- nodes: entities + concepts ---
 nodes = []
 for e in KG["entities"]:
-    t, isC, d = e["type"], e.get("concept", False), e["defined_in"]
-    bg = COLORS.get(t, "#999")
-    where = d.get("clause") or d.get("spec") or ("concept:" + (e.get("in_scheme") or ""))
+    t, isC = e["type"], e.get("concept", False)
+    bg = COLORS.get(t, "#999"); p = pick(e["defined_in"])
+    where = p.get("clause") or p.get("spec") or ("concept:" + (e.get("in_scheme") or ""))
     nodes.append({"id": e["id"], "label": e["label"], "group": t,
         "color": {"background": bg, "border": "#2c3e50"}, "borderWidth": 1,
         "size": SIZE.get(t, 15), "shape": "diamond" if isC else "dot", "font": {"size": 13},
         "title": "%s%s — %s" % (t, " · concept" if isC else "", where),
         "meta": {"kind": "concept" if isC else "entity", "type": t, "bg": bg,
-                 "defined_in": d, "prov": prov_text(d),
+                 "where": where, "prov": prov_text(e["defined_in"]),
+                 "observed_in": e.get("observed_in", []), "introduced_in": e.get("introduced_in"),
+                 "valid_until": e.get("valid_until"),
                  "in_scheme": e.get("in_scheme"), "in_scope": e.get("in_scope")}})
 
 # --- edges: KG relations ---
@@ -70,24 +88,25 @@ MODCOLOR = {"asn1":"#2c7fb8","prose":"#b0a8a0","curated":"#c9a0dc",
             "deterministic":"#d9c089","provenance":"#9aa0a6"}
 edges = []
 for r in KG["relations"]:
-    mod = r["modality"]; base = MODCOLOR.get(mod, "#b0a8a0")
+    mod = r["modality"]; base = MODCOLOR.get(mod, "#b0a8a0"); pp = pick(r["provenance"])
     attrs = ", ".join("%s: %s" % (k, v) for k, v in (r.get("attrs") or {}).items())
     edges.append({"id": r["id"], "from": r["from"], "to": r["to"], "label": r["type"],
         "arrows": "to", "dashes": (mod != "asn1"), "width": 1, "color": {"color": base},
         "font": {"size": 9, "align": "middle", "color": "#555"},
         "meta": {"kind": "rel", "rel": r["type"], "modality": mod, "basecolor": base,
-                 "confidence": r["confidence"], "clause": r["provenance"].get("clause"),
-                 "anchor": r["provenance"].get("anchor"), "attrs": attrs,
-                 "proc": r.get("procedure_ctx", "")}})
+                 "confidence": r["confidence"], "clause": pp.get("clause"),
+                 "anchor": pp.get("anchor"), "attrs": attrs, "proc": r.get("procedure_ctx", ""),
+                 "observed_in": r.get("observed_in", []), "introduced_in": r.get("introduced_in"),
+                 "valid_until": r.get("valid_until")}})
 
 # --- corpus clause nodes: provenance-referenced clauses + ancestors ---
 def cid(k): return "C_" + k.replace(".", "_").replace("/", "__")
 ref = set()
 for r in KG["relations"]:
-    c = r["provenance"].get("clause")
+    c = pick(r["provenance"]).get("clause")
     if c in CLAUSES: ref.add(c)
 for e in KG["entities"]:
-    c = e["defined_in"].get("clause")
+    c = pick(e["defined_in"]).get("clause")
     if c in CLAUSES: ref.add(c)
 spine = set()
 for c in ref:
@@ -112,7 +131,7 @@ for k in spine:                                            # clause tree
                      "basecolor": MODCOLOR["deterministic"], "confidence": "high",
                      "clause": k, "anchor": "", "attrs": "document tree", "proc": "_spine"}})
 for e in KG["entities"]:                                   # DEFINED_IN into the spine
-    c = e["defined_in"].get("clause")
+    c = pick(e["defined_in"]).get("clause")
     if c in spine:
         edges.append({"id": "di_" + e["id"], "from": e["id"], "to": cid(c), "label": "DEFINED_IN",
             "arrows": "to", "dashes": True, "width": 1, "color": {"color": MODCOLOR["provenance"]},
@@ -216,13 +235,13 @@ function showStats(){{
 }}
 
 function showNode(id){{
-  const n=nodes.get(id),m=n.meta,d=m.defined_in;
-  let where = d.curated?("curated · scheme "+(m.in_scheme||'')+(m.in_scope===false?" (out of v1 scope)":""))
-            : d.external?("external spec "+d.spec) : (SPEC+", clause "+d.clause);
+  const n=nodes.get(id),m=n.meta;
+  const life=`observed ${{(m.observed_in||[]).join(', ')||'—'}} · introduced ${{m.introduced_in||'?'}} · valid until ${{m.valid_until||'current'}}`;
   panel.innerHTML=`<h2>${{esc(n.label)}}${{NEW.has(id)?' <span class="badge" style="background:#2ecc71">NEW</span>':''}}</h2>
    <span class="badge" style="background:${{m.bg}}">${{m.type}}${{m.kind==='concept'?' · concept':''}}</span>
-   <div class="kv"><b>${{m.kind==='concept'?'Concept':'DEFINED_IN'}}:</b> ${{esc(where)}}</div>
-   <div class="modline">${{d.curated?'curated domain concept:':'resolved from the corpus document store:'}}</div>
+   <div class="kv"><b>Defined in:</b> ${{esc(m.where)}}</div>
+   <div class="kv"><b>Releases:</b> ${{esc(life)}}</div>
+   <div class="modline">resolved from the corpus document store:</div>
    <pre class="spec">${{esc(m.prov)}}</pre>`;
 }}
 function showEdge(id){{
@@ -231,6 +250,7 @@ function showEdge(id){{
    <span class="badge" style="background:#444">${{m.rel}}</span>
    <span class="badge" style="background:${{m.modality=='asn1'?'#2c7fb8':'#b0772f'}}">${{m.modality}}</span>
    <span class="badge" style="background:#777">conf: ${{m.confidence}}</span>
+   <div class="kv"><b>Releases:</b> observed ${{(m.observed_in||[]).join(', ')||'—'}}${{m.valid_until?(' · valid until '+m.valid_until):' · current'}}</div>
    ${{m.clause?`<div class="kv"><b>Provenance:</b> clause ${{esc(m.clause)}}</div>`:''}}
    ${{m.attrs?`<div class="kv"><b>Attributes:</b> ${{esc(m.attrs)}}</div>`:''}}
    ${{m.anchor?`<div class="kv"><b>Anchor:</b></div><pre class="spec">${{esc(m.anchor)}}</pre>`:''}}`;

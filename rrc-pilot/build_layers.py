@@ -116,52 +116,55 @@ def life(version, agnostic=False):
     return {"observed_in": ([] if agnostic or not r else [r]),
             "introduced_in": None, "valid_until": None, "supersedes": None}
 
+CURATED = [{"curated": True}]   # provenance for hand-curated facts (concepts, releases, scheme links)
+
 def build_kg():
     entities, relations = [], []
     cur = release_of(M.VERSION)
+    # provenance is a PER-VERSION LIST (D-011): one entry per release/version observed,
+    # each with that version's clause/anchor — so clause renumbering across releases is
+    # recorded, never assumed stable.
+    def clause_prov(clause, anchor=None):
+        return [{"release": cur, "spec": M.SPEC, "version": M.VERSION,
+                 "clause": clause, "anchor": anchor}]
     # extracted entities
     for eid, (label, typ, clause, _gloss) in M.ENTITIES.items():
         ext = clause.startswith("TS ")
-        prov = {"spec": clause if ext else M.SPEC,
-                "version": None if ext else M.VERSION,
-                "clause": None if ext else clause, "external": ext}
-        e = {"id": eid, "type": typ, "label": label, "defined_in": prov}
+        defined_in = [{"external": True, "spec": clause}] if ext else clause_prov(clause)
+        e = {"id": eid, "type": typ, "label": label, "defined_in": defined_in}
         e.update(life(None if ext else M.VERSION))     # external: unknown release
         entities.append(e)
-        layer = M.SPEC_LAYER.get(prov["spec"])
+        layer = M.SPEC_LAYER.get(M.SPEC if not ext else clause)
         if layer:
             r = {"id": "il_%s" % eid, "type": "IN_LAYER", "from": eid, "to": layer,
                  "modality": "curated", "confidence": "high", "procedure_ctx": "concept",
-                 "attrs": {}, "provenance": {"spec": M.SPEC, "version": M.VERSION,
-                 "clause": None, "anchor": None, "curated": True}}
+                 "attrs": {}, "provenance": CURATED}
             r.update(life(M.VERSION)); relations.append(r)
     # concept-scheme entities (release-agnostic) + BROADER
     for cid, (label, typ, broader, insc) in M.CONCEPTS.items():
         e = {"id": cid, "type": typ, "label": label, "concept": True,
-             "in_scheme": M.CONCEPT_SCHEME, "in_scope": insc, "defined_in": {"curated": True}}
+             "in_scheme": M.CONCEPT_SCHEME, "in_scope": insc, "defined_in": CURATED}
         e.update(life(None, agnostic=True)); entities.append(e)
         if broader:
             r = {"id": "br_%s" % cid, "type": "BROADER", "from": cid, "to": broader,
                  "modality": "curated", "confidence": "high", "procedure_ctx": "concept",
-                 "attrs": {}, "provenance": {"spec": None, "version": None, "clause": None,
-                 "anchor": None, "curated": True}}
+                 "attrs": {}, "provenance": CURATED}
             r.update(life(None, agnostic=True)); relations.append(r)
     # Release reference entities + NEXT_RELEASE timeline (D-011)
     for rid in M.RELEASES:
-        e = {"id": rid, "type": "Release", "label": rid, "defined_in": {"curated": True}}
+        e = {"id": rid, "type": "Release", "label": rid, "defined_in": CURATED}
         e.update(life(None, agnostic=True)); e["observed_in"] = [rid] if rid == cur else []
         entities.append(e)
     for a, b in zip(M.RELEASES, M.RELEASES[1:]):
         r = {"id": "nx_%s" % b, "type": "NEXT_RELEASE", "from": a, "to": b,
              "modality": "curated", "confidence": "high", "procedure_ctx": "_release",
-             "attrs": {}, "provenance": {"spec": None, "version": None, "clause": None,
-             "anchor": None, "curated": True}}
+             "attrs": {}, "provenance": CURATED}
         r.update(life(None, agnostic=True)); relations.append(r)
     # extracted relations
     for i, (s, d, rel, mod, conf, clause, proc, attrs, quote) in enumerate(M.FACTS):
         r = {"id": "r%d" % i, "type": rel, "from": s, "to": d, "modality": mod,
              "confidence": conf, "procedure_ctx": proc, "attrs": parse_attrs(attrs),
-             "provenance": {"spec": M.SPEC, "version": M.VERSION, "clause": clause, "anchor": quote}}
+             "provenance": clause_prov(clause, quote)}
         r.update(life(M.VERSION)); relations.append(r)
     kg = {"spec": M.SPEC, "version": M.VERSION, "current_release": cur, "releases": M.RELEASES,
           "entity_count": len(entities), "relation_count": len(relations),
@@ -187,13 +190,13 @@ def validate(kg, onto, clauses):
     for e in kg["entities"]:
         if e["type"] not in etypes:
             errs.append("entity %s has undeclared type %s" % (e["id"], e["type"]))
-    # entity provenance resolves into corpus (38.331 only; curated/external skipped)
+    # entity provenance resolves into corpus (per-version list; curated/external skipped)
     for e in kg["entities"]:
-        p = e["defined_in"]
-        if p.get("curated") or p.get("external"):
-            continue
-        if p.get("clause") not in clauses:
-            warns.append("entity %s defined_in clause %s not in corpus" % (e["id"], p.get("clause")))
+        for p in e["defined_in"]:
+            if p.get("curated") or p.get("external") or p.get("version") != M.VERSION:
+                continue
+            if p.get("clause") not in clauses:
+                warns.append("entity %s defined_in clause %s not in corpus" % (e["id"], p.get("clause")))
     # relations: types, domain/range, provenance
     for r in kg["relations"]:
         if r["type"] not in rtypes:
@@ -208,14 +211,16 @@ def validate(kg, onto, clauses):
             errs.append("relation %s (%s): from-type %s not in domain %s" % (r["id"], r["type"], ft, dom))
         if rng != ["*"] and tt and tt not in rng:
             errs.append("relation %s (%s): to-type %s not in range %s" % (r["id"], r["type"], tt, rng))
-        if r["provenance"].get("curated") or r["provenance"]["clause"] is None:
-            continue
-        cl = r["provenance"]["clause"]
-        if cl not in clauses:
-            warns.append("relation %s provenance clause %s not in corpus" % (r["id"], cl))
-        else:                                   # anchor should locate in clause (incl child units)
-            hay = haystack(cl)
-            anc = (r["provenance"]["anchor"] or "").strip(" .;:,")
+        for p in r["provenance"]:               # per-version provenance list
+            if p.get("curated") or p.get("external") or p.get("clause") is None:
+                continue
+            if p.get("version") != M.VERSION:   # corpus for that version not loaded here
+                continue
+            cl = p["clause"]
+            if cl not in clauses:
+                warns.append("relation %s provenance clause %s not in corpus" % (r["id"], cl)); continue
+            hay = haystack(cl)                  # anchor should locate in clause (incl child units)
+            anc = (p.get("anchor") or "").strip(" .;:,")
             if anc and anc not in hay:
                 w = anc.split(" ")
                 if not any(" ".join(w[st:]) in hay for st in range(1, max(1, len(w) - 2))):

@@ -141,9 +141,16 @@ Releases are modelled by **shared entity identity + versioned assertions**, not 
 - **Lifecycle is computed, not extracted** — extract each release as an independent snapshot;
   a deterministic diff opens/closes assertions and builds the `supersedes` chain.
 
-Corpus stays per-version (one frozen version per release); provenance is already
-`(spec, version, clause)`. Currently only Rel-19 is ingested, so everything is `observed_in:
-[Rel-19]` with `introduced_in: null` until earlier releases backfill it.
+- **Provenance is a per-version list** — `[{release, spec, version, clause, anchor}, …]`, one
+  entry per release the fact was observed in. The **clause number is recorded per version**, so
+  renumbering across releases is captured, never assumed stable; identity (the `(s,p,o)` over
+  semantic ids) is independent of the clause number. Each entry's anchor is validated against
+  *its own* version's corpus store. A renumber-only change just adds a provenance entry (merge);
+  a content change is a supersede (new assertion). Removed/Void → `valid_until` set.
+
+Corpus stays per-version (one frozen version per release). Currently only Rel-19 is ingested, so
+everything is `observed_in: [Rel-19]`, single-entry provenance, `introduced_in: null` until
+earlier releases backfill it.
 
 ## Files
 

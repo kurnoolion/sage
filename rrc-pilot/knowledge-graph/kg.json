@@ -17,12 +17,15 @@
    "id": "P_setup",
    "type": "Procedure",
    "label": "RRC connection establishment",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -34,12 +37,15 @@
    "id": "P_reconfig",
    "type": "Procedure",
    "label": "RRC reconfiguration",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -51,12 +57,15 @@
    "id": "P_cellgroup",
    "type": "Procedure",
    "label": "Cell group configuration",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.5",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.5",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -68,12 +77,15 @@
    "id": "P_rbconfig",
    "type": "Procedure",
    "label": "Radio bearer configuration",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.6",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.6",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -85,12 +97,15 @@
    "id": "P_seckey",
    "type": "Procedure",
    "label": "AS security key update",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.7",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.7",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -102,12 +117,15 @@
    "id": "P_uac",
    "type": "Procedure",
    "label": "Unified access control",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.14",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.14",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -119,12 +137,15 @@
    "id": "P_measconfig",
    "type": "Procedure",
    "label": "Measurement configuration",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.5.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.5.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -136,12 +157,15 @@
    "id": "P_condreconfig",
    "type": "Procedure",
    "label": "Conditional reconfiguration",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.13",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.13",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -153,12 +177,15 @@
    "id": "P_reest",
    "type": "Procedure",
    "label": "RRC connection re-establishment",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.7",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.7",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -170,12 +197,15 @@
    "id": "P_scgfail",
    "type": "Procedure",
    "label": "SCG failure information",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.7.3",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.7.3",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -187,12 +217,15 @@
    "id": "M_setupreq",
    "type": "Message",
    "label": "RRCSetupRequest",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2/RRCSetupRequest",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2/RRCSetupRequest",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -204,12 +237,15 @@
    "id": "M_setup",
    "type": "Message",
    "label": "RRCSetup",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2/RRCSetup",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2/RRCSetup",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -221,12 +257,15 @@
    "id": "M_setupcomplete",
    "type": "Message",
    "label": "RRCSetupComplete",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2/RRCSetupComplete",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2/RRCSetupComplete",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -238,12 +277,15 @@
    "id": "M_reject",
    "type": "Message",
    "label": "RRCReject",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2/RRCReject",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2/RRCReject",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -255,12 +297,15 @@
    "id": "M_reconfig",
    "type": "Message",
    "label": "RRCReconfiguration",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2/RRCReconfiguration",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2/RRCReconfiguration",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -272,12 +317,15 @@
    "id": "M_reconfigcomplete",
    "type": "Message",
    "label": "RRCReconfigurationComplete",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2/RRCReconfigurationComplete",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2/RRCReconfigurationComplete",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -289,12 +337,15 @@
    "id": "IE_ueid",
    "type": "InformationElement",
    "label": "ue-Identity",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -306,12 +357,15 @@
    "id": "IE_estcause",
    "type": "InformationElement",
    "label": "establishmentCause",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -323,12 +377,15 @@
    "id": "IE_rbconfig",
    "type": "InformationElement",
    "label": "radioBearerConfig",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -340,12 +397,15 @@
    "id": "IE_mastercg",
    "type": "InformationElement",
    "label": "masterCellGroup",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -357,12 +417,15 @@
    "id": "IE_secondarycg",
    "type": "InformationElement",
    "label": "secondaryCellGroup",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -374,12 +437,15 @@
    "id": "IE_measconfig",
    "type": "InformationElement",
    "label": "measConfig",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -391,12 +457,15 @@
    "id": "IE_selplmn",
    "type": "InformationElement",
    "label": "selectedPLMN-Identity",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -408,12 +477,15 @@
    "id": "IE_nasmsg",
    "type": "InformationElement",
    "label": "dedicatedNAS-Message",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -425,12 +497,15 @@
    "id": "IE_reconfigwithsync",
    "type": "InformationElement",
    "label": "reconfigurationWithSync",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.3.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.3.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -442,12 +517,15 @@
    "id": "IE_t304",
    "type": "InformationElement",
    "label": "t304",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.3.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.3.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -459,12 +537,15 @@
    "id": "IE_masterkeyupdate",
    "type": "InformationElement",
    "label": "masterKeyUpdate",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.3.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.3.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -476,12 +557,15 @@
    "id": "IE_condreconfig",
    "type": "InformationElement",
    "label": "conditionalReconfiguration",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.3.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.3.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -493,12 +577,15 @@
    "id": "T_t300",
    "type": "Timer",
    "label": "T300",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -510,12 +597,15 @@
    "id": "T_t390",
    "type": "Timer",
    "label": "T390",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.4",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.4",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -527,12 +617,15 @@
    "id": "T_t302",
    "type": "Timer",
    "label": "T302",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.4",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.4",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -544,12 +637,15 @@
    "id": "T_t304",
    "type": "Timer",
    "label": "T304",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -561,12 +657,15 @@
    "id": "T_t420",
    "type": "Timer",
    "label": "T420",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.8.3",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.8.3",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -578,12 +677,15 @@
    "id": "S_idle",
    "type": "State",
    "label": "RRC_IDLE",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "4.2.1",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "4.2.1",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -595,12 +697,15 @@
    "id": "S_connected",
    "type": "State",
    "label": "RRC_CONNECTED",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "4.2.1",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "4.2.1",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -612,12 +717,15 @@
    "id": "B_srb1",
    "type": "Bearer",
    "label": "SRB1",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "4.2.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "4.2.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -629,12 +737,15 @@
    "id": "E_ullreq",
    "type": "Event",
    "label": "Upper-layer establishment request",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -646,12 +757,15 @@
    "id": "E_t300exp",
    "type": "Event",
    "label": "T300 expiry",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.7",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.7",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -663,12 +777,15 @@
    "id": "E_t304exp",
    "type": "Event",
    "label": "T304 expiry",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.8.3",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.8.3",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -680,12 +797,15 @@
    "id": "V_condreconfig",
    "type": "UEVariable",
    "label": "VarConditionalReconfig",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.13",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.13",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -697,12 +817,15 @@
    "id": "C_assec",
    "type": "Condition",
    "label": "AS security activated",
-   "defined_in": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.2",
-    "external": false
-   },
+   "defined_in": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.2",
+     "anchor": null
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -717,9 +840,11 @@
    "concept": true,
    "in_scheme": "UE-protocol-domain",
    "in_scope": true,
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -732,9 +857,11 @@
    "concept": true,
    "in_scheme": "UE-protocol-domain",
    "in_scope": true,
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -747,9 +874,11 @@
    "concept": true,
    "in_scheme": "UE-protocol-domain",
    "in_scope": true,
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -762,9 +891,11 @@
    "concept": true,
    "in_scheme": "UE-protocol-domain",
    "in_scope": true,
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -777,9 +908,11 @@
    "concept": true,
    "in_scheme": "UE-protocol-domain",
    "in_scope": true,
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -792,9 +925,11 @@
    "concept": true,
    "in_scheme": "UE-protocol-domain",
    "in_scope": true,
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -807,9 +942,11 @@
    "concept": true,
    "in_scheme": "UE-protocol-domain",
    "in_scope": true,
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -822,9 +959,11 @@
    "concept": true,
    "in_scheme": "UE-protocol-domain",
    "in_scope": false,
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -837,9 +976,11 @@
    "concept": true,
    "in_scheme": "UE-protocol-domain",
    "in_scope": false,
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -852,9 +993,11 @@
    "concept": true,
    "in_scheme": "UE-protocol-domain",
    "in_scope": false,
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -867,9 +1010,11 @@
    "concept": true,
    "in_scheme": "UE-protocol-domain",
    "in_scope": false,
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -882,9 +1027,11 @@
    "concept": true,
    "in_scheme": "UE-protocol-domain",
    "in_scope": false,
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -894,9 +1041,11 @@
    "id": "Rel-15",
    "type": "Release",
    "label": "Rel-15",
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -906,9 +1055,11 @@
    "id": "Rel-16",
    "type": "Release",
    "label": "Rel-16",
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -918,9 +1069,11 @@
    "id": "Rel-17",
    "type": "Release",
    "label": "Rel-17",
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -930,9 +1083,11 @@
    "id": "Rel-18",
    "type": "Release",
    "label": "Rel-18",
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -942,9 +1097,11 @@
    "id": "Rel-19",
    "type": "Release",
    "label": "Rel-19",
-   "defined_in": {
-    "curated": true
-   },
+   "defined_in": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -963,13 +1120,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -986,13 +1141,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1009,13 +1162,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1032,13 +1183,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1055,13 +1204,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1078,13 +1225,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1101,13 +1246,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1124,13 +1267,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1147,13 +1288,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1170,13 +1309,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1193,13 +1330,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1216,13 +1351,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1239,13 +1372,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1262,13 +1393,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1285,13 +1414,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1308,13 +1435,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1331,13 +1456,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1354,13 +1477,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1377,13 +1498,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1400,13 +1519,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1423,13 +1540,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1446,13 +1561,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1469,13 +1582,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1492,13 +1603,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1515,13 +1624,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1538,13 +1645,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1561,13 +1666,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1584,13 +1687,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1607,13 +1708,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1630,13 +1729,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1653,13 +1750,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1676,13 +1771,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1699,13 +1792,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1722,13 +1813,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1745,13 +1834,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1768,13 +1855,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1791,13 +1876,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1814,13 +1897,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1837,13 +1918,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1860,13 +1939,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1883,13 +1960,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -1906,13 +1981,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -1927,13 +2000,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -1948,13 +2019,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -1969,13 +2038,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -1990,13 +2057,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -2011,13 +2076,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -2032,13 +2095,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -2053,13 +2114,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -2074,13 +2133,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -2095,13 +2152,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -2116,13 +2171,11 @@
    "confidence": "high",
    "procedure_ctx": "concept",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -2137,13 +2190,11 @@
    "confidence": "high",
    "procedure_ctx": "_release",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -2158,13 +2209,11 @@
    "confidence": "high",
    "procedure_ctx": "_release",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -2179,13 +2228,11 @@
    "confidence": "high",
    "procedure_ctx": "_release",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -2200,13 +2247,11 @@
    "confidence": "high",
    "procedure_ctx": "_release",
    "attrs": {},
-   "provenance": {
-    "spec": null,
-    "version": null,
-    "clause": null,
-    "anchor": null,
-    "curated": true
-   },
+   "provenance": [
+    {
+     "curated": true
+    }
+   ],
    "observed_in": [],
    "introduced_in": null,
    "valid_until": null,
@@ -2221,12 +2266,15 @@
    "confidence": "med",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.2",
-    "anchor": "The UE initiates the procedure when upper layers request establishment of an RRC connection while the UE is in RRC_IDLE and it has acquired essential system information."
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.2",
+     "anchor": "The UE initiates the procedure when upper layers request establishment of an RRC connection while the UE is in RRC_IDLE and it has acquired essential system information."
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2243,12 +2291,15 @@
    "confidence": "med",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.2",
-    "anchor": "while the UE is in RRC_IDLE and it has acquired essential system information"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.2",
+     "anchor": "while the UE is in RRC_IDLE and it has acquired essential system information"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2267,12 +2318,15 @@
    "attrs": {
     "direction": "UE->NW"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.2",
-    "anchor": "initiate transmission of the RRCSetupRequest message in accordance with 5.3.3.3"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.2",
+     "anchor": "initiate transmission of the RRCSetupRequest message in accordance with 5.3.3.3"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2291,12 +2345,15 @@
    "attrs": {
     "direction": "NW->UE"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.4",
-    "anchor": "The UE shall perform the following actions upon reception of the RRCSetup"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.4",
+     "anchor": "The UE shall perform the following actions upon reception of the RRCSetup"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2315,12 +2372,15 @@
    "attrs": {
     "direction": "UE->NW"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.4",
-    "anchor": "set the content of RRCSetupComplete message as follows"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.4",
+     "anchor": "set the content of RRCSetupComplete message as follows"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2337,12 +2397,15 @@
    "confidence": "med",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.1",
-    "anchor": "Figure 5.3.3.1-2: RRC connection establishment, network reject"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.1",
+     "anchor": "Figure 5.3.3.1-2: RRC connection establishment, network reject"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2359,12 +2422,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.2",
-    "anchor": "start timer T300"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.2",
+     "anchor": "start timer T300"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2381,12 +2447,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.1",
-    "anchor": "RRC connection establishment involves SRB1 establishment"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.1",
+     "anchor": "RRC connection establishment involves SRB1 establishment"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2403,12 +2472,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.4",
-    "anchor": "enter RRC_CONNECTED"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.4",
+     "anchor": "enter RRC_CONNECTED"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2425,12 +2497,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.4",
-    "anchor": "stop timer T300, T301, T319"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.4",
+     "anchor": "stop timer T300, T301, T319"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2447,12 +2522,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.4",
-    "anchor": "stop timer T390 for all access categories"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.4",
+     "anchor": "stop timer T390 for all access categories"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2469,12 +2547,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.4",
-    "anchor": "stop timer T302"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.4",
+     "anchor": "stop timer T302"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2491,12 +2572,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.2",
-    "anchor": "perform the unified access control procedure as specified in 5.3.14"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.2",
+     "anchor": "perform the unified access control procedure as specified in 5.3.14"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2515,12 +2599,15 @@
    "attrs": {
     "guard": "presence of masterCellGroup"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.4",
-    "anchor": "perform the cell group configuration procedure in accordance with the received masterCellGroup and as specified in 5.3.5.5"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.4",
+     "anchor": "perform the cell group configuration procedure in accordance with the received masterCellGroup and as specified in 5.3.5.5"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2539,12 +2626,15 @@
    "attrs": {
     "guard": "presence of radioBearerConfig"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.4",
-    "anchor": "perform the radio bearer configuration procedure in accordance with the received radioBearerConfig and as specified in 5.3.5.6"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.4",
+     "anchor": "perform the radio bearer configuration procedure in accordance with the received radioBearerConfig and as specified in 5.3.5.6"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2561,12 +2651,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "anchor": "ue-Identity"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": "ue-Identity"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2583,12 +2676,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "anchor": "establishmentCause"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": "establishmentCause"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2605,12 +2701,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "anchor": "radioBearerConfig"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": "radioBearerConfig"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2627,12 +2726,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "anchor": "masterCellGroup"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": "masterCellGroup"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2649,12 +2751,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "anchor": "selectedPLMN-Identity"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": "selectedPLMN-Identity"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2671,12 +2776,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "anchor": "dedicatedNAS-Message"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": "dedicatedNAS-Message"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2695,12 +2803,15 @@
    "attrs": {
     "role": "re-establishment fallback"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.7.8",
-    "anchor": "Reception of the RRCSetup by the UE"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.7.8",
+     "anchor": "Reception of the RRCSetup by the UE"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2717,12 +2828,15 @@
    "confidence": "high",
    "procedure_ctx": "estab",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.3.7",
-    "anchor": "if timer T300 expires:"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.3.7",
+     "anchor": "if timer T300 expires:"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2739,12 +2853,15 @@
    "confidence": "med",
    "procedure_ctx": "reconf",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.2",
-    "anchor": "The Network may initiate the RRC reconfiguration procedure to a UE in RRC_CONNECTED"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.2",
+     "anchor": "The Network may initiate the RRC reconfiguration procedure to a UE in RRC_CONNECTED"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2763,12 +2880,15 @@
    "attrs": {
     "direction": "NW->UE"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.3",
-    "anchor": "The UE shall perform the following actions upon reception of the RRCReconfiguration"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.3",
+     "anchor": "The UE shall perform the following actions upon reception of the RRCReconfiguration"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2787,12 +2907,15 @@
    "attrs": {
     "direction": "UE->NW"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.3",
-    "anchor": "RRCReconfigurationComplete"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.3",
+     "anchor": "RRCReconfigurationComplete"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2811,12 +2934,15 @@
    "attrs": {
     "presence": "Need M"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "anchor": "radioBearerConfig"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": "radioBearerConfig"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2835,12 +2961,15 @@
    "attrs": {
     "presence": "Cond SCG"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "anchor": "secondaryCellGroup"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": "secondaryCellGroup"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2859,12 +2988,15 @@
    "attrs": {
     "presence": "Need M"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.2.2",
-    "anchor": "measConfig"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.2.2",
+     "anchor": "measConfig"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2883,12 +3015,15 @@
    "attrs": {
     "note": "presence-referenced"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.3",
-    "anchor": "if the RRCReconfiguration includes the masterCellGroup"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.3",
+     "anchor": "if the RRCReconfiguration includes the masterCellGroup"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2907,12 +3042,15 @@
    "attrs": {
     "note": "presence-referenced"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.3",
-    "anchor": "if the RRCReconfiguration includes the masterKeyUpdate"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.3",
+     "anchor": "if the RRCReconfiguration includes the masterKeyUpdate"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2931,12 +3069,15 @@
    "attrs": {
     "note": "presence-referenced"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.3",
-    "anchor": "if the RRCReconfiguration includes the conditionalReconfiguration"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.3",
+     "anchor": "if the RRCReconfiguration includes the conditionalReconfiguration"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2953,12 +3094,15 @@
    "confidence": "high",
    "procedure_ctx": "reconf",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.3.2",
-    "anchor": "reconfigurationWithSync"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.3.2",
+     "anchor": "reconfigurationWithSync"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2975,12 +3119,15 @@
    "confidence": "high",
    "procedure_ctx": "reconf",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.3.2",
-    "anchor": "t304"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.3.2",
+     "anchor": "t304"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -2997,12 +3144,15 @@
    "confidence": "high",
    "procedure_ctx": "reconf",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "6.3.2",
-    "anchor": "t304"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "6.3.2",
+     "anchor": "t304"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3019,12 +3169,15 @@
    "confidence": "high",
    "procedure_ctx": "reconf",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.8.3",
-    "anchor": "T304 expiry (Reconfiguration with sync Failure)"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.8.3",
+     "anchor": "T304 expiry (Reconfiguration with sync Failure)"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3041,12 +3194,15 @@
    "confidence": "high",
    "procedure_ctx": "reconf",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.8.3",
-    "anchor": "T304 of the MCG expires"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.8.3",
+     "anchor": "T304 of the MCG expires"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3063,12 +3219,15 @@
    "confidence": "med",
    "procedure_ctx": "reconf",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.8.3",
-    "anchor": "if T420 expires"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.8.3",
+     "anchor": "if T420 expires"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3087,12 +3246,15 @@
    "attrs": {
     "guard": "presence of masterCellGroup"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.3",
-    "anchor": "if the RRCReconfiguration includes the masterCellGroup"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.3",
+     "anchor": "if the RRCReconfiguration includes the masterCellGroup"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3111,12 +3273,15 @@
    "attrs": {
     "guard": "presence of radioBearerConfig"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.3",
-    "anchor": "if the RRCReconfiguration message includes the radioBearerConfig"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.3",
+     "anchor": "if the RRCReconfiguration message includes the radioBearerConfig"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3135,12 +3300,15 @@
    "attrs": {
     "guard": "presence of masterKeyUpdate"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.3",
-    "anchor": "if the RRCReconfiguration includes the masterKeyUpdate"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.3",
+     "anchor": "if the RRCReconfiguration includes the masterKeyUpdate"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3159,12 +3327,15 @@
    "attrs": {
     "guard": "presence of measConfig"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.3",
-    "anchor": "if the RRCReconfiguration message includes the measConfig"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.3",
+     "anchor": "if the RRCReconfiguration message includes the measConfig"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3183,12 +3354,15 @@
    "attrs": {
     "guard": "presence of conditionalReconfiguration"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.13.1",
-    "anchor": "based on a received ConditionalReconfiguration IE"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.13.1",
+     "anchor": "based on a received ConditionalReconfiguration IE"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3205,12 +3379,15 @@
    "confidence": "high",
    "procedure_ctx": "reconf",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.3",
-    "anchor": "remove all the entries in the condReconfigList within the MCG and the SCG VarConditionalReconfig"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.3",
+     "anchor": "remove all the entries in the condReconfigList within the MCG and the SCG VarConditionalReconfig"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3227,12 +3404,15 @@
    "confidence": "high",
    "procedure_ctx": "reconf",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.13.1",
-    "anchor": "the UE maintains two independent VarConditionalReconfig"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.13.1",
+     "anchor": "the UE maintains two independent VarConditionalReconfig"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3251,12 +3431,15 @@
    "attrs": {
     "cross-spec": "TS 38.322"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.3",
-    "anchor": "release the RLC entity or entities as specified in TS 38.322"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.3",
+     "anchor": "release the RLC entity or entities as specified in TS 38.322"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3275,12 +3458,15 @@
    "attrs": {
     "cross-spec": "TS 38.323"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.3",
-    "anchor": "reconfigure the PDCP entity to release DAPS as specified in TS 38.323"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.3",
+     "anchor": "reconfigure the PDCP entity to release DAPS as specified in TS 38.323"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3299,12 +3485,15 @@
    "attrs": {
     "cross-spec": "TS 38.321"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.3",
-    "anchor": "reset the source MAC and release the source MAC configuration"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.3",
+     "anchor": "reset the source MAC and release the source MAC configuration"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3321,12 +3510,15 @@
    "confidence": "med",
    "procedure_ctx": "reconf",
    "attrs": {},
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.2",
-    "anchor": "is performed only when AS security has been activated"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.2",
+     "anchor": "is performed only when AS security has been activated"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3345,12 +3537,15 @@
    "attrs": {
     "guard": "inability to comply (SRB3)"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.8.2",
-    "anchor": "initiate the SCG failure information procedure as specified in clause 5.7.3"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.8.2",
+     "anchor": "initiate the SCG failure information procedure as specified in clause 5.7.3"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
@@ -3369,12 +3564,15 @@
    "attrs": {
     "guard": "inability to comply (MCG)"
    },
-   "provenance": {
-    "spec": "TS 38.331",
-    "version": "19.2.0",
-    "clause": "5.3.5.8.2",
-    "anchor": "initiate the connection re-establishment procedure as specified in"
-   },
+   "provenance": [
+    {
+     "release": "Rel-19",
+     "spec": "TS 38.331",
+     "version": "19.2.0",
+     "clause": "5.3.5.8.2",
+     "anchor": "initiate the connection re-establishment procedure as specified in"
+    }
+   ],
    "observed_in": [
     "Rel-19"
    ],
