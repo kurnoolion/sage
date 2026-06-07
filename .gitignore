@@ -4,8 +4,10 @@
 # Local Claude Code settings (per-clone)
 .claude/settings.local.json
 
-# Downloaded 3GPP specs (copyright 3GPP — do not commit/redistribute)
-corpus/
+# Downloaded 3GPP specs + derived stores (copyright 3GPP — do not commit/redistribute)
+corpus/raw/
+corpus/extracted/
+corpus/store/
 
 # Python bytecode
 __pycache__/

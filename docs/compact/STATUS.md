@@ -22,7 +22,8 @@
 
 ## In progress
 
-- Phase-0 schema validation — seed schema (11 entity types, 20 relationship types) agreed **extensible**; now formalized as `rrc-pilot/ontology/ontology.json`. Open question: procedure modes vs. variants (research doc 03 §4).
+- **Pilot 2 (IMS, TS 24.229 v19.6.0)** — started 2026-06-07. **Entire content ingested into the corpus**: 2096 clauses, all 488 tables captured, 6.0 MB verbatim (`corpus/store/24229-19.6.0/`, gitignored) + document hierarchy. Added spec-agnostic `corpus/build_corpus.py` (walks body incl. tables). KG extraction approach + scope TBD (see Flags). Ontology will need IMS-specific types (NetworkElement, SIPMethod, SIPHeader, …).
+- Phase-0 schema validation — seed schema (now 14 entity types, 22 relationship types) formalized as `rrc-pilot/ontology/ontology.json`; agreed **extensible**. Open question: procedure modes vs. variants (research doc 03 §4).
 
 ## Next
 
