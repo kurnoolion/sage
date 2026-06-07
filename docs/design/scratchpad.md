@@ -184,6 +184,24 @@ Shared identity + versioned assertions (NOT separate graphs):
 - **Time-varying attributes = sets of immutable value-assertions** (SCD-2); all prior values kept.
 - **Lifecycle is computed, not extracted** (see §15).
 
+**Example (real field — `rach-LessHO-r18` inside `ReconfigurationWithSync`).** The `-r18` suffix
+shows it appeared in Rel-18; the same node persists into Rel-19 with per-version provenance:
+```json
+// entity (one node, semantic identity)
+{ "id":"IE_rachLessHO", "type":"InformationElement", "label":"rach-LessHO",
+  "defined_in":[{"release":"Rel-18","spec":"TS 38.331","version":"18.x","clause":"6.3.2/ReconfigurationWithSync"}],
+  "observed_in":["Rel-18","Rel-19"], "introduced_in":"Rel-18", "valid_until":null, "supersedes":null }
+
+// relation: ReconfigurationWithSync CONTAINS rach-LessHO  (per-version provenance list)
+{ "id":"r_rws_rachLessHO", "type":"CONTAINS", "from":"IE_reconfigwithsync", "to":"IE_rachLessHO",
+  "modality":"asn1", "confidence":"high", "attrs":{"presence":"Need N"},
+  "provenance":[ {"release":"Rel-18","version":"18.x","clause":"6.3.2/ReconfigurationWithSync","anchor":"rach-LessHO-r18"},
+                 {"release":"Rel-19","version":"19.2.0","clause":"6.3.2/ReconfigurationWithSync","anchor":"rach-LessHO-r18"} ],
+  "observed_in":["Rel-18","Rel-19"], "introduced_in":"Rel-18", "valid_until":null, "supersedes":null }
+```
+Contrast `t304` (no suffix): present since the start of our window → `introduced_in:"Rel-15"` with
+`introduced_at_floor:true` (we can't see before our earliest ingested release).
+
 ## 15. Change-tracking / derivation model  (proposed D-012)
 
 ### 15.1 Foundation — two commitments everything rests on
@@ -199,6 +217,23 @@ alias-map, review-decisions ─┐
 The unified KG is never hand-mutated; it's recomputed. This gives order-independent diffs,
 idempotent re-ingest, minimal churn.
 
+**Example (keys + one snapshot).**
+```
+entity key     Timer|T300|RRC            Message|RRCSetupRequest|RRC      InformationElement|rach-LessHO|RRC
+relation key   Procedure|RRC connection establishment|RRC | STARTS | Timer|T300|RRC
+attr timeline  (Timer|T304|RRC, value_domain)        assertion id: "Timer|T304|RRC|value_domain|Rel-18"
+
+snapshot[TS 38.331, 18.x] = {
+  entities:  { Timer|T300|RRC, Message|RRCSetupRequest|RRC, InformationElement|rach-LessHO|RRC, ... }
+  relations: { ReconfigurationWithSync CONTAINS rach-LessHO, RRC-conn-establishment STARTS T300, ... }
+  attr_obs:  { (Timer|T304|RRC, value_domain): "{ms50,ms100,ms150,ms200,ms500,ms1000,ms2000,ms10000}" }
+  provenance: per key → its clause in v18.x
+}
+```
+`derive([snapshot_Rel15, …, snapshot_Rel19], alias_map, review_decisions)` folds these into the
+unified KG. Note `rach-LessHO` is *absent* from the Rel-15/16/17 snapshots and *present* from Rel-18 —
+that presence boundary is what §15.2 turns into `introduced_in:"Rel-18"`.
+
 ### 15.2 Computing introduced_in / removed_in / supersedes
 Walk releases ascending, reconcile by key.
 - **Presence**: key new → `introduced_in=N`; in both → append `observed_in`; gone in N →
@@ -209,17 +244,61 @@ Walk releases ascending, reconcile by key.
   `introduced_at_floor`); **absence ≠ removal** — prefer explicit "Void"/change-marks; low-confidence
   disappearance → review.
 
+**Example — presence walk for `rach-LessHO` across snapshots:**
+```
+Rel-15: absent   Rel-16: absent   Rel-17: absent   Rel-18: PRESENT   Rel-19: present
+                                                    └─ new key ──────┘
+derive ⇒ introduced_in=Rel-18, observed_in=[Rel-18,Rel-19], valid_until=null
+```
+**Example — removal via explicit "Void" (real pattern):** clause `5.3.3.1b` is literally titled
+**"Void"** in v19. If a procedure that existed in Rel-17 has its clause marked Void in Rel-18:
+```
+Rel-17: present   Rel-18: clause says "Void"  ⇒ removed_in=Rel-18, valid_until=Rel-17
+```
+(detected from the explicit "Void" signal, not merely from absence — which could be an extraction miss).
+
 ### 15.3 Value-assertions — keying/merging (SCD-2)
 Timeline `(owner, attr)`; collect per-release `release→value`, sort, **coalesce consecutive equal
 values into segments** (`valid_from..valid_until`) — coalescing *is* the merge. Each segment carries
 its own provenance list. Needs a **value-normalization** fn per attr type (enum=set, timer=numeric)
 or you get false changes. Same for relation attributes (changed guard = value-assertion, not new edge).
 
+**Example — `T304` value_domain coalesced into segments** (illustrative enum growth: a value added
+in Rel-18):
+```
+per-release observations of (Timer|T304|RRC, value_domain):
+  Rel-15→S1   Rel-16→S1   Rel-17→S1   Rel-18→S2   Rel-19→S2
+  where S1={ms50,ms100,ms150,ms200,ms500,ms1000,ms2000,ms10000}
+        S2=S1 ∪ {ms5000}
+
+coalesce consecutive-equal ⇒ two value-assertions:
+  A1 value=S1 valid Rel-15..Rel-17  supersedes —   provenance:[Rel-15 §…, Rel-16 §…, Rel-17 §…]
+  A2 value=S2 valid Rel-18..(open)  supersedes A1  provenance:[Rel-18 §…, Rel-19 §6.3.2/ReconfigurationWithSync]
+```
+Query "T304 domain at Rel-16" → A1 (S1); "current" → A2 (S2); "history" → A1→A2. Note Rel-15/16/17
+are **one** segment (coalesced), not three. A relation example: `INVOKES.guard` on
+`RRCReconfiguration INVOKES cell-group-config` changing wording across releases would version the
+same way — a new guard value-assertion, not a new INVOKES edge.
+
 ### 15.4 Churn-free re-ingestion of corrected versions
 Re-ingest = **replace that one `(spec,version)` snapshot** → re-derive. **Content-derived ids +
 sorted output** ⇒ unchanged facts serialize byte-identically ⇒ diff shows only real changes.
 **Representative version per release** (latest within release) for provenance; corrections update
 that entry + changed facts; sub-release churn doesn't leak into release-level lifecycle.
+
+**Example — re-ingest a Rel-19 correction (v19.2.0 → v19.3.0) that fixes a typo in clause 5.3.3.2:**
+```
+1. replace snapshot[TS 38.331, 19.2.0]  with  snapshot[TS 38.331, 19.3.0]   (idempotent by key)
+2. re-derive()
+
+fact r_setup_starts_T300 — id is content-derived, UNCHANGED:
+  before: provenance:[{Rel-19,"19.2.0","5.3.3.2","start timer T300"}]
+  after:  provenance:[{Rel-19,"19.3.0","5.3.3.2","start timer T300"}]   ← only the version bumped
+every other fact: byte-identical (deterministic ids + sorted output)
+git diff: ~the one changed clause's facts. No reshuffle, no churn.
+```
+If the correction had *changed* T300's start condition, that would be a value/relation change →
+supersede (§15.2), still localized to that fact.
 
 ### 15.5 Review queue — renames & ambiguous merges
 Presence diff naively reads a rename as remove+add (severs identity). A **detector** matches a
@@ -229,6 +308,35 @@ disappeared key against new keys via: label similarity, same type+layer, **struc
 merge). Human decision → **durable alias/decision file** feeding the next `derive()` (recorded once;
 never re-asked). On confirm: collapse to one identity, inherit `introduced_in`, add
 `renamed_in`/`aka`. Same queue: value conflicts, splits/merges, low-confidence LLM triples.
+
+**Example — rename detected, review-gated** (illustrative): a procedure key disappears in Rel-18
+while a similar one appears, sharing most edges:
+```json
+// review/ item emitted by derive()
+{ "kind":"possible-rename", "release":"Rel-18",
+  "gone":"Procedure|conditional reconfiguration foo|RRC",
+  "new" :"Procedure|conditional reconfiguration|RRC",
+  "similarity":0.91, "shared_neighbours":"7/8",
+  "signals":["label-edit-distance","structural-overlap","adjacent-clause"],
+  "options":["confirm-rename","keep-separate","split","merge"] }
+```
+```yaml
+# durable alias/decision file (human-curated, feeds the NEXT derive())
+- action: confirm-rename
+  from: "Procedure|conditional reconfiguration foo|RRC"
+  to:   "Procedure|conditional reconfiguration|RRC"
+  renamed_in: Rel-18
+```
+```json
+// resulting unified node after re-derive — one identity, history preserved
+{ "id":"P_condreconfig", "type":"Procedure", "label":"Conditional reconfiguration",
+  "aka":["conditional reconfiguration foo"], "renamed_in":"Rel-18",
+  "introduced_in":"Rel-16", "observed_in":["Rel-16","Rel-17","Rel-18","Rel-19"] }
+```
+Without the alias, the naive diff would have wrongly recorded `…foo` as `removed_in:Rel-18` and the
+new key as a fresh `introduced_in:Rel-18`, severing the edges/history. **Conflict example**: if two
+Rel-18 snapshot facts canonicalize to the same `(s,p,o)` but disagree on an attribute value, derive()
+emits a `value-conflict` review item instead of silently picking one.
 
 ---
 
