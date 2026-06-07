@@ -397,5 +397,96 @@ Division of labour: human owns schema/examples/prompt/validation; on-prem comput
 - **D-010** extraction: curated seed + few-shot + on-prem model
 - **D-011** multi-release: shared identity + versioned assertions + per-version provenance
 - **D-012** *(proposed)* change-tracking / derivation model (§15)
+- **D-013** *(proposed)* NORA integration contract — anchor+augment substrate; id-alignment; per-release projection (§H)
 
 *(Full text in `docs/compact/DECISIONS.md`.)*
+
+---
+
+# H. NORA integration (feasibility — in progress)
+
+**Goal**: make this 3GPP KG the **substrate** for `~/work/nora` (NORA — Network Operator
+Requirements Analyzer), whose KG of **MNO device requirements** groups/compares requirements by
+the 3GPP entity they concern (e.g. "IMS Registration"), across MNOs and across MNO-doc releases
+(Feb2026, Oct2025). Verdict so far: **highly feasible — the designs already converge**; this is
+integration + id-alignment, not invention.
+
+## H.1 What NORA already is (grounded read)
+Mature PoC (KG + RAG, local Ollama/Gemma, web UI, metrics). TDD §4.2 chose a **single unified
+graph, partitioned by `mno`+`release` metadata**, *because* cross-MNO and cross-release comparison
+are first-class. Pipeline: extract → profile → parse → resolve → **feature taxonomy** →
+**standards ingestion** → **KG build** → vectorstore → query → eval.
+
+**NORA KG schema** (`core/src/graph/schema.py`, NetworkX DiGraph):
+- Nodes: `MNO`, `Release` (`release:VZW:2026_feb`), `Plan`, `Requirement`,
+  `Standard_Section` (`std:24.301:11:5.5.1.2.5` = spec:release_num:section), **`Feature`
+  (`feature:IMS_REGISTRATION`)**.
+- Edges: `references_standard` (Req→Std_Section), **`maps_to` (Req→Feature)**, `has_release`, …
+- `Feature` is **MNO-agnostic** with `mno_coverage:{VZW:[…],TMO:[…],ATT:[…]}` — *exactly* the
+  group/compare mechanism. Currently **LLM-derived bottom-up** from MNO-doc TOCs + human review (§5.7).
+
+**NORA already builds corpus + doc-index too**: `standards/` is *fully generic* — collects 3GPP
+refs from MNO docs → `reference_index.json` (the citation index of `(spec, release, sections)`) →
+downloads from 3GPP FTP → `spec_parsed.json` (full **section tree**) + `sections.json`. Treats each
+`(spec, release, section)` as an **immutable, duplicated** node ("a 3GPP section doesn't change").
+
+## H.2 Convergence (our design ↔ NORA)
+| Concept | This project | NORA |
+|---|---|---|
+| Cross-MNO/-release comparison | (downstream goal) | first-class, unified graph + metadata [§4.2] |
+| Grouping anchor | concept scheme + Procedure entities | `Feature` + `maps_to` (LLM-derived) |
+| 3GPP section | corpus clause `(spec,ver,clause)` + document-index | `Standard_Section` `std:spec:rel:section` + `spec_parsed.json` |
+| Spec corpus/parse | `corpus/build_corpus.py` (incl. tables) | `standards/` generic download+parse |
+| MNO-doc versioning | (D-011 machinery generalizes) | `Release` nodes (Feb2026/Oct2025) |
+
+## H.3 Our distinctive value over NORA's standards/taxonomy
+NORA already has section trees + a flat feature list. We add the **deep semantic layer between them**:
+1. **Rich entity model** (Procedure/Message/IE/Timer/State) *under* each section — NORA has only section text.
+2. **Concept scheme** (cross-spec/SDO hub) — NORA's features are flat + MNO-derived.
+3. **Rigorous multi-release change-tracking** (introduced/removed/supersedes, renames) — NORA treats sections as immutable per release.
+4. **Validation invariants + provenance discipline** (KG ⊨ ontology / corpus).
+
+## H.4 Plug-in points + id alignment (the contract to nail)
+- `feature:IMS_REGISTRATION`  ↔  our `C_IMS` concept and/or `Procedure|…registration…|IMS`.
+- `std:24.229:19:5.1.1.2`  ↔  our corpus clause `(24.229, Rel-19, 5.1.1.2)` + entities `DEFINED_IN` it.
+- Reconcile NORA `release_num` (int 19) ↔ our `Rel-19` / `version 19.6.0` → **align at release level**.
+- Upgrade: comparison moves from "both cover IMS registration" → "MNO-A overrides timer T in
+  initial registration (Rel-17 §5.1.1.2.2); MNO-B sets IE Y" (because we have the entities).
+
+## H.5 Strongest concrete insight (bidirectional)
+NORA's **`reference_index.json` drives our spec/section prioritization** — model what the MNO corpus
+actually cites, in order. **Coverage mismatch to resolve**: sample MNO docs are **LTE-era**
+(`24.301` NAS, `36.331`, `24.008`); our pilots are **NR `38.331`** + **`24.229` IMS**. To serve NORA,
+re-point spec selection at the citation index (likely add 24.301 etc.).
+
+## H.6 Integration options (boundary)
+- **(A) We own the 3GPP pipeline; NORA consumes our KG.** Clean ownership; duplicates NORA's
+  download/parse (which already works, generically).
+- **(B) We consume NORA's `spec_parsed.json` trees + `reference_index.json`** as corpus input and
+  add only the value-add (entities + concept scheme + change-tracking). Avoids duplicate
+  download/parse; tighter coupling to NORA's formats.
+- Lean: **anchor + augment**, not replace — our KG is the authoritative substrate; NORA's
+  `standards/`+`taxonomy/` become **consumers/adapters**; **proprietary MNO features with no 3GPP
+  anchor stay in NORA**, flagged. (A) vs (B) is open — (B) is attractive given NORA already parses.
+
+## H.7 Multi-release reconciliation
+NORA: immutable per-release section nodes. Us: shared identity + versioned assertions (D-011/D-012).
+Resolution: our KG exposes a **per-release projection** that *looks like* NORA's `Standard_Section`
+set, **plus** answers "did this change Rel-17→19?" — important when an MNO's Feb-2026 reqs cite a
+newer 3GPP release than its Oct-2025 reqs.
+
+## H.8 Confidentiality & store
+- **One-way**: NORA imports our **public** 3GPP KG; this repo **never** holds MNO data (VZW PDFs are
+  confidential). Keep the substrate public-data-only.
+- Store/format: our JSON imports into NORA's NetworkX now; a shared graph DB is a later D-007 input.
+
+## H.9 Open decisions (→ candidate D-013: NORA integration contract)
+- Boundary: anchor+augment (confirm); option (A) own-pipeline vs (B) consume-NORA-trees.
+- Re-point spec selection at NORA's `reference_index.json` (LTE coverage)?
+- Id-alignment contract (feature/section/release_num ↔ our ids); release-level join.
+- Per-release projection API for NORA; change-query interface.
+- Where the MNO overlay lives (NORA) vs substrate (here) — confirm one-way, no MNO data here.
+
+## H.10 Next reads to finalize the contract
+NORA TDD **§6 Knowledge Graph Model**, `core/src/graph/builder.py`, **§7.3 Graph Scoping**,
+**§8.3 Compliance Agent**; inspect a real `reference_index.json` + `spec_parsed.json` to lock formats.
