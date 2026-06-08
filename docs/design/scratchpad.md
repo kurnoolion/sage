@@ -406,7 +406,7 @@ Division of labour: human owns schema/examples/prompt/validation; on-prem comput
 
 # H. NORA integration (feasibility — in progress)
 
-**Goal**: make this 3GPP KG the **substrate** for `~/work/nora` (NORA — Network Operator
+**Goal**: make **SAGE** (this 3GPP KG) the **substrate** for `~/work/nora` (NORA — Network Operator
 Requirements Analyzer), whose KG of **MNO device requirements** groups/compares requirements by
 the 3GPP entity they concern (e.g. "IMS Registration"), across MNOs and across MNO-doc releases
 (Feb2026, Oct2025). Verdict so far: **highly feasible — the designs already converge**; this is
@@ -477,7 +477,7 @@ set, **plus** answers "did this change Rel-17→19?" — important when an MNO's
 newer 3GPP release than its Oct-2025 reqs.
 
 ## H.8 Confidentiality & store
-- **One-way**: NORA imports our **public** 3GPP KG; this repo **never** holds MNO data (VZW PDFs are
+- **One-way**: NORA imports **SAGE** (our **public** 3GPP KG); this repo **never** holds MNO data (VZW PDFs are
   confidential). Keep the substrate public-data-only.
 - Store/format: our JSON imports into NORA's NetworkX now; a shared graph DB is a later D-007 input.
 
@@ -513,10 +513,10 @@ stay in NORA.
   delta to a GSMA entity** once multi-SDO lands (the concept scheme is the multi-SDO hub for exactly
   this). Keep tier-2 links clearly typed so they're never confused with compliance deltas.
 
-**Pipeline ownership — DECIDED: option A.** `3gpp-kg` owns the **entire 3GPP vertical**
+**Pipeline ownership — DECIDED: option A.** **SAGE** owns the **entire 3GPP vertical**
 (download → parse → corpus → ontology → KG → change-tracking) and becomes a **standalone, general
 3GPP knowledge base** (not NORA-dependent). NORA owns the MNO vertical and consumes our outputs.
-- **Interface NORA → 3gpp-kg = a plain `(spec, release)` manifest** (NORA derives it from its
+- **Interface NORA → SAGE = a plain `(spec, release)` manifest** (NORA derives it from its
   confidential citation index; hands us only the list). **No MNO data crosses into this repo.**
 - **Seam refinement**: the truly shared concern is **generic document extraction**
   (PDF/DOC/DOCX → text/structure) — both projects need it → eventually a **shared library**.
@@ -645,8 +645,8 @@ The elegant framing: **each risk maps to an automated check.** Build-time invari
 
 | # | Risk | Layer | Impact | Auditor check |
 |---|---|---|---|---|
-| R1 | Hallucinated / mis-typed triples | 3GPP KG | wrong facts | KG⊨ontology + anchor-supports-relation sample (LLM-judge/human) + precision/recall vs gold |
-| R2 | Bad / missed entity merges (canonicalization) | 3GPP KG | split/merged identity | near-duplicate detector (high sim unmerged) + low-sim-merged audit → review |
+| R1 | Hallucinated / mis-typed triples | SAGE KG | wrong facts | KG⊨ontology + anchor-supports-relation sample (LLM-judge/human) + precision/recall vs gold |
+| R2 | Bad / missed entity merges (canonicalization) | SAGE KG | split/merged identity | near-duplicate detector (high sim unmerged) + low-sim-merged audit → review |
 | R3 | Absence mistaken for removal | versioning | false `removed_in` | require explicit Void/change-mark; flag inferred removals |
 | R4 | Value-normalization false changes | versioning | spurious history | recompute w/ normalizer; flag single-release blips / churn anomalies |
 | R5 | Coverage-bounded fidelity | both | weak classification | report % facts structured vs prose-fallback; per-spec coverage |
@@ -664,7 +664,7 @@ The elegant framing: **each risk maps to an automated check.** Build-time invari
 
 **TODO — design + build a post-ingestion risk auditor**, run when full data (all specs/releases +
 MNO reqs) is ingested and the KGs are built (and on every re-ingest):
-- **Inputs**: unified 3GPP KG, MNO overlay, corpus stores, gold set, NORA `reference_index.json`.
+- **Inputs**: unified SAGE KG, MNO overlay, corpus stores, gold set, NORA `reference_index.json`.
 - **Checks**: the R1–R14 table above (deterministic where possible; sampling + LLM-judge/human for the
   fuzzy ones R1/R8/R9/R11).
 - **Outputs**: (a) a **risk report** (per-check counts + severity, pass/warn/fail); (b) **review-queue

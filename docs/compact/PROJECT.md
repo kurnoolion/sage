@@ -1,4 +1,6 @@
-# Project: 3gpp-kg
+# Project: SAGE
+
+*SAGE = **S**pecification-**A**nchored **G**raph of **E**ntities. (Repo/dir: `sage`.)*
 
 *Identity: who / why / scope boundaries. Behavioral specs (FR / NFR) live in `requirements.md`.*
 *Draft seeded at project-init from `design-inputs/` + interview — refine during the requirements phase.*

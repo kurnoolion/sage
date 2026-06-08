@@ -1,4 +1,4 @@
-# Project-init interview — 3gpp-kg
+# Project-init interview — SAGE
 
 Captured 2026-06-05 during `project-init`. Source of truth for `--re-init`.
 

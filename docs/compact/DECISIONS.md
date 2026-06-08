@@ -225,6 +225,23 @@ fidelity is **bounded by our base-KG coverage** (structured vs prose fallback); 
 auditor** is required (scratchpad §I). Pending: per-release projection API spec; where MNO assertions
 physically live (NORA-side overlay referencing our ids).
 
+## D-014: Project named SAGE
+**Status**: Active
+**Date**: 2026-06-08
+**Context**: The project (previously the placeholder `3gpp-kg`) needed a real name, consistent
+with sibling projects that use a pronounceable backronym: NORA (Network Operator Requirements
+Analyst), HILDA (Human In the Loop Deliverable Automation), APEX (Ai Powered EXcellence).
+**Decision**: Name it **SAGE = Specification-Anchored Graph of Entities**. Repo and directory
+renamed `3gpp-kg` → `sage`; GitHub repo `kurnoolion/3gpp-kg` → `kurnoolion/sage`; docs rebranded.
+"3GPP" still refers to the standards body (e.g. the `3gpp:` id prefix, "3GPP specs/vertical"),
+which is unchanged — only the *project name* moved off `3gpp-kg`.
+**Why**: Matches the sibling-project naming convention; the backronym maps to the design (graph
+of entities, spec-anchored provenance); the "sage = knowledge" connotation fits a knowledge base.
+Alternatives weighed: ATLAS (substrate metaphor), GRETA (women's-name lineage).
+**Consequences**: Refer to the project as SAGE; NORA's downstream contract (D-013) calls its
+substrate SAGE. The old GitHub name auto-redirects; a temporary `~/work/3gpp-kg` compat symlink
+may exist until sessions move to `~/work/sage`.
+
 <!--
 Template for new entries:
 
