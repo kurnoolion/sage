@@ -167,6 +167,64 @@ facts are edge-properties in a property graph vs. reification / named-graphs-per
 **Alternatives considered**: Separate KG per release — rejected (massive duplication; no
 first-class change tracking; cross-release questions need graph diffs).
 
+## D-012: Change-tracking / derivation model
+**Status**: Active (model decided; pipeline implementation pending)
+**Date**: 2026-06-07
+**Context**: Ingesting many releases (and later MNO overlays) needs history without duplication or
+churn. Full design in `docs/design/scratchpad.md` §15.
+**Decision**: (a) **Deterministic semantic keys** for entities/relations/attributes + content-derived
+assertion ids. (b) **Snapshots are the source of truth; the unified KG is a pure, recomputed
+projection** (`derive()`), so ingestion is **order-independent** and re-ingest is idempotent.
+(c) `introduced_in`/`removed_in` from presence diff; `supersedes` from value changes (SCD-2
+value-assertions coalesced into segments). (d) **Review queue** for renames/merges/splits/conflicts
+(durable alias/decision file feeds the next derive). (e) Lifecycle is **observed-set-relative**:
+`introduced_in` is a lower bound (`introduced_at_floor`); non-contiguous releases give bracketed
+boundaries.
+**Why**: Order-independent, churn-free, full-history, human-controlled where machines are unsafe.
+**Consequences**: Re-key from slugs to namespaced ids done; pipeline = snapshot extractor + derive +
+review queue. Underpins D-013 (MNO overlays use the same machinery on a 2nd axis).
+
+## D-013: NORA integration contract
+**Status**: Active (contract drafted; projection API + representative-version table pending)
+**Date**: 2026-06-07
+**Context**: NORA (`~/work/nora`) is the downstream MNO-requirements analyzer; this project is its
+3GPP substrate. NORA already has: a unified graph partitioned by `mno`+`release`; `Standard_Section`
+(`std:spec:release_num:section`) + `Feature` + `maps_to`; **delta edges `defers_to`/`constrains`/
+`overrides`/`extends`**; `version_of` cross-release diffing; generic 3GPP ingestion
+(`reference_index.json` + `spec_parsed.json`); a query pipeline that pulls Standard_Section text into
+synthesis. Full read + design in scratchpad §H.
+**Decision**:
+- **Boundary**: anchor + augment; **ownership A** — this project owns the entire 3GPP vertical and is
+  a standalone general 3GPP KB; NORA's `standards/`+`taxonomy/` become consumers/adapters; proprietary
+  MNO features stay in NORA. **One-way; no MNO data in this repo.**
+- **Interface NORA → us = a plain `(spec, release)` manifest** (derived from NORA's
+  `reference_index.json`). No MNO data crosses.
+- **Ids**: namespaced deterministic (`3gpp:…`). **Section/release joins are deterministic transforms**
+  (`std:24.229:17:5.1.1.2` ↔ `3gpp:24.229/Rel-17/clause/5.1.1.2`; `release_num`↔`Rel-N` + a
+  `(spec,release)→representative-version` table; `24.301`↔`TS 24.301`). **Feature↔concept is a curated
+  crosswalk, Option Y** (3GPP-grounded features adopt our concept/entity ids; proprietary keep
+  `feature:LOCAL_*` — the namespace encodes anchored-vs-proprietary). **Base assertions carry stable
+  ids** because MNO overrides target a specific assertion, not just an entity.
+- **Requirement-as-delta classification maps onto NORA's existing edges** (no new vocabulary):
+  RESTATE→`defers_to`; CHANGE→`overrides`(differ)/`constrains`(narrow, incl. conditional "follow
+  §x.y.z when foo"); CREATE→`extends`(add)/pure-new(`maps_to` only). Classify **per atomic claim**.
+  MNO assertions use the same versioned-assertion machinery (D-012) on a 2nd `(MNO, MNO-release)` axis,
+  carrying the targeted 3GPP-release baseline.
+- **Per-release projection**: we expose a per-release view (looks like NORA's `Standard_Section` set)
+  plus change-queries; our entity layer reconciles NORA's per-release section duplication.
+- **Enrichment/query**: NORA pulls our verbatim corpus prose (via resolved clause id) + structured
+  base assertions into requirement enrichment and synthesis (upgrades NORA's existing Standard_Section
+  text inclusion to entity-level deltas + precise provenance).
+- **Shared concern**: generic document extraction → eventual shared lib; download + section-parse owned
+  here.
+**Why**: NORA already converged on this architecture; the contract reuses its vocabulary. Our value =
+entity layer + concept scheme + change-tracking + verbatim provenance above NORA's section trees + flat
+features.
+**Consequences**: NORA re-keys grounded features to our ids; needs the rep-version table; classification
+fidelity is **bounded by our base-KG coverage** (structured vs prose fallback); a **post-ingestion risk
+auditor** is required (scratchpad §I). Pending: per-release projection API spec; where MNO assertions
+physically live (NORA-side overlay referencing our ids).
+
 <!--
 Template for new entries:
 

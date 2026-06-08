@@ -396,8 +396,9 @@ Division of labour: human owns schema/examples/prompt/validation; on-prem comput
 - **D-009** corpus copyright / commit policy
 - **D-010** extraction: curated seed + few-shot + on-prem model
 - **D-011** multi-release: shared identity + versioned assertions + per-version provenance
-- **D-012** *(proposed)* change-tracking / derivation model (§15)
-- **D-013** *(proposed)* NORA integration contract — anchor+augment substrate; id-alignment; per-release projection (§H)
+- **D-012** change-tracking / derivation model (§15) — *Active*
+- **D-013** NORA integration contract — anchor+augment; id-alignment; delta-classification↔NORA edges; per-release projection (§H) — *Active (drafted)*
+- **(planned)** risk-monitoring auditor (§I)
 
 *(Full text in `docs/compact/DECISIONS.md`.)*
 
@@ -579,6 +580,16 @@ supersede + provenance machinery as 3GPP-release versioning, on a **second overl
 3. **RESTATE** — equals a base assertion → **no new assertion**; a `REQUIRES_COMPLIANCE`/`RESTATES`
    link (compliance evidence for NORA's §8.3 agent).
 
+**Maps onto NORA's existing delta edges** (no new vocabulary needed NORA-side): RESTATE→`defers_to`
+(delta null); CHANGE→`overrides` (differ) | `constrains` (narrow); CREATE→`extends` (add beyond) |
+pure-new (`maps_to` feature only). The MNO assertion's delta-type *is* the NORA edge type.
+
+**"Follow section X.Y.Z" is context-dependent** (per user): *unconditional* "shall follow §x.y.z" →
+RESTATE / `defers_to`; *conditional* "shall follow §x.y.z **when foo**" → **not** a pure restate — it
+**adds a precondition** scoping when the base behaviour applies → CHANGE / `constrains` (a
+`HAS_PRECONDITION` wrapper over the base assertion). The classifier must read surrounding context, not
+just the citation. Prime **risk-auditor** target: a `defers_to` that actually hides a condition.
+
 **Citation = hint, not ground truth.** Anchor = citation-hinted (section→clause→entities) +
 text-confirmed (req-text→concept/entity). **Two-fidelity classification**: structured where the base
 assertion exists; **prose-fallback** (compare req vs clause prose) otherwise → fidelity is
@@ -598,3 +609,69 @@ base. Unified graph = our base (imported) + MNO assertion layers (D-013/A, NORA 
 
 **Risks**: classification accuracy (RESTATE vs subtle CHANGE is the dangerous confusion → conservative
 review); coverage-bounded fidelity; messy claim decomposition; two-axis data complexity.
+
+## H.14 NORA deep-read findings (grounding the contract)
+
+From TDD §6/§7/§8/§9 + `graph/schema.py` + `graph/builder.py` + `standards/schema.py`:
+- **KG model** (NetworkX DiGraph): nodes MNO/Release/Plan/Requirement/Test_Plan/Test_Case/
+  **Standard_Section**/**Feature**. **Delta edges already exist**: `defers_to` (do what 3GPP says,
+  delta null), `constrains` (narrow), `overrides` (differ), `extends` (add) — each with a
+  `delta_summary`. Plus `maps_to` (Req→Feature), `version_of` (cross-release req diff:
+  added/modified/removed/unchanged), `shared_standard`, `depends_on`.
+- **Cross-MNO is via shared Feature/Standard nodes** (no direct cross-MNO edges) — confirms
+  concept-as-hub. Example in TDD: `VZW constrains [24.301 §5.5.1 R10]`, `TMO overrides [§5.5.1 R15]`
+  — different releases, structured deltas.
+- **Query pipeline already pulls standards text into synthesis** (§7.5/§7.6 context templates show
+  "Standards: Constrains 24.301 §5.5.1 (R10) / Delta from 3GPP: …" + a "REFERENCED STANDARD" block).
+  Our enrichment upgrade = entity-level deltas + verbatim corpus prose + precise provenance.
+- **Builder sequence** consumes `*_tree.json`, `*_xrefs.json`, `taxonomy.json`,
+  `reference_index.json`, `TS_*/Rel-*/sections.json`. Our KG plugs in at the **standards + feature**
+  steps (Standard_Section expansion + authoritative concepts).
+- **Eval criteria** (§9.4) already include "standards comparison", "no hallucination (0 fabricated
+  reqs)", "standards integration > 80%". → aligns with our risk-auditor.
+- Implication: the contract **reuses NORA's vocabulary**; our delta classification = NORA edge types.
+
+---
+
+# I. Risk register & risk-monitoring system
+
+The elegant framing: **each risk maps to an automated check.** Build-time invariants
+(KG ⊨ ontology / corpus, D-008) already cover the structural risks; the rest need a dedicated
+**post-ingestion risk auditor** that runs after `derive()` and on every re-ingest, emitting a
+**risk report (counts + severity)**, **review-queue items**, and **time-series metrics**
+(observability). This is "doctor/drift-check for the KG + MNO overlay."
+
+## I.1 Risk register → check
+
+| # | Risk | Layer | Impact | Auditor check |
+|---|---|---|---|---|
+| R1 | Hallucinated / mis-typed triples | 3GPP KG | wrong facts | KG⊨ontology + anchor-supports-relation sample (LLM-judge/human) + precision/recall vs gold |
+| R2 | Bad / missed entity merges (canonicalization) | 3GPP KG | split/merged identity | near-duplicate detector (high sim unmerged) + low-sim-merged audit → review |
+| R3 | Absence mistaken for removal | versioning | false `removed_in` | require explicit Void/change-mark; flag inferred removals |
+| R4 | Value-normalization false changes | versioning | spurious history | recompute w/ normalizer; flag single-release blips / churn anomalies |
+| R5 | Coverage-bounded fidelity | both | weak classification | report % facts structured vs prose-fallback; per-spec coverage |
+| R6 | `introduced_in` lower-bound / sparse brackets | versioning | over-precise dates | report which lifecycle fields are floor/bracketed |
+| R7 | Provenance anchor drift across releases | corpus link | broken trace | KG⊨corpus per version; flag unresolved anchors |
+| R8 | **RESTATE vs subtle CHANGE** misclassification | NORA overlay | missed override / compliance gap | re-diff restate-claims vs base assertion; flag near-misses → review |
+| R9 | Conditional "follow §x.y.z" mis-read as plain `defers_to` | NORA overlay | missed precondition | detect conditions inside defers_to-classified claims → should be `constrains` |
+| R10 | Citation hint wrong/stale/missing | NORA overlay | mis-anchor | cross-check text-anchor vs citation-anchor; flag mismatches |
+| R11 | Feature↔concept crosswalk errors | integration | wrong grouping/compare | orphan features (no concept); implausible MNO spread; sample review |
+| R12 | Two-axis scope confusion (MNO-release vs targeted 3GPP-release) | NORA overlay | wrong baseline | verify targeted 3GPP release exists; release ordering sane |
+| R13 | Coverage gap: MNO cites spec/section not in our KG | integration | no anchor | diff NORA `reference_index` vs our corpus → gap report (drives ingestion) |
+| R14 | Proprietary feature mis-tagged as anchored (or vice versa) | integration | wrong scope | features with citations tagged proprietary, and vice versa |
+
+## I.2 Risk-monitoring system (to design + build)
+
+**TODO — design + build a post-ingestion risk auditor**, run when full data (all specs/releases +
+MNO reqs) is ingested and the KGs are built (and on every re-ingest):
+- **Inputs**: unified 3GPP KG, MNO overlay, corpus stores, gold set, NORA `reference_index.json`.
+- **Checks**: the R1–R14 table above (deterministic where possible; sampling + LLM-judge/human for the
+  fuzzy ones R1/R8/R9/R11).
+- **Outputs**: (a) a **risk report** (per-check counts + severity, pass/warn/fail); (b) **review-queue
+  items** for human adjudication (reuse §15.5 machinery); (c) **metrics over time** (coverage %,
+  structured-vs-prose ratio, extraction P/R, #unresolved anchors, #flagged misclassifications) for
+  observability/regression tracking.
+- **Severity gating**: structural failures (R1 schema, R7 unresolved anchor) = hard fail; fuzzy ones =
+  warn + review. Tie thresholds to the eval/observability posture.
+- Reuses + extends D-008 validators; conceptually the project's `drift-check`/`doctor` for the
+  KG+overlay. Record as its own decision when built.
