@@ -675,3 +675,44 @@ MNO reqs) is ingested and the KGs are built (and on every re-ingest):
   warn + review. Tie thresholds to the eval/observability posture.
 - Reuses + extends D-008 validators; conceptually the project's `drift-check`/`doctor` for the
   KG+overlay. Record as its own decision when built.
+
+## H.15 Open contract TODOs (D-013)
+
+Remaining bits to specify before/while building the integration. Tags: **[now]** closeable by
+design; **[pipeline]** needs extraction first (can fix format now); **[joint]** also lands in NORA.
+
+**A. Interfaces / artifacts**
+- [ ] **1. Inbound manifest format** (NORA → us): exact `(spec, release[, sections])` schema NORA
+  derives from `reference_index.json`; release representation; whether cited sections are included
+  (to prioritize extraction). **[now]**
+- [ ] **2. Outbound artifact set** (us → NORA): which files NORA consumes (full `kg.json` vs a
+  projection, + corpus + concept-scheme), their schema, and how they're versioned/pinned/distributed
+  (a versioned substrate release). **[now]**
+- [ ] **3. Per-release projection API**: shape of the "3GPP as of Rel-N" Standard_Section-like view
+  **+** the change-query interface ("did X change Rel-a→b"); materialized-file-per-release vs query
+  function; fields NORA's `builder` ingests. **[now]**
+
+**B. Id / crosswalk specifics**
+- [ ] **4. `(spec, release) → representative-version` table**: ownership, location, release-string
+  normalization (`"Release 11"`/int `11` → `Rel-11` → `11.7.0`). **[now]**
+- [ ] **5. Feature crosswalk (Option Y)**: how a grounded NORA feature adopts our id (does `maps_to`
+  point at `3gpp:concept/…` directly?); curated crosswalk file format for many-to-many; proprietary
+  namespacing (`feature:LOCAL_*`); who curates/reviews. **[now][joint]**
+- [ ] **6. Base-assertion id field**: exact assertion-id scheme NORA's `overrides`/`constrains` edges
+  reference as target (delta targets an *assertion*, not just a section). **[pipeline]** (fix format now)
+
+**C. Overlay representation (NORA-side)**
+- [ ] **7. Where MNO assertions live + how the "unified graph" forms**: import our base `kg.json` into
+  NORA's NetworkX and add MNO nodes/edges (one store) vs two stores joined by id. **[joint]**
+- [ ] **8. Tier-2 associative edge vocabulary**: new to NORA's schema —
+  `CONCERNS`/`HAS_UX`/`GATED_BY_ENTITLEMENT` for UX/entitlement/enablement; plus how the targeted
+  3GPP-release baseline is carried on delta/associative edges. **[joint]**
+
+**D. Lifecycle / ops**
+- [ ] **9. Substrate update cadence + coverage-gap fallback**: how NORA consumes a re-derived
+  substrate (pin to a substrate version; effect on existing MNO links when `introduced_in`/values
+  shift — stable ids mean links survive); fallback when an MNO cites a `(spec, release)` not yet
+  ingested (risk R13). **[now][joint]**
+
+> Closeable now by design: 1,2,3,4,5,7(our half),8(our half),9. Pipeline-blocked: 6 (fix format now).
+> Joint with NORA (lands in its code/schema): 5,7,8,9.
