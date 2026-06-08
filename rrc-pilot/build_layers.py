@@ -110,6 +110,28 @@ def release_of(version):
     try: return "Rel-%d" % int(str(version).split(".")[0])
     except Exception: return None
 
+# Deterministic, namespaced ids (D-013): 3gpp:<layer>/<type>/<name>, 3gpp:concept/<x>,
+# 3gpp:release/<Rel-N>.  Replaces the throwaway slugs (P_setup, …) so ids are stable,
+# globally unique, and URI-ready (for the eventual RDF option and multi-SDO).
+TYPE_SLUG = {"Procedure": "procedure", "Message": "message", "InformationElement": "ie",
+             "Timer": "timer", "State": "state", "Event": "event", "Condition": "condition",
+             "Bearer": "bearer", "UEVariable": "uevar", "Capability": "capability"}
+
+def _slug(s):
+    return re.sub(r"[^A-Za-z0-9]+", "-", s or "").strip("-")
+
+def canonical_id(e):
+    t = e["type"]
+    if t in ("ProtocolLayer", "Stratum", "DomainRoot"):          # concept-scheme nodes
+        base = e["id"][2:] if e["id"].startswith("C_") else _slug(e["label"])
+        return "3gpp:concept/" + base.lower()
+    if t == "Release":
+        return "3gpp:release/" + e["label"]
+    spec = (e["defined_in"][0] or {}).get("spec")
+    concept = M.SPEC_LAYER.get(spec)                              # e.g. "TS 38.331" -> "C_RRC"
+    layer = concept[2:].lower() if concept else "x"
+    return "3gpp:%s/%s/%s" % (layer, TYPE_SLUG.get(t, t.lower()), _slug(e["label"]))
+
 def life(version, agnostic=False):
     """Lifecycle fields stamped on every entity/relation (D-011)."""
     r = release_of(version)
@@ -166,6 +188,14 @@ def build_kg():
              "confidence": conf, "procedure_ctx": proc, "attrs": parse_attrs(attrs),
              "provenance": clause_prov(clause, quote)}
         r.update(life(M.VERSION)); relations.append(r)
+    # --- re-key: slug ids -> deterministic namespaced ids (D-013) ---
+    idmap = {e["id"]: canonical_id(e) for e in entities}
+    assert len(set(idmap.values())) == len(idmap), "canonical id collision"
+    for e in entities:
+        e["id"] = idmap[e["id"]]
+    for r in relations:
+        r["from"] = idmap.get(r["from"], r["from"])
+        r["to"] = idmap.get(r["to"], r["to"])
     kg = {"spec": M.SPEC, "version": M.VERSION, "current_release": cur, "releases": M.RELEASES,
           "entity_count": len(entities), "relation_count": len(relations),
           "concept_scheme": M.CONCEPT_SCHEME, "entities": entities, "relations": relations}

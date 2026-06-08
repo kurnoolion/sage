@@ -536,3 +536,65 @@ fabricating an exact uningested release. Consumers treat `introduced_in` as obse
 **Still open (for the contract, after the NORA deep-read)**: id-alignment (feature/section/
 release_num ↔ our ids); the per-release **projection API** NORA consumes; the shared doc-extract
 library boundary; where/how delta + associative edges are represented (NORA-side vs shared ontology).
+
+## H.12 Id alignment (design + re-key DONE)
+
+**Real ids.** NORA: `std:24.301:11:5.5.1.2.5` (spec:release_num:section), `feature:IMS_REGISTRATION`,
+`release:VZW:2026_feb`, `req:VZ_REQ_..._7748`. Ours **(re-keyed 2026-06-07 from slugs)**:
+`3gpp:rrc/procedure/RRC-connection-establishment`, `3gpp:rrc/timer/T300`, `3gpp:concept/ims`,
+`3gpp:24.229/Rel-19/clause/5.1.1.2` (clause; representative version in metadata), `3gpp:release/Rel-19`.
+`3gpp:` namespace → GSMA/OMA later get `gsma:`/`oma:` and merge cleanly; URI-ready for D-007/RDF.
+
+**Alignment splits into deterministic vs curated:**
+| What | NORA | Ours | Join | Kind |
+|---|---|---|---|---|
+| section/clause | `std:24.229:17:5.1.1.2` | `3gpp:24.229/Rel-17/clause/5.1.1.2` | strip `std:`, release_num→Rel-N | **deterministic** |
+| release | `17` (int) | `3gpp:release/Rel-17` | release_num→Rel-N (+ rep-version table) | **deterministic** |
+| feature | `feature:IMS_REGISTRATION` | `3gpp:concept/ims-registration` | none | **curated crosswalk** |
+| entity | (none) | `3gpp:ims/procedure/initial-registration` | via section→DEFINED_IN | derived |
+| **assertion** | (none) | content-derived assertion id (§15.3) | direct ref | **NEW: overrides target these** |
+
+- **Section is the deterministic hinge** — any req citing `(spec, release, section)` reaches our rich
+  entities for free. Only **feature↔concept** needs human-curated mapping (small, stable; reuses
+  §15.5 alias/review machinery).
+- **Our entity layer reconciles NORA's per-release section duplication**: `std:…:17:5.1.1.2` and
+  `std:…:19:5.1.1.2` both `DEFINED_IN` → one release-agnostic entity.
+- **Option Y chosen**: 3GPP-grounded features adopt our ids (`feature` id = `3gpp:concept/…`);
+  proprietary features keep `feature:LOCAL_*`. The id namespace encodes anchored-vs-proprietary.
+- release_num↔Rel-N needs a `(spec, release)→representative-version` table; spec `24.301` vs
+  `TS 24.301` trivial normalize.
+- **New id-alignment requirement**: base **assertions need stable ids** (we have them, §15.3) because
+  MNO overrides target a specific base assertion, not just an entity.
+
+## H.13 Requirement-as-delta model (how NORA layers on the base)
+
+**An MNO requirement is a delta operation on the base assertion graph** — the SAME assertion +
+supersede + provenance machinery as 3GPP-release versioning, on a **second overlay axis** scoped by
+`(MNO, MNO-release)`. "Append to the base KG" = add MNO-scoped assertions on top.
+
+**Three classes (per atomic claim, not per whole requirement):**
+1. **CREATE** — no base counterpart → new MNO-scoped assertion (under the concept; tier-2/3 of H.11).
+2. **CHANGE/OVERRIDE** — modifies a base assertion → MNO-scoped assertion that **`supersedes`** the
+   base assertion *in MNO scope* (delta edge OVERRIDES/EXTENDS/EXCLUDES/MANDATES).
+3. **RESTATE** — equals a base assertion → **no new assertion**; a `REQUIRES_COMPLIANCE`/`RESTATES`
+   link (compliance evidence for NORA's §8.3 agent).
+
+**Citation = hint, not ground truth.** Anchor = citation-hinted (section→clause→entities) +
+text-confirmed (req-text→concept/entity). **Two-fidelity classification**: structured where the base
+assertion exists; **prose-fallback** (compare req vs clause prose) otherwise → fidelity is
+**coverage-bounded** (argues for deep extraction; enrichment helps).
+
+**Pipeline (NORA, updated):** parse→**claims** · resolve refs (hints) · **candidate retrieval**
+(hint + text → base assertions) · **classify** create/change/restate (structured|prose-fallback;
+low-confidence→review) · **KG layer** (append MNO assertions referencing base; restate=link) ·
+group under our concept ids · **enrichment** (pull base clause prose into req records) · query
+(retrieve req + base assertions + base prose → grounded contrastive synthesis).
+
+**Two-axis scope** on every MNO assertion: `(MNO, MNO-release)` + the **targeted 3GPP-release
+baseline** + provenance to req *and* base assertion + delta type.
+
+**Boundary**: NORA appends an overlay that *references* our read-only base ids; never mutates the
+base. Unified graph = our base (imported) + MNO assertion layers (D-013/A, NORA §4.2).
+
+**Risks**: classification accuracy (RESTATE vs subtle CHANGE is the dangerous confusion → conservative
+review); coverage-bounded fidelity; messy claim decomposition; two-axis data complexity.
