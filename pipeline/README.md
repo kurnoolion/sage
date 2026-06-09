@@ -66,8 +66,14 @@ export SAGE_LLM_TIMEOUT=300                             # per-request seconds (d
 ```bash
 python3 -m pipeline.llm_debug --probe http://<gpu-host>:8000   # what API does it speak?
 python3 -m pipeline.llm_debug --check                          # send one ping, report latency
+python3 -m pipeline.llm_debug --clause 5.1.1.1 --version 19.6.0 # exact prompt sent + raw response + parsed facts
+python3 -m pipeline.llm_debug --clause 5.1.1.1 --no-call        # just show the prompt (no endpoint needed)
 python3 -m pipeline.run --version 19.6.0 --limit 3 -v          # 3 clauses, DEBUG logging
 ```
+
+`--clause` is how you see exactly *what was sent and what came back* for one
+clause. It dumps corpus prose, so it is a local operator diagnostic — don't paste
+it into a cross-boundary report (`--out FILE` writes it to disk; gitignore that).
 
 The run logs each clause as it goes (`[i/n] clause <key> (<chars>)`) plus per-call
 latency / tokens-per-second, so a hang or timeout names the exact clause. Failures
