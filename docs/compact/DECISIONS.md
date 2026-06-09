@@ -276,9 +276,12 @@ explicit policy for *how* the TBox and the gold seed evolve and *who* owns them.
 puts type decisions where the judgment is (human + frontier model) and volume where the compute is
 (on-prem); subtype-first minimizes breaking change and relationship-vocabulary sprawl.
 **Consequences**: Ontology growth is expected to burst when a genuinely new domain/SDO lands and
-flatten as a spec's clauses fill in. Breaking type changes require a deliberate (future) ontology-
-versioning mechanism — not yet designed. The extraction prompt/validator must reject undeclared
-types and route them to review. Refines **D-006** (extensible seed) and **D-010** (division of
+flatten as a spec's clauses fill in. Note this concerns only the **TBox type set**; *additive*
+schema growth is already designed (D-006, §12) and *instance/release* versioning is fully designed
+(D-011/D-012, incl. the §15.5 rename review-queue). The one open case is a **breaking TBox change**
+(rename/remove/narrow a *type*) — not yet specified, but it would reuse the §15.5 rename-review
+pattern (confirm/alias/`renamed_in`) one layer up at the type level, not start from scratch. The
+extraction prompt/validator must reject undeclared types and route them to review. Refines **D-006** (extensible seed) and **D-010** (division of
 labour: now three tiers — deterministic code / on-prem volume / human + frontier-LLM curation).
 **Relates to**: sharpens D-006 (extensible schema seed) and D-010 (division of labour) — refinement, not a replacement; neither is superseded.
 
