@@ -382,6 +382,30 @@ single block is 2072 chars (no hard-split triggered in practice — the giant An
 Quality of chunked extraction vs whole-clause is not yet empirically verified (needs the endpoint).
 **Relates to**: serves D-010 (LLM stage 3); preserves D-008 (KG ⊨ corpus); follows D-017 logging.
 
+---
+
+## D-019: Anchor resolution (KG ⊨ corpus) matches whitespace-normalized, not byte-exact
+**Status**: Active
+**Date**: 2026-06-09
+**Context**: The LLM stage's `KG ⊨ corpus` check (D-008) requires each fact's `anchor` to be a verbatim
+span of the clause. The corpus stores prose with non-breaking spaces (`\xa0`, e.g. `annex\xa0A`),
+paragraph newlines, indentation prefixes, and occasional double spaces (artifacts of `build_corpus.py`
+walking the .docx). A model quoting the same span uses ordinary single spaces, so byte-exact matching
+raised **false-positive** "anchor not found" warnings that flooded the review queue with non-issues.
+**Decision**: `validate._anchor_in` now whitespace-normalizes **both** the clause haystack and the
+anchor before the substring test — every run of `\s` (spaces, tabs, newlines, `\xa0`, other Unicode
+spaces) collapses to a single space (`_norm_ws`). Matching stays verbatim on **content**; only
+whitespace *shape* is ignored. Normalized haystacks are cached per clause within a `validate()` call.
+**Why**: Whitespace shape is not semantic and the model cannot reproduce `\xa0`/internal newlines, so
+penalizing it is noise. Real paraphrase or hallucination changes words, not just spacing, and still
+fails to match — verified (a genuine wording change is still rejected). This sharpens the signal in the
+review queue (`validation-warning` items) without weakening the invariant.
+**Consequences**: `KG ⊨ corpus` is defined modulo whitespace; a fact whose anchor differs from the
+corpus only by spacing is now accepted. The deterministic spine is unaffected (already 0 warnings).
+Does not relax the leading-word-drift tolerance already present. If exact-whitespace fidelity is ever
+needed (it isn't for review triage), it would be a separate stricter check.
+**Relates to**: refines D-008 (KG ⊨ corpus anchor check); reduces D-012/D-017 review-queue noise.
+
 <!--
 Template for new entries:
 

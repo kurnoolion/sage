@@ -11,15 +11,36 @@
 Returns (errors, warnings). Errors are hard (type/domain/range violations);
 corpus-resolution misses are warnings (anchor drift, R7) destined for review.
 """
+import re
+
 from . import ontology
 
+_WS = re.compile(r"\s+")
 
-def _anchor_in(corpus, clause, anchor):
+
+def _norm_ws(s):
+    """Collapse every run of whitespace (spaces, tabs, newlines, NBSP \\xa0, and
+    other Unicode spaces — all matched by \\s) to a single space, and trim ends.
+
+    The corpus stores prose with paragraph newlines, indentation prefixes, and
+    NBSPs (e.g. 'annex\\xa0A'); an LLM quoting the same span uses ordinary single
+    spaces. Comparing both sides whitespace-normalized keeps the anchor check
+    verbatim on *content* (KG ⊨ corpus, D-008) while ignoring whitespace shape,
+    which removes false-positive 'anchor not found' warnings without weakening
+    the real check (hallucinated/paraphrased wording still fails to match).
+    """
+    return _WS.sub(" ", s).strip()
+
+
+def _anchor_in(corpus, clause, anchor, hay_cache):
     if not anchor:
         return True
-    hay = corpus.haystack(clause)
-    a = anchor.strip(" .;:,")
-    if a in hay:
+    hay = hay_cache.get(clause)
+    if hay is None:
+        hay = _norm_ws(corpus.haystack(clause))
+        hay_cache[clause] = hay
+    a = _norm_ws(anchor).strip(" .;:,")
+    if a and a in hay:
         return True
     # tolerate a leading word or two of drift
     w = a.split(" ")
@@ -31,6 +52,7 @@ def validate(entities, relations, corpus, version=None):
     version = version or corpus.version
     etypes = ontology.ENTITY_TYPES
     rtypes = ontology.RELATIONSHIP_TYPES
+    hay_cache = {}                         # clause -> whitespace-normalized haystack
     by_id = {e["id"]: e for e in entities}
     allids = set(by_id) | {r["id"] for r in relations}
 
@@ -47,7 +69,7 @@ def validate(entities, relations, corpus, version=None):
             cl = p.get("clause")
             if cl not in corpus:
                 warns.append("entity %s defined_in clause %s not in corpus" % (e["id"], cl)); continue
-            if not _anchor_in(corpus, cl, p.get("anchor")):
+            if not _anchor_in(corpus, cl, p.get("anchor"), hay_cache):
                 warns.append("entity %s anchor not found in %s: %r" % (e["id"], cl, (p.get("anchor") or "")[:40]))
 
     # --- KG ⊨ ontology : relation types + subtype-aware domain/range ---
@@ -72,7 +94,7 @@ def validate(entities, relations, corpus, version=None):
             cl = p["clause"]
             if cl not in corpus:
                 warns.append("relation %s provenance clause %s not in corpus" % (r["id"], cl)); continue
-            if not _anchor_in(corpus, cl, p.get("anchor")):
+            if not _anchor_in(corpus, cl, p.get("anchor"), hay_cache):
                 warns.append("relation %s anchor not found in %s: %r" % (r["id"], cl, (p.get("anchor") or "")[:40]))
 
     # --- lifecycle field sanity (D-011) ---
