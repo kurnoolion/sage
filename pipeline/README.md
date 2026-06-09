@@ -9,6 +9,20 @@ per-release:  UE filter → deterministic extractors → LLM extractor → merge
 cross-release: derive(snapshots, aliases, review-decisions) → unified KG     ← future (D-012)
 ```
 
+## Corpus (gitignored — rebuild it first)
+
+The corpus store (`corpus/store/<spec>-<ver>/clauses.json`) is **gitignored** (3GPP
+copyright), so a fresh `git clone`/`pull` has the code but no corpus and the
+pipeline errors with *"No such file or directory: …/clauses.json"*. Rebuild it
+from the public source (reuses NORA's downloader; LibreOffice needed only for
+specs served as legacy `.doc`, e.g. TS 24.229):
+
+```bash
+python3 corpus/fetch_spec.py "TS 24.229" 19.6.0 Rel-19   # one spec, exact version
+python3 corpus/fetch_spec.py --all                       # every spec SAGE uses
+# NORA elsewhere? --nora-root <path> or export SAGE_NORA_ROOT=<path>
+```
+
 ## Run
 
 ```bash
