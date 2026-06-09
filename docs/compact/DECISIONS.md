@@ -313,6 +313,35 @@ data, so the auditor is only fully exercised once that exists. Depends on the go
 the review-queue machinery (D-012 §15.5), and the NORA overlay/`reference_index` (D-013).
 **Relates to**: extends D-008; consumes D-010 (gold set), D-012 (review queue), D-013 (NORA artifacts).
 
+---
+
+## D-017: Pipeline logging & error-handling — adopt NORA's D-009 / D-012 conventions
+**Status**: Active
+**Date**: 2026-06-09
+**Context**: Wiring the on-prem LLM stage (D-010 stage 3) surfaced a runtime timeout that the code
+reported only as a bare stack trace — no indication of which clause, how long it waited, or how to
+fix it. SAGE and NORA share the same chat-mediated collaboration model (a frontier-LLM curator who
+cannot see the corpus, D-015), so SAGE should observe NORA's observability decisions rather than
+invent its own.
+**Decision**: Adopt, proportionate to SAGE's size: (a) **`logging` module, not `print()`**, in
+runtime code — module-level `logger`, per-call timing + token stats at INFO (mirrors NORA **D-009**
+`last_call_stats`), request shapes/parsed-fact counts at DEBUG, a `--verbose/-v` flag toggling DEBUG
+(`pipeline/run.py`). (b) **Stable prefixed error codes** (NORA **D-012(a)**): `pipeline/error_codes.py`
+defines `ErrorDef`/`PipelineError` with `{MODULE}-{SEVERITY}{NUMBER}` codes formatted `[CODE] message
+| hint: …`; the LLM stage raises `LLM-E001..E004` (timeout / HTTP / network / no-choices). The
+catalog grows as other stages need codes. (c) **No-internal-content invariant** (NORA **D-012(b)**):
+logs and coded errors carry only clause **ids** and **counts** (char/token), never corpus prose —
+respecting both 3GPP copyright and the redaction discipline. API keys are never logged.
+**Why**: Turns an opaque failure into a tractable surface for both the operator and the chat-mediated
+debugging loop, with one shared convention across NORA and its SAGE substrate.
+**Consequences**: New runtime code uses `logger` + a coded `PipelineError`; new failure modes register
+a code in `error_codes.py`. `pipeline/llm_debug.py` (`--probe`/`--check`) is the out-of-band endpoint
+diagnostic, paralleling NORA's `core/src/llm/llm_debug.py`. Does **not** adopt NORA's heavier
+machinery (SQLite metrics DB, `MetricsMiddleware`, compact RPT/MET/QC report files) — SAGE has no web
+service or hardware-partner artifact boundary yet; revisit if/when it does.
+**Relates to**: serves D-010 (extraction pipeline), D-015 (human + frontier-LLM curation model);
+mirrors NORA D-009 (per-call LLM stats) and D-012 (stable error codes + compact, no-content reports).
+
 <!--
 Template for new entries:
 

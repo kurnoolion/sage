@@ -58,7 +58,24 @@ export SAGE_LLM_BASE_URL=http://localhost:11434/v1      # Ollama
 # or                       http://<gpu-host>:8000/v1    # vLLM
 export SAGE_LLM_MODEL=qwen2.5:32b-instruct
 export SAGE_LLM_API_KEY=…                               # optional (vLLM/OpenAI)
+export SAGE_LLM_TIMEOUT=300                             # per-request seconds (default 300)
 ```
+
+### Debugging the endpoint (do this before a long run)
+
+```bash
+python3 -m pipeline.llm_debug --probe http://<gpu-host>:8000   # what API does it speak?
+python3 -m pipeline.llm_debug --check                          # send one ping, report latency
+python3 -m pipeline.run --version 19.6.0 --limit 3 -v          # 3 clauses, DEBUG logging
+```
+
+The run logs each clause as it goes (`[i/n] clause <key> (<chars>)`) plus per-call
+latency / tokens-per-second, so a hang or timeout names the exact clause. Failures
+carry a **stable error code + hint** (D-017): a timeout aborts with `[LLM-E001] LLM
+timeout after Ns (limit Ns) on clause <key> | hint: raise SAGE_LLM_TIMEOUT …`
+(`LLM-E002` HTTP, `LLM-E003` network, `LLM-E004` bad shape). Run logging defaults
+to INFO; `-v` adds DEBUG (request shapes, parsed-fact counts). Logs carry only
+clause ids + char/token counts — never corpus prose — and API keys are never logged.
 
 With no `SAGE_LLM_BASE_URL` (or `--dry-run`), stage 3 is a **no-op stub**: the
 prompt is still built (inspectable) but no network call is made, so the
@@ -76,7 +93,9 @@ the **anchor must be a verbatim clause span** so `KG ⊨ corpus` holds.
 | `corpus.py` | load a frozen corpus store; `haystack()` for anchor resolution |
 | `ue_filter.py` | **stage 1** — select UE-side clauses (structural + actor-term fallback) + report |
 | `extractors.py` | **stage 2** — deterministic: Procedures (titles), SIP vocab, INVOKES (cross-refs) |
-| `llm.py` | **stage 3** — OpenAI-compatible client + few-shot prompt builder (stub-safe) |
+| `llm.py` | **stage 3** — OpenAI-compatible client + few-shot prompt builder (stub-safe); per-call timing/token logging + timeout/error surfacing |
+| `llm_debug.py` | endpoint probe (`--probe`) + configured-LLM ping (`--check`) for diagnosing hangs/timeouts |
+| `error_codes.py` | stable `{MODULE}-{SEVERITY}{NUMBER}` codes + `PipelineError` (D-017; NORA D-012a convention) |
 | `records.py` | KG entity/relation builders (canonical shape + D-011 lifecycle/provenance) |
 | `validate.py` | **stage 4** — `KG ⊨ ontology` (subtype-aware) + `KG ⊨ corpus` |
 | `snapshot.py` | **stage 5** — write snapshot + review queue (low-confidence / warnings) |

@@ -12,9 +12,13 @@ spine always runs.
 """
 import argparse
 import json
+import logging
 import os
+import time
 
 from . import config, corpus, extractors, llm, snapshot, ue_filter, validate
+
+log = logging.getLogger(__name__)
 
 
 def load_gold(spec):
@@ -40,12 +44,23 @@ def run(spec, version, dry_run=False, limit=None):
     gold = load_gold(spec)
     llm_ents, llm_rels = [], []
     if ep is not None:
-        keys = ue_keys[:limit] if limit else ue_keys
-        for k in keys:
-            if "/" in k:
-                continue
-            e, r = llm.extract_clause(cfg, k, cps[k], gold.get("examples", []), ep)
-            llm_ents += e; llm_rels += r
+        keys = [k for k in (ue_keys[:limit] if limit else ue_keys) if "/" not in k]
+        total = len(keys)
+        log.info("LLM stage: %d clauses to process (model=%s, timeout=%ds)",
+                 total, ep["model"], ep["timeout"])
+        t0 = time.time()
+        for i, k in enumerate(keys, 1):
+            log.info("[%d/%d] clause %s (%d chars)", i, total, k, len(cps[k].get("text") or ""))
+            try:
+                e, r = llm.extract_clause(cfg, k, cps[k], gold.get("examples", []), ep)
+            except Exception as exc:       # report which clause died, then re-raise
+                log.error("LLM stage aborted at clause %s (%d/%d) after %.0fs total: %s",
+                          k, i, total, time.time() - t0, exc)
+                raise
+            llm_ents += e
+            llm_rels += r
+        log.info("LLM stage done: %d clauses in %.0fs -> %d entities, %d relations",
+                 total, time.time() - t0, len(llm_ents), len(llm_rels))
 
     # 4. merge + validate
     entities = snapshot.merge(det_ents, llm_ents)
@@ -80,7 +95,13 @@ def main():
     ap.add_argument("--version", default="19.6.0")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--verbose", "-v", action="store_true",
+                    help="DEBUG logging (per-call request shapes, parsed-fact counts)")
     a = ap.parse_args()
+    logging.basicConfig(
+        level=logging.DEBUG if a.verbose else logging.INFO,
+        format="%(asctime)s %(name)s %(levelname)s %(message)s",
+        datefmt="%H:%M:%S")
     run(a.spec, a.version, dry_run=a.dry_run, limit=a.limit)
 
 
