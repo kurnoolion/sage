@@ -43,5 +43,5 @@
 
 - Stakeholder map deferred — no domain-validator or eval-data channel named yet (v1 risk).
 - Store choice (RDF/SKOS vs. property graph) unresolved — architecture-phase `D-XXX`; model so far is store-agnostic.
-- Schema (entity/relationship types) is an **open/extensible seed** — expected to grow per spec; avoid premature closure.
+- Schema (entity/relationship types) is an **open/extensible seed** — expected to grow per spec; avoid premature closure. Evolution policy now formalized: **D-015** (additive, subtype-first, human + frontier-LLM curated; on-prem extractor conforms only).
 - Layer-D validation (validating LLM-extracted behavioral triples without exhaustive human review) is the key unsolved problem inherited from prior work.

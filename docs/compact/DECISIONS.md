@@ -242,6 +242,46 @@ Alternatives weighed: ATLAS (substrate metaphor), GRETA (women's-name lineage).
 substrate SAGE. The old GitHub name auto-redirects; a temporary `~/work/3gpp-kg` compat symlink
 may exist until sessions move to `~/work/sage`.
 
+## D-015: Ontology evolution policy — additive, subtype-first, human + frontier-LLM curated
+**Status**: Active
+**Date**: 2026-06-08
+**Context**: As more specs are ingested the ontology (TBox: entity + relationship *types* in
+`pipeline/ontology.py`) must grow, but it is the schema every fact conforms to (`KG ⊨ ontology`,
+D-008) and the interface NORA consumes (D-013). Uncontrolled growth — or the on-prem extraction
+model inventing types — would corrupt the graph and break the downstream contract. We need an
+explicit policy for *how* the TBox and the gold seed evolve and *who* owns them. Sharpens the
+"extensible seed" intent (D-006) and the division of labour (D-010).
+**Decision**:
+- **Types vs instances.** The KG (ABox: instances like `REGISTER`, `T300`, "Initial registration")
+  grows freely with every document — no governance. The TBox (types like `SIPMethod`, `EXCHANGES`)
+  is the slow, stable, governed layer. Controlled vocabularies of *names* (e.g. SIP method/header
+  lists in `extractors.py`) are instance-level data, not schema.
+- **Additive-only evolution.** New types may be **added**; existing types are **not renamed,
+  removed, or narrowed** without an explicit versioning step — because both `KG ⊨ ontology` and the
+  D-013 NORA contract treat the type set like a public API (add = safe/minor; rename/remove/narrow =
+  breaking).
+- **Subtype-first.** Prefer slotting new constructs under existing abstractions via `subtype_of`
+  (as IMS SIP types went under `Message`/`InformationElement`) over adding flat new entity types or
+  new relationship types. Subtype-aware validation (`domain_range_ok`) then lets existing edges
+  (`EXCHANGES`, `CONTAINS`, …) absorb new specs without relationship-vocabulary churn. New
+  relationship types are the rarest, highest-bar change.
+- **Ownership: human + frontier-LLM (Claude) collaboration.** The TBox and the per-spec **gold
+  seed** are curated by the user together with a frontier reasoning model (Claude) — the
+  high-judgment, correctness-critical work. This is a distinct tier from the **on-prem local model**,
+  which owns *volume* behavioural extraction only.
+- **The on-prem extractor conforms; it never invents.** It must emit only declared types. A clause
+  that seems to need a missing type yields a **proposed-type review-queue item**, adjudicated by the
+  human+frontier-LLM tier — never auto-merged into the ontology (contains R1 mis-typing).
+**Why**: Keeps the schema coherent and the NORA interface stable while still letting coverage grow;
+puts type decisions where the judgment is (human + frontier model) and volume where the compute is
+(on-prem); subtype-first minimizes breaking change and relationship-vocabulary sprawl.
+**Consequences**: Ontology growth is expected to burst when a genuinely new domain/SDO lands and
+flatten as a spec's clauses fill in. Breaking type changes require a deliberate (future) ontology-
+versioning mechanism — not yet designed. The extraction prompt/validator must reject undeclared
+types and route them to review. Refines **D-006** (extensible seed) and **D-010** (division of
+labour: now three tiers — deterministic code / on-prem volume / human + frontier-LLM curation).
+**Relates to**: sharpens D-006 (extensible schema seed) and D-010 (division of labour) — refinement, not a replacement; neither is superseded.
+
 <!--
 Template for new entries:
 
