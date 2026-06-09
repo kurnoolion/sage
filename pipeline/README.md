@@ -82,6 +82,8 @@ silently merged.
 
 Deterministic spine runs on TS 24.229 (169/2096 UE clauses → 149 entities /
 30 relations, 0 errors / 0 warnings). LLM stage built + stubbed, pending an
-endpoint. Known precision-tuning item: the title-based Procedure extractor
-over-generates on parameter / "abnormal cases" clauses — refined by the LLM type
-pass + review.
+endpoint. Procedure anchors whose titles look structural (parameters / "as a
+security mechanism" / "- general" / "abnormal cases") are kept but **demoted to
+`confidence=med` and routed to `review-queue.json`** (currently 16) rather than
+presented as solid facts — precise re-typing is the LLM/review's job
+(D-010/D-015), not a title regex.

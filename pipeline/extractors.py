@@ -34,6 +34,16 @@ SIP_HEADERS = [
 
 _GENERIC_TITLES = {"general", "void", "introduction", "scope", "", "purpose"}
 
+# Titles that are structurally NOT procedures — data / qualifier / section-header
+# clauses (e.g. "Parameters contained in the ISIM", "IMS AKA as a security
+# mechanism", "IMS AKA - general"). We keep them as anchors but demote to
+# confidence=med → review queue, because precise typing is the LLM's job
+# (D-010/D-015), not a title regex. Note "abnormal procedures" IS a procedure, so
+# we match "abnormal cases" but deliberately not "abnormal procedures".
+_AMBIGUOUS_TITLE = re.compile(
+    r"(?i)(\bparameters?\b|as a security mechanism|[-–]\s*general$"
+    r"|\babnormal cases\b|\bstored information\b|\bintroduction\b)")
+
 # procedure clause levels under the UE subtree we treat as procedure anchors
 _PROC_LEVELS = (3, 4, 5)
 
@@ -73,8 +83,11 @@ def extract(corpus, cfg, ue_keys):
             continue
         if not (cl.get("text") or "").strip():
             continue
+        ambiguous = bool(_AMBIGUOUS_TITLE.search(title))
+        extra = {"confidence": "med", "review": "ambiguous-procedure-title"} if ambiguous \
+            else {"confidence": "high"}
         e = records.entity(cfg, "Procedure", title, key, anchor=title,
-                           extractor="deterministic:procedure")
+                           extractor="deterministic:procedure", **extra)
         add_entity(e)
         proc_at_clause[cl.get("number") or key] = e["id"]
 

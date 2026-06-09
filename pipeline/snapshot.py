@@ -32,6 +32,12 @@ def merge(*record_lists):
 
 def build_review_queue(entities, relations, warns):
     items = []
+    for e in entities:                            # ambiguous / low-confidence entity typing
+        if e.get("confidence") in ("low", "med"):
+            items.append({"kind": "ambiguous-entity-type", "id": e["id"],
+                          "type": e["type"], "label": e["label"],
+                          "confidence": e["confidence"], "reason": e.get("review"),
+                          "clause": (e.get("defined_in") or [{}])[0].get("clause")})
     for r in relations:
         if r.get("confidence") in ("low", "med"):
             items.append({"kind": "low-confidence-relation", "id": r["id"],
