@@ -12,7 +12,7 @@ viewed this KG (browser localStorage), with a "Mark all as seen" reset.
 
 Output (gitignored — embeds spec prose): rrc-pilot/viz/kg-view.html
 """
-import json, os
+import argparse, json, os
 
 ROOT  = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 PILOT = os.path.join(ROOT, "rrc-pilot")
@@ -23,9 +23,21 @@ def load(p, default=None):
     except FileNotFoundError:
         return default
 
-KG   = load(os.path.join(PILOT, "knowledge-graph/kg.json"))
-ONTO = load(os.path.join(PILOT, "ontology/ontology.json"), {})
-SPEC = "%s %s" % (KG["spec"], KG["version"])
+# Generic: render ANY kg.json / extraction snapshot. Defaults = the RRC pilot;
+# point --kg/--ontology elsewhere (e.g. a pipeline snapshot) to view that graph.
+ap = argparse.ArgumentParser(description=__doc__)
+ap.add_argument("--kg", default=os.path.join(PILOT, "knowledge-graph/kg.json"),
+                help="KG / snapshot JSON (entities + relations).")
+ap.add_argument("--ontology", default=os.path.join(PILOT, "ontology/ontology.json"),
+                help="ontology JSON (entity_types drive node colours + legend).")
+ap.add_argument("--out", default=os.path.join(os.path.dirname(__file__), "kg-view.html"),
+                help="output HTML path.")
+ap.add_argument("--title", default=None, help="title override (default '<spec> <version>').")
+ARGS = ap.parse_args()
+
+KG   = load(ARGS.kg)
+ONTO = load(ARGS.ontology, {})
+SPEC = ARGS.title or ("%s %s" % (KG["spec"], KG["version"]))
 speckey = KG["spec"].replace("TS ", "").replace(".", "")
 CORP = load(os.path.join(ROOT, "corpus/store/%s-%s/clauses.json" % (speckey, KG["version"])),
             {"clauses": {}})
@@ -305,7 +317,6 @@ document.getElementById('seenBtn').onclick=()=>{{localStorage.setItem(KEY,JSON.s
 applyFilter(); applyHighlight(); showStats();
 </script></body></html>"""
 
-out = os.path.join(os.path.dirname(__file__), "kg-view.html")
-open(out, "w").write(HTML)
-print("wrote", out, "(%d nodes, %d edges; %d focus contexts)" % (len(nodes), len(edges), len(PROCS)))
+open(ARGS.out, "w").write(HTML)
+print("wrote", ARGS.out, "(%d nodes, %d edges; %d focus contexts)" % (len(nodes), len(edges), len(PROCS)))
 

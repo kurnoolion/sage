@@ -21,6 +21,20 @@ Outputs go to `pipeline/snapshots/<SPEC>-<VER>/` (gitignored — regenerable, ca
 verbatim anchors): `snapshot.json` (KG, same shape as the pilot's `kg.json`),
 `review-queue.json`, `ue-filter-report.json`.
 
+## View the snapshot
+
+```bash
+python3 -m pipeline.viz --spec "TS 24.229" --version 19.6.0
+```
+
+Exports the shared ontology to JSON (so SIP types get colours/legend) and renders
+the snapshot through the generic viewer (`rrc-pilot/viz/build_kg_view.py`) into
+`pipeline/snapshots/<SPEC>-<VER>/kg-view.html` (gitignored — embeds prose). Open
+via `file://`. The viewer is data-driven: node colours from the ontology, focus
+buttons from `procedure_ctx`, gold corpus-clause nodes with the verbatim prose and
+anchor highlights, and "new since last view" rings. The same viewer renders the
+RRC pilot with no args.
+
 ## Wiring the on-prem model (stage 3)
 
 Model-agnostic, **OpenAI-compatible** (stdlib only — no SDK). Configure via env:
@@ -53,6 +67,7 @@ the **anchor must be a verbatim clause span** so `KG ⊨ corpus` holds.
 | `validate.py` | **stage 4** — `KG ⊨ ontology` (subtype-aware) + `KG ⊨ corpus` |
 | `snapshot.py` | **stage 5** — write snapshot + review queue (low-confidence / warnings) |
 | `run.py` | orchestrator / CLI |
+| `viz.py` | export shared ontology → JSON + render the snapshot via the generic viewer |
 | `gold/<SPEC>.json` | curated gold seed = few-shot examples **and** precision/recall eval set |
 
 ## Division of labour (D-010)
