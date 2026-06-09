@@ -36,7 +36,7 @@
 ## Next
 
 - **Decision point**: close the **[now] D-013 contract items** (§H.15) OR build the **D-010 extraction pipeline** (gold seed → few-shot prompt → local-model extraction → validation → review queue) — the latter is the path to the first **IMS** taxonomy/ontology/KG (can't hand-author a 1000-page prose spec).
-- Build the **post-ingestion risk auditor** (scratchpad §I, R1–R14).
+- Build the **post-ingestion risk auditor** (**D-016**; scratchpad §I, R1–R14).
 - Formalize: `/switch-phase architecture`; when schema stabilizes across RRC+IMS, pick the production store (RDF/SKOS vs property graph).
 
 ## Flags

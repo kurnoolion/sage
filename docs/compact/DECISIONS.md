@@ -285,6 +285,34 @@ extraction prompt/validator must reject undeclared types and route them to revie
 labour: now three tiers — deterministic code / on-prem volume / human + frontier-LLM curation).
 **Relates to**: sharpens D-006 (extensible schema seed) and D-010 (division of labour) — refinement, not a replacement; neither is superseded.
 
+## D-016: Post-ingestion risk-monitoring auditor
+**Status**: Accepted (implementation pending)
+**Date**: 2026-06-08
+**Context**: Build-time invariants (D-008: `KG ⊨ ontology`/`corpus`) catch *structural* risks at
+extraction, but a full ingest (all specs/releases + the NORA MNO overlay) carries fuzzier risks —
+hallucinated/mis-typed triples, bad entity merges, absence-mistaken-for-removal, value-normalization
+false changes, coverage-bounded fidelity, anchor drift, RESTATE-vs-subtle-CHANGE misclassification,
+conditional-citation mis-reads, feature↔concept crosswalk errors, coverage gaps, two-axis scope
+confusion (the R1–R14 risk register, scratchpad §I.1). These need monitoring *after* `derive()` and
+on every re-ingest, not only at build time.
+**Decision**: Build a dedicated **post-ingestion risk auditor** — conceptually the KG's
+`doctor`/`drift-check` — that **extends the D-008 validators**. Each of R1–R14 maps to an automated
+check (deterministic where possible; sampling + LLM-judge/human for the fuzzy ones R1/R8/R9/R11).
+Inputs: unified SAGE KG, MNO overlay, corpus stores, gold set, NORA `reference_index.json`. Outputs:
+(a) a **risk report** (per-check counts + severity, pass/warn/fail); (b) **review-queue items**
+(reuse the §15.5 machinery); (c) **time-series metrics** (coverage %, structured-vs-prose ratio,
+extraction P/R, #unresolved anchors, #flagged misclassifications) for observability/regression.
+**Severity gating**: structural failures (R1 schema, R7 unresolved anchor) = hard fail; fuzzy ones =
+warn + review.
+**Why**: Risk-as-automated-check makes correctness measurable and regression-tracked across
+re-ingests; separating post-ingestion monitoring from build-time invariants keeps the fast inner
+loop (D-008) lean while still catching the fuzzy/integration risks that only surface at full scale.
+**Consequences**: Runs after `derive()` and on every re-ingest (CI-like). The SAGE-only checks
+(R1–R7) can run as soon as extraction lands; the overlay/integration checks (R8–R14) need the NORA
+data, so the auditor is only fully exercised once that exists. Depends on the gold eval set (D-010),
+the review-queue machinery (D-012 §15.5), and the NORA overlay/`reference_index` (D-013).
+**Relates to**: extends D-008; consumes D-010 (gold set), D-012 (review queue), D-013 (NORA artifacts).
+
 <!--
 Template for new entries:
 

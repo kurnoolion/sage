@@ -398,7 +398,9 @@ Division of labour: human owns schema/examples/prompt/validation; on-prem comput
 - **D-011** multi-release: shared identity + versioned assertions + per-version provenance
 - **D-012** change-tracking / derivation model (§15) — *Active*
 - **D-013** NORA integration contract — anchor+augment; id-alignment; delta-classification↔NORA edges; per-release projection (§H) — *Active (drafted)*
-- **(planned)** risk-monitoring auditor (§I)
+- **D-014** project named SAGE (Specification-Anchored Graph of Entities)
+- **D-015** ontology evolution policy — additive, subtype-first, human + frontier-LLM curated
+- **D-016** post-ingestion risk-monitoring auditor (§I) — *Accepted (implementation pending)*
 
 *(Full text in `docs/compact/DECISIONS.md`.)*
 
@@ -674,7 +676,7 @@ MNO reqs) is ingested and the KGs are built (and on every re-ingest):
 - **Severity gating**: structural failures (R1 schema, R7 unresolved anchor) = hard fail; fuzzy ones =
   warn + review. Tie thresholds to the eval/observability posture.
 - Reuses + extends D-008 validators; conceptually the project's `drift-check`/`doctor` for the
-  KG+overlay. Record as its own decision when built.
+  KG+overlay. **Recorded as D-016** (Accepted; implementation pending).
 
 ## H.15 Open contract TODOs (D-013)
 
