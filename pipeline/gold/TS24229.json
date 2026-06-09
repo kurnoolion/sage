@@ -1,0 +1,33 @@
+{
+  "_doc": "Curated gold seed for TS 24.229 (IMS). Doubles as (a) few-shot examples for the LLM extractor and (b) the precision/recall eval set (D-010). Every anchor is a VERBATIM span of the cited clause in corpus/store/24229-19.6.0 so facts satisfy KG⊨corpus. Facts use the ontology in pipeline/ontology.py.",
+  "spec": "TS 24.229",
+  "version": "19.6.0",
+  "examples": [
+    {
+      "clause": "5.1.1.2.1",
+      "title": "Initial registration — General",
+      "text": "The initial registration procedure consists of the UE sending an unprotected REGISTER request and, if challenged depending on the security mechanism supported for this UE, sending the integrity-protected REGISTER request or other appropriate response to the challenge. The UE shall only initiate a new registration procedure when it has received a final response from the registrar for the ongoing registration.",
+      "facts": [
+        {"subject": "Initial registration", "subject_type": "Procedure", "rel": "EXCHANGES", "object": "REGISTER", "object_type": "SIPMethod", "modality": "prose", "confidence": "high", "anchor": "the UE sending an unprotected REGISTER request"}
+      ]
+    },
+    {
+      "clause": "5.1.2.1",
+      "title": "Notification about multiple registered public user identities",
+      "text": "Upon receipt of a NOTIFY request for the dialog associated with the subscription to the reg event package the UE shall perform the following actions: store the information for the established dialog; store the expiration time as indicated in the \"expires\" header field parameter of the Subscription-State header field, if present, of the NOTIFY request.",
+      "facts": [
+        {"subject": "Notification about multiple registered public user identities", "subject_type": "Procedure", "rel": "EXCHANGES", "object": "NOTIFY", "object_type": "SIPMethod", "modality": "prose", "confidence": "high", "anchor": "Upon receipt of a NOTIFY request"},
+        {"subject": "NOTIFY", "subject_type": "SIPMethod", "rel": "CONTAINS", "object": "Subscription-State", "object_type": "SIPHeader", "modality": "prose", "confidence": "med", "anchor": "Subscription-State header field"}
+      ]
+    },
+    {
+      "clause": "5.1.3.1",
+      "title": "Initial INVITE request",
+      "text": "Where multiple domains exist for initiating a call/session, before sending an initial INVITE request, the UE shall perform access domain selection in accordance with the appropriate specification for the IP-CAN in use. Upon generating an initial INVITE request, the UE shall include the Accept header field with \"application/sdp\".",
+      "facts": [
+        {"subject": "Initial INVITE request", "subject_type": "Procedure", "rel": "EXCHANGES", "object": "INVITE", "object_type": "SIPMethod", "modality": "prose", "confidence": "high", "anchor": "sending an initial INVITE request"},
+        {"subject": "INVITE", "subject_type": "SIPMethod", "rel": "CONTAINS", "object": "Accept", "object_type": "SIPHeader", "modality": "prose", "confidence": "high", "anchor": "include the Accept header field"}
+      ]
+    }
+  ]
+}

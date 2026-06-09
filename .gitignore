@@ -15,3 +15,6 @@ __pycache__/
 
 # Generated KG view HTML (embeds spec prose)
 rrc-pilot/viz/*.html
+
+# Generated extraction snapshots (regenerable; carry verbatim corpus anchors)
+pipeline/snapshots/
