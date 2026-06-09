@@ -83,8 +83,26 @@ python3 -m pipeline.run --version 19.6.0 --limit 3 -v          # 3 clauses, DEBU
 clause. It dumps corpus prose, so it is a local operator diagnostic — don't paste
 it into a cross-boundary report (`--out FILE` writes it to disk; gitignore that).
 
-The run logs each clause as it goes (`[i/n] clause <key> (<chars>)`) plus per-call
-latency / tokens-per-second, so a hang or timeout names the exact clause. Failures
+### Watching progress mid-run
+
+The run logs each clause as it goes (`[i/n] clause <key>`), plus a cumulative
+**progress line** every `--progress-every` clauses (default 25) — clauses done,
+facts so far, elapsed, and ETA:
+
+```
+  progress: 50/165 clauses (30%), 137 LLM facts so far (pre-merge), 6m12s elapsed, ~14m remaining
+```
+
+To inspect the **partial graph** while it builds, pass `--checkpoint-every N`: the
+snapshot is rewritten every N clauses, so you can open it in the viewer mid-run
+(`python3 -m pipeline.viz …`). The final snapshot is always written regardless.
+
+```bash
+python3 -m pipeline.run --version 17.12.0 --progress-every 10 --checkpoint-every 25 -v \
+  2>&1 | tee /tmp/sage-run.log          # follow elsewhere with: tail -f /tmp/sage-run.log
+```
+
+The run also logs per-call latency / tokens-per-second, so a hang or timeout names the exact clause. Failures
 carry a **stable error code + hint** (D-017): a timeout aborts with `[LLM-E001] LLM
 timeout after Ns (limit Ns) on clause <key> | hint: raise SAGE_LLM_TIMEOUT …`
 (`LLM-E002` HTTP, `LLM-E003` network, `LLM-E004` bad shape). Run logging defaults

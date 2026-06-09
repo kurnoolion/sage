@@ -5,10 +5,16 @@
 
 Usage:
     python3 -m pipeline.run --spec "TS 24.229" --version 19.6.0 [--dry-run] [--limit N]
+                            [--progress-every N] [--checkpoint-every N]
 
 --dry-run forces LLM stub mode even if SAGE_LLM_BASE_URL is set. Without an
 endpoint configured the LLM stage is automatically a no-op, so the deterministic
 spine always runs.
+
+--progress-every N logs a cumulative progress line (clauses done, facts so far,
+elapsed, ETA) every N clauses (default 25; 0 disables). --checkpoint-every N
+writes the partial graph to the snapshot every N clauses (default 0 = off) so you
+can open it in the viewer mid-run; the final snapshot is always written.
 """
 import argparse
 import json
@@ -29,7 +35,29 @@ def load_gold(spec):
     return {"examples": []}
 
 
-def run(spec, version, dry_run=False, limit=None):
+def _fmt_dur(secs):
+    secs = int(secs)
+    if secs < 60:
+        return "%ds" % secs
+    if secs < 3600:
+        return "%dm%02ds" % (secs // 60, secs % 60)
+    return "%dh%02dm" % (secs // 3600, (secs % 3600) // 60)
+
+
+def _build_and_write(cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, ue_report):
+    """Merge deterministic + LLM records, validate, and write the snapshot.
+
+    Used for the final write and for mid-run checkpoints. merge() de-dups by id
+    and is idempotent on provenance, so repeated checkpoint calls are safe.
+    """
+    entities = snapshot.merge(det_ents, llm_ents)
+    relations = snapshot.merge(det_rels, llm_rels)
+    errs, warns = validate.validate(entities, relations, cps, version)
+    out_dir, paths = snapshot.write(cfg, entities, relations, errs, warns, ue_report)
+    return entities, relations, errs, warns, out_dir, paths
+
+
+def run(spec, version, dry_run=False, limit=None, progress_every=25, checkpoint_every=0):
     cfg = config.get(spec, version)
     cps = corpus.Corpus(cfg.store_dir)
 
@@ -59,16 +87,27 @@ def run(spec, version, dry_run=False, limit=None):
                 raise
             llm_ents += e
             llm_rels += r
-        log.info("LLM stage done: %d clauses in %.0fs -> %d entities, %d relations",
-                 total, time.time() - t0, len(llm_ents), len(llm_rels))
 
-    # 4. merge + validate
-    entities = snapshot.merge(det_ents, llm_ents)
-    relations = snapshot.merge(det_rels, llm_rels)
-    errs, warns = validate.validate(entities, relations, cps, version)
+            if progress_every and i % progress_every == 0 and i < total:
+                elapsed = time.time() - t0
+                eta = elapsed / i * (total - i)
+                log.info("  progress: %d/%d clauses (%.0f%%), %d LLM facts so far (pre-merge), "
+                         "%s elapsed, ~%s remaining",
+                         i, total, 100.0 * i / total, len(llm_rels), _fmt_dur(elapsed), _fmt_dur(eta))
 
-    # 5. snapshot + review queue
-    out_dir, paths = snapshot.write(cfg, entities, relations, errs, warns, ue_report)
+            if checkpoint_every and i % checkpoint_every == 0 and i < total:
+                cp_ents, cp_rels, cp_errs, _, cp_dir, _ = _build_and_write(
+                    cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, ue_report)
+                log.info("  checkpoint: partial graph after %d/%d clauses -> %s "
+                         "(%d entities, %d relations, %d errors) — open it in the viewer",
+                         i, total, cp_dir, len(cp_ents), len(cp_rels), len(cp_errs))
+
+        log.info("LLM stage done: %d clauses in %s -> %d entities, %d relations (pre-merge)",
+                 total, _fmt_dur(time.time() - t0), len(llm_ents), len(llm_rels))
+
+    # 4 + 5. merge + validate + snapshot (also the path taken for dry-run / stub)
+    entities, relations, errs, warns, out_dir, paths = _build_and_write(
+        cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, ue_report)
 
     # report
     print("SAGE extraction — %s %s (%s)" % (cfg.spec, cfg.version, cfg.release))
@@ -95,6 +134,10 @@ def main():
     ap.add_argument("--version", default="19.6.0")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--progress-every", type=int, default=25,
+                    help="cumulative progress line every N clauses (0 disables; default 25)")
+    ap.add_argument("--checkpoint-every", type=int, default=0,
+                    help="write the partial graph every N clauses for mid-run viewing (default 0 = off)")
     ap.add_argument("--verbose", "-v", action="store_true",
                     help="DEBUG logging (per-call request shapes, parsed-fact counts)")
     a = ap.parse_args()
@@ -102,7 +145,8 @@ def main():
         level=logging.DEBUG if a.verbose else logging.INFO,
         format="%(asctime)s %(name)s %(levelname)s %(message)s",
         datefmt="%H:%M:%S")
-    run(a.spec, a.version, dry_run=a.dry_run, limit=a.limit)
+    run(a.spec, a.version, dry_run=a.dry_run, limit=a.limit,
+        progress_every=a.progress_every, checkpoint_every=a.checkpoint_every)
 
 
 if __name__ == "__main__":
