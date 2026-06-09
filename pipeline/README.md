@@ -31,9 +31,32 @@ python3 -m pipeline.run --spec "TS 24.229" --version 19.6.0             # + LLM 
 python3 -m pipeline.run --version 19.6.0 --limit 20                     # LLM over first 20 UE clauses
 ```
 
-Outputs go to `pipeline/snapshots/<SPEC>-<VER>/` (gitignored — regenerable, carry
-verbatim anchors): `snapshot.json` (KG, same shape as the pilot's `kg.json`),
-`review-queue.json`, `ue-filter-report.json`.
+### Where snapshots are stored
+
+Everything is written under **`pipeline/snapshots/`**, one directory per spec+version
+(name = spec with spaces/dots removed, `-`, version), with an optional `<label>/`
+sub-directory for parallel runs (`--label`):
+
+```
+pipeline/snapshots/
+  TS24229-19.6.0/              # <SPEC>-<VER>; a label-less run
+    snapshot.json             # the KG: entities + relations + validation (same shape as the pilot's kg.json)
+    review-queue.json         # ambiguous / low-confidence items + validation warnings
+    ue-filter-report.json     # what the UE filter kept / dropped
+    ontology.json             # TBox exported for the viewer  (written by `pipeline.viz`)
+    kg-view.html              # rendered graph                (written by `pipeline.viz`)
+    compare.json              # cross-run diff                (written by `pipeline.compare`)
+  TS24229-19.6.0/qwen/        # a labeled parallel run (snapshot.json, review-queue.json, …)
+  TS24229-19.6.0/llama/
+```
+
+The path comes from `snapshot.dir_for()` (the single source of truth, shared by
+run/viz/compare) and is anchored to the repo root, so it's the same regardless of
+the working directory you launch from.
+
+**Gitignored** (`.gitignore`: `pipeline/snapshots/`) — the files embed verbatim
+corpus prose (3GPP copyright) and are regenerable, so they live only on the machine
+that ran the pipeline and do **not** travel with `git pull`.
 
 ## View the snapshot
 
