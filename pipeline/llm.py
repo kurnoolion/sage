@@ -9,6 +9,15 @@ configured purely via env — no SDK dependency (stdlib urllib only):
     SAGE_LLM_TIMEOUT    per-request timeout in seconds (default 300; local 32B models
                         on a busy GPU can take minutes per clause — raise if you hit
                         timeouts). Debug with: python3 -m pipeline.llm_debug --check
+    SAGE_LLM_MAX_CLAUSE_CHARS
+                        max clause-text chars per request (default 6000; 0 disables).
+                        Clauses longer than this are split into chunks on paragraph
+                        (newline) boundaries — see _chunk_text — so a slow local model
+                        sees several short prompts instead of one huge one. Splitting
+                        is deterministic (no LLM boundary detection): build_corpus.py
+                        already stores paragraphs newline-separated, and each chunk is
+                        a verbatim substring so anchors still resolve against the full
+                        clause (KG ⊨ corpus). Facts from all chunks merge by id.
 
 If the endpoint is not configured (or ``--dry-run`` is passed to run.py), the
 extractor runs in **stub mode**: it builds the few-shot prompt (so prompts are
@@ -34,7 +43,43 @@ from .error_codes import PipelineError
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_TIMEOUT = 300       # local 32B models on a busy GPU routinely exceed 120s
+_DEFAULT_TIMEOUT = 300            # local 32B models on a busy GPU routinely exceed 120s
+_DEFAULT_MAX_CLAUSE_CHARS = 6000  # split longer clause text into paragraph-boundary chunks
+
+
+def max_clause_chars():
+    raw = os.environ.get("SAGE_LLM_MAX_CLAUSE_CHARS")
+    if raw is None:
+        return _DEFAULT_MAX_CLAUSE_CHARS
+    try:
+        return int(raw)
+    except ValueError:
+        logger.warning("SAGE_LLM_MAX_CLAUSE_CHARS=%r is not an int — using %d",
+                       raw, _DEFAULT_MAX_CLAUSE_CHARS)
+        return _DEFAULT_MAX_CLAUSE_CHARS
+
+
+def _chunk_text(text, max_chars):
+    """Greedily pack newline-separated paragraphs into chunks of <= max_chars.
+
+    Never splits a paragraph (each chunk begins at a paragraph/line boundary). A
+    lone paragraph longer than max_chars becomes its own oversized chunk rather
+    than being cut mid-sentence. Concatenating the chunks with '\\n' reproduces the
+    original text exactly, so every chunk is a verbatim substring of the clause.
+    """
+    if max_chars <= 0 or len(text) <= max_chars:
+        return [text]
+    chunks, cur, cur_len = [], [], 0
+    for para in text.split("\n"):
+        add = len(para) + (1 if cur else 0)        # +1 for the rejoining '\n'
+        if cur and cur_len + add > max_chars:
+            chunks.append("\n".join(cur))
+            cur, cur_len, add = [], 0, len(para)
+        cur.append(para)
+        cur_len += add
+    if cur:
+        chunks.append("\n".join(cur))
+    return chunks
 
 
 def endpoint():
@@ -145,17 +190,13 @@ def _parse(content):
         return []
 
 
-def extract_clause(cfg, clause_key, clause, gold_examples, ep=None):
-    """Return (entities, relations) for one clause. Stub -> ([], []) with no call."""
-    messages = build_messages(cfg, clause_key, clause, gold_examples)
-    if ep is None:
-        return [], []                      # stub mode
-    content = _call(ep, messages, clause_key)
-    facts = _parse(content)
-    if not facts and content.strip():
-        logger.debug("clause=%s: response had no parseable JSON array (%d chars)",
-                     clause_key, len(content))
-    ents, rels, dropped = {}, [], 0
+def _facts_to_records(cfg, clause_key, facts, ents, rels, rel_ids):
+    """Fold parsed facts into the entity/relation accumulators. Returns #dropped.
+
+    Provenance always uses ``clause_key`` (never a chunk label), so anchors
+    resolve against the full clause text regardless of which chunk found them.
+    """
+    dropped = 0
     for f in facts:
         try:
             st, ot = f["subject_type"], f["object_type"]
@@ -164,12 +205,44 @@ def extract_clause(cfg, clause_key, clause, gold_examples, ep=None):
             oe = records.entity(cfg, ot, f["object"], clause_key, anchor=f.get("anchor"),
                                 extractor="llm")
             ents[se["id"]] = se; ents[oe["id"]] = oe
-            rels.append(records.relation(
+            r = records.relation(
                 cfg, f["rel"], se["id"], oe["id"], clause_key, anchor=f.get("anchor"),
                 modality=f.get("modality", "prose"),
-                confidence=f.get("confidence", "low"), procedure_ctx="llm", extractor="llm"))
+                confidence=f.get("confidence", "low"), procedure_ctx="llm", extractor="llm")
+            if r["id"] not in rel_ids:      # dedup facts repeated across chunks
+                rel_ids.add(r["id"]); rels.append(r)
         except (KeyError, TypeError):
             dropped += 1                   # malformed fact -> dropped (review covers gaps)
-    logger.debug("clause=%s: %d facts parsed -> %d entities, %d relations (%d malformed dropped)",
-                 clause_key, len(facts), len(ents), len(rels), dropped)
+    return dropped
+
+
+def extract_clause(cfg, clause_key, clause, gold_examples, ep=None, max_chars=None):
+    """Return (entities, relations) for one clause. Stub -> ([], []) with no call.
+
+    Long clauses are split into paragraph-boundary chunks (see _chunk_text) so a
+    slow local model sees several short prompts; facts from all chunks are merged.
+    """
+    if ep is None:
+        return [], []                      # stub mode
+    if max_chars is None:
+        max_chars = max_clause_chars()
+    text = clause.get("text") or ""
+    chunks = _chunk_text(text, max_chars)
+    if len(chunks) > 1:
+        logger.info("clause=%s: %d chars > %d limit -> %d paragraph-boundary chunks",
+                    clause_key, len(text), max_chars, len(chunks))
+
+    ents, rels, rel_ids, total_facts = {}, [], set(), 0
+    for i, ch in enumerate(chunks):
+        ck = clause_key if len(chunks) == 1 else "%s#%d/%d" % (clause_key, i + 1, len(chunks))
+        messages = build_messages(cfg, clause_key, dict(clause, text=ch), gold_examples)
+        content = _call(ep, messages, ck)
+        facts = _parse(content)
+        total_facts += len(facts)
+        if not facts and content.strip():
+            logger.debug("clause=%s: response had no parseable JSON array (%d chars)",
+                         ck, len(content))
+        _facts_to_records(cfg, clause_key, facts, ents, rels, rel_ids)
+    logger.debug("clause=%s: %d facts parsed -> %d entities, %d relations (across %d chunk(s))",
+                 clause_key, total_facts, len(ents), len(rels), len(chunks))
     return list(ents.values()), rels

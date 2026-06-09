@@ -46,8 +46,8 @@ def run(spec, version, dry_run=False, limit=None):
     if ep is not None:
         keys = [k for k in (ue_keys[:limit] if limit else ue_keys) if "/" not in k]
         total = len(keys)
-        log.info("LLM stage: %d clauses to process (model=%s, timeout=%ds)",
-                 total, ep["model"], ep["timeout"])
+        log.info("LLM stage: %d clauses to process (model=%s, timeout=%ds, max_clause_chars=%d)",
+                 total, ep["model"], ep["timeout"], llm.max_clause_chars())
         t0 = time.time()
         for i, k in enumerate(keys, 1):
             log.info("[%d/%d] clause %s (%d chars)", i, total, k, len(cps[k].get("text") or ""))

@@ -59,7 +59,15 @@ export SAGE_LLM_BASE_URL=http://localhost:11434/v1      # Ollama
 export SAGE_LLM_MODEL=qwen2.5:32b-instruct
 export SAGE_LLM_API_KEY=…                               # optional (vLLM/OpenAI)
 export SAGE_LLM_TIMEOUT=300                             # per-request seconds (default 300)
+export SAGE_LLM_MAX_CLAUSE_CHARS=6000                  # split longer clauses into chunks (0=off)
 ```
+
+Long clauses are split into **paragraph-boundary chunks** of ≤ `SAGE_LLM_MAX_CLAUSE_CHARS`
+(default 6000) so a slow local model sees several short prompts instead of one
+huge one (D-018). Splitting is deterministic (the corpus stores paragraphs
+newline-separated) and each chunk is a verbatim substring, so anchors still
+resolve against the full clause. Facts from all chunks merge by id; lower the
+limit for more, smaller calls. Per-chunk calls log as `clause#i/n`.
 
 ### Debugging the endpoint (do this before a long run)
 

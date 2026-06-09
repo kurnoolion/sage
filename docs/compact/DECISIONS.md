@@ -342,6 +342,38 @@ service or hardware-partner artifact boundary yet; revisit if/when it does.
 **Relates to**: serves D-010 (extraction pipeline), D-015 (human + frontier-LLM curation model);
 mirrors NORA D-009 (per-call LLM stats) and D-012 (stable error codes + compact, no-content reports).
 
+---
+
+## D-018: Long clauses are split into deterministic paragraph-boundary chunks for the LLM stage
+**Status**: Active
+**Date**: 2026-06-09
+**Context**: Local LLMs time out on long clauses (e.g. TS 24.229 §4.1 is ~14.5K chars → the original
+120s timeout fired, now 300s per D-017, but a single huge prompt is still slow and risky). We need to
+feed long clauses to the model in smaller pieces.
+**Decision**: In the LLM extractor (`pipeline/llm.py`), when a clause's text exceeds
+`SAGE_LLM_MAX_CLAUSE_CHARS` (env, default 6000; 0 disables), greedily pack its **newline-separated
+paragraphs** into chunks of ≤ that size and send one request per chunk; facts from all chunks merge by
+id. A paragraph is never split (each chunk starts at a paragraph/line boundary); a lone paragraph over
+the limit becomes its own oversized chunk rather than being cut. Provenance for every fact uses the
+real clause key (not a chunk label), so anchors still resolve against the full clause text
+(**KG ⊨ corpus**, D-008). Splitting is **deterministic** — `build_corpus.py` already stores paragraphs
+newline-separated, so `text.split("\n")` recovers them and the chunks rejoin to the verbatim original.
+**Why**: Smaller prompts finish within timeout on local models, with no quality loss for our
+single-anchor facts (each fact's verbatim quote lives within one paragraph, so paragraph-boundary
+splits keep anchors intact).
+**Alternatives considered**:
+  - *LLM-detected paragraph boundaries + model reports the ignored trailing fragment to resume the
+    next chunk* (the initial proposal) — **rejected**: adds round-trips (opposite of the goal), is
+    non-deterministic (violates SAGE's deterministic-first principle), and the resume protocol is
+    fragile — if the model paraphrases the trailing fragment by one character it can't be relocated in
+    the source, causing silent loss or duplication. The corpus already carries reliable newline
+    boundaries, so no model is needed to find them.
+**Consequences**: Cross-paragraph relational context split across chunks may be missed by the LLM
+(acceptable — the LLM stage is lossy and review-gated by design; the deterministic spine and few-shot
+context cover the backbone). Per-chunk calls are logged individually (`clause#i/n`). Tables (stored as
+newline-separated rows) split by row, which is fine for row-local anchors.
+**Relates to**: serves D-010 (LLM stage 3); preserves D-008 (KG ⊨ corpus); follows D-017 logging.
+
 <!--
 Template for new entries:
 
