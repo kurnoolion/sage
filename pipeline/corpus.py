@@ -11,9 +11,15 @@ validated against a clause's title+text *plus its children's* (see validate.py).
 import json
 import os
 
+# Repo root (parent of the pipeline/ package), so relative store_dirs resolve the
+# same way no matter what CWD the pipeline is launched from.
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
 
 class Corpus:
     def __init__(self, store_dir):
+        if not os.path.isabs(store_dir):
+            store_dir = os.path.join(_ROOT, store_dir)
         self.store_dir = store_dir
         with open(os.path.join(store_dir, "clauses.json")) as f:
             doc = json.load(f)

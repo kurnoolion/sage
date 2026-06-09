@@ -12,6 +12,10 @@ import json
 import os
 import time
 
+# Repo root, so a relative out_root resolves to the repo's snapshots dir no matter
+# what CWD the pipeline is launched from (matches corpus.py).
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
 
 def merge(*record_lists):
     """Union entities/relations by id; first occurrence wins, provenance merged."""
@@ -50,6 +54,8 @@ def build_review_queue(entities, relations, warns):
 
 
 def write(cfg, entities, relations, errs, warns, ue_report, out_root="pipeline/snapshots"):
+    if not os.path.isabs(out_root):
+        out_root = os.path.join(_ROOT, out_root)
     out_dir = os.path.join(out_root, "%s-%s" % (cfg.spec.replace(" ", "").replace(".", ""), cfg.version))
     os.makedirs(out_dir, exist_ok=True)
 
