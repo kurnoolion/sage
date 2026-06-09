@@ -109,8 +109,10 @@ def _chunk_text(text, max_chars):
     return chunks
 
 
-def endpoint():
-    base = os.environ.get("SAGE_LLM_BASE_URL")
+def endpoint(base_url=None, model=None, api_key=None):
+    """Build an endpoint config. Explicit args win over env (for parallel runs that
+    each target a different model/endpoint); anything unset falls back to env."""
+    base = base_url or os.environ.get("SAGE_LLM_BASE_URL")
     if not base:
         return None
     try:
@@ -120,8 +122,8 @@ def endpoint():
                        os.environ.get("SAGE_LLM_TIMEOUT"), _DEFAULT_TIMEOUT)
         timeout = _DEFAULT_TIMEOUT
     ep = {"base": base.rstrip("/"),
-          "model": os.environ.get("SAGE_LLM_MODEL", "qwen2.5:32b-instruct"),
-          "key": os.environ.get("SAGE_LLM_API_KEY", ""),
+          "model": model or os.environ.get("SAGE_LLM_MODEL", "qwen2.5:32b-instruct"),
+          "key": api_key if api_key is not None else os.environ.get("SAGE_LLM_API_KEY", ""),
           "timeout": timeout}
     # api_key deliberately not logged.
     logger.info("LLM endpoint: base=%s model=%s timeout=%ds",

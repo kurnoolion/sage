@@ -6,6 +6,7 @@
 Usage:
     python3 -m pipeline.run --spec "TS 24.229" --version 19.6.0 [--dry-run] [--limit N]
                             [--progress-every N] [--checkpoint-every N]
+                            [--label NAME] [--llm-base-url URL] [--llm-model M] [--llm-api-key K]
 
 --dry-run forces LLM stub mode even if SAGE_LLM_BASE_URL is set. Without an
 endpoint configured the LLM stage is automatically a no-op, so the deterministic
@@ -15,6 +16,15 @@ spine always runs.
 elapsed, ETA) every N clauses (default 25; 0 disables). --checkpoint-every N
 writes the partial graph to the snapshot every N clauses (default 0 = off) so you
 can open it in the viewer mid-run; the final snapshot is always written.
+
+To run several LLMs in PARALLEL over the same corpus, give each run its own
+--label and --llm-model/--llm-base-url (the snapshot lands in a per-label sub-dir,
+so concurrent processes don't collide), then diff them with `pipeline.compare`:
+
+    python3 -m pipeline.run --version 19.6.0 --label qwen  --llm-model qwen2.5:32b   &
+    python3 -m pipeline.run --version 19.6.0 --label llama --llm-model llama3.1:70b  &
+    wait
+    python3 -m pipeline.compare --version 19.6.0 qwen llama
 """
 import argparse
 import json
@@ -44,7 +54,7 @@ def _fmt_dur(secs):
     return "%dh%02dm" % (secs // 3600, (secs % 3600) // 60)
 
 
-def _build_and_write(cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, ue_report):
+def _build_and_write(cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, ue_report, label=None):
     """Merge deterministic + LLM records, validate, and write the snapshot.
 
     Used for the final write and for mid-run checkpoints. merge() de-dups by id
@@ -53,11 +63,12 @@ def _build_and_write(cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, 
     entities = snapshot.merge(det_ents, llm_ents)
     relations = snapshot.merge(det_rels, llm_rels)
     errs, warns = validate.validate(entities, relations, cps, version)
-    out_dir, paths = snapshot.write(cfg, entities, relations, errs, warns, ue_report)
+    out_dir, paths = snapshot.write(cfg, entities, relations, errs, warns, ue_report, label=label)
     return entities, relations, errs, warns, out_dir, paths
 
 
-def run(spec, version, dry_run=False, limit=None, progress_every=25, checkpoint_every=0):
+def run(spec, version, dry_run=False, limit=None, progress_every=25, checkpoint_every=0,
+        label=None, llm_base_url=None, llm_model=None, llm_api_key=None):
     cfg = config.get(spec, version)
     cps = corpus.Corpus(cfg.store_dir)
 
@@ -68,14 +79,14 @@ def run(spec, version, dry_run=False, limit=None, progress_every=25, checkpoint_
     det_ents, det_rels = extractors.extract(cps, cfg, ue_keys)
 
     # 3. LLM extractor (stub unless endpoint configured and not --dry-run)
-    ep = None if dry_run else llm.endpoint()
+    ep = None if dry_run else llm.endpoint(llm_base_url, llm_model, llm_api_key)
     gold = load_gold(spec)
     llm_ents, llm_rels = [], []
     if ep is not None:
         keys = [k for k in (ue_keys[:limit] if limit else ue_keys) if "/" not in k]
         total = len(keys)
-        log.info("LLM stage: %d clauses to process (model=%s, timeout=%ds, max_clause_chars=%d)",
-                 total, ep["model"], ep["timeout"], llm.max_clause_chars())
+        log.info("LLM stage%s: %d clauses to process (model=%s, timeout=%ds, max_clause_chars=%d)",
+                 " [%s]" % label if label else "", total, ep["model"], ep["timeout"], llm.max_clause_chars())
         t0 = time.time()
         for i, k in enumerate(keys, 1):
             log.info("[%d/%d] clause %s (%d chars)", i, total, k, len(cps[k].get("text") or ""))
@@ -97,7 +108,7 @@ def run(spec, version, dry_run=False, limit=None, progress_every=25, checkpoint_
 
             if checkpoint_every and i % checkpoint_every == 0 and i < total:
                 cp_ents, cp_rels, cp_errs, _, cp_dir, _ = _build_and_write(
-                    cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, ue_report)
+                    cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, ue_report, label)
                 log.info("  checkpoint: partial graph after %d/%d clauses -> %s "
                          "(%d entities, %d relations, %d errors) — open it in the viewer",
                          i, total, cp_dir, len(cp_ents), len(cp_rels), len(cp_errs))
@@ -107,15 +118,17 @@ def run(spec, version, dry_run=False, limit=None, progress_every=25, checkpoint_
 
     # 4 + 5. merge + validate + snapshot (also the path taken for dry-run / stub)
     entities, relations, errs, warns, out_dir, paths = _build_and_write(
-        cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, ue_report)
+        cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, ue_report, label)
 
     # report
-    print("SAGE extraction — %s %s (%s)" % (cfg.spec, cfg.version, cfg.release))
+    print("SAGE extraction — %s %s (%s)%s" % (
+        cfg.spec, cfg.version, cfg.release, " [label=%s]" % label if label else ""))
     print("  UE filter:   kept %d / %d clauses (%s)" % (
         ue_report["kept"], ue_report["total_clauses"], ue_report["drop_reasons"]))
     print("  deterministic: %d entities, %d relations" % (len(det_ents), len(det_rels)))
     print("  llm:           %s" % ("stub (no endpoint)" if ep is None
-                                   else "%d entities, %d relations" % (len(llm_ents), len(llm_rels))))
+                                   else "model=%s -> %d entities, %d relations" % (
+                                       ep["model"], len(llm_ents), len(llm_rels))))
     print("  merged:        %d entities, %d relations" % (len(entities), len(relations)))
     print("  validation:    %d errors, %d warnings" % (len(errs), len(warns)))
     for e in errs[:10]:
@@ -138,6 +151,11 @@ def main():
                     help="cumulative progress line every N clauses (0 disables; default 25)")
     ap.add_argument("--checkpoint-every", type=int, default=0,
                     help="write the partial graph every N clauses for mid-run viewing (default 0 = off)")
+    ap.add_argument("--label", default=None,
+                    help="run label (e.g. model name); namespaces the snapshot dir for parallel runs")
+    ap.add_argument("--llm-base-url", default=None, help="override SAGE_LLM_BASE_URL for this run")
+    ap.add_argument("--llm-model", default=None, help="override SAGE_LLM_MODEL for this run")
+    ap.add_argument("--llm-api-key", default=None, help="override SAGE_LLM_API_KEY for this run")
     ap.add_argument("--verbose", "-v", action="store_true",
                     help="DEBUG logging (per-call request shapes, parsed-fact counts)")
     a = ap.parse_args()
@@ -146,7 +164,8 @@ def main():
         format="%(asctime)s %(name)s %(levelname)s %(message)s",
         datefmt="%H:%M:%S")
     run(a.spec, a.version, dry_run=a.dry_run, limit=a.limit,
-        progress_every=a.progress_every, checkpoint_every=a.checkpoint_every)
+        progress_every=a.progress_every, checkpoint_every=a.checkpoint_every,
+        label=a.label, llm_base_url=a.llm_base_url, llm_model=a.llm_model, llm_api_key=a.llm_api_key)
 
 
 if __name__ == "__main__":

@@ -47,7 +47,31 @@ the snapshot through the generic viewer (`rrc-pilot/viz/build_kg_view.py`) into
 via `file://`. The viewer is data-driven: node colours from the ontology, focus
 buttons from `procedure_ctx`, gold corpus-clause nodes with the verbatim prose and
 anchor highlights, and "new since last view" rings. The same viewer renders the
-RRC pilot with no args.
+RRC pilot with no args. Add `--label <name>` to view a specific parallel run.
+
+## Run several LLMs in parallel and compare (D-020)
+
+To evaluate two models on the same corpus, give each run its own `--label` (which
+namespaces its snapshot dir, so concurrent processes don't collide) and its own
+model via `--llm-model` / `--llm-base-url` / `--llm-api-key` (these override the
+`SAGE_LLM_*` env for that run). Launch them as separate processes:
+
+```bash
+python3 -m pipeline.run --version 19.6.0 --label qwen  --llm-model qwen2.5:32b-instruct \
+  --llm-base-url http://gpu1:8000/v1 > /tmp/qwen.log 2>&1 &
+python3 -m pipeline.run --version 19.6.0 --label llama --llm-model llama3.1:70b-instruct \
+  --llm-base-url http://gpu2:8000/v1 > /tmp/llama.log 2>&1 &
+wait
+python3 -m pipeline.compare --version 19.6.0 qwen llama
+```
+
+Snapshots land in `pipeline/snapshots/<SPEC>-<VER>/<label>/`. `compare` reports
+per-label counts and, for each pair, the entity / relation / **LLM-fact** overlap
+by id (Jaccard = how much the models agree on what they extracted), prints sample
+divergent facts, and writes `compare.json`. View either run with
+`python3 -m pipeline.viz --version 19.6.0 --label qwen`. Runs are fully isolated
+(separate processes, read-only corpus, per-label output) — if both models share
+one GPU box they'll contend for it, so true parallelism wants two endpoints.
 
 ## Wiring the on-prem model (stage 3)
 
@@ -127,6 +151,7 @@ the **anchor must be a verbatim clause span** so `KG ⊨ corpus` holds.
 | `extractors.py` | **stage 2** — deterministic: Procedures (titles), SIP vocab, INVOKES (cross-refs) |
 | `llm.py` | **stage 3** — OpenAI-compatible client + few-shot prompt builder (stub-safe); per-call timing/token logging + timeout/error surfacing |
 | `llm_debug.py` | endpoint probe (`--probe`) + configured-LLM ping (`--check`) for diagnosing hangs/timeouts |
+| `compare.py` | diff snapshots across run labels (entity/relation/LLM-fact overlap, Jaccard) for multi-LLM eval |
 | `error_codes.py` | stable `{MODULE}-{SEVERITY}{NUMBER}` codes + `PipelineError` (D-017; NORA D-012a convention) |
 | `records.py` | KG entity/relation builders (canonical shape + D-011 lifecycle/provenance) |
 | `validate.py` | **stage 4** — `KG ⊨ ontology` (subtype-aware) + `KG ⊨ corpus` |

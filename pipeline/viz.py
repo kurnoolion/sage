@@ -13,7 +13,7 @@ import os
 import subprocess
 import sys
 
-from . import config, ontology
+from . import config, ontology, snapshot
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 VIEWER = os.path.join(ROOT, "rrc-pilot", "viz", "build_kg_view.py")
@@ -32,19 +32,19 @@ def export_ontology(path):
         json.dump(obj, f, indent=2)
 
 
-def render(spec, version):
+def render(spec, version, label=None):
     config.get(spec, version)                      # validate spec is known
-    snap_dir = os.path.join(ROOT, "pipeline", "snapshots",
-                            "%s-%s" % (spec.replace(" ", "").replace(".", ""), version))
+    snap_dir = snapshot.dir_for(spec, version, label)
     snap = os.path.join(snap_dir, "snapshot.json")
     if not os.path.exists(snap):
-        sys.exit("no snapshot at %s\n  run: python3 -m pipeline.run --spec %r --version %s"
-                 % (snap, spec, version))
+        sys.exit("no snapshot at %s\n  run: python3 -m pipeline.run --spec %r --version %s%s"
+                 % (snap, spec, version, " --label %s" % label if label else ""))
     onto = os.path.join(snap_dir, "ontology.json")
     out = os.path.join(snap_dir, "kg-view.html")
     export_ontology(onto)
+    title = "%s %s%s — SAGE extraction snapshot" % (spec, version, " [%s]" % label if label else "")
     subprocess.run([sys.executable, VIEWER, "--kg", snap, "--ontology", onto, "--out", out,
-                    "--title", "%s %s — SAGE extraction snapshot" % (spec, version)], check=True)
+                    "--title", title], check=True)
     print("open via file://%s" % out)
 
 
@@ -52,8 +52,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--spec", default="TS 24.229")
     ap.add_argument("--version", default="19.6.0")
+    ap.add_argument("--label", default=None, help="render the snapshot for this run label")
     a = ap.parse_args()
-    render(a.spec, a.version)
+    render(a.spec, a.version, a.label)
 
 
 if __name__ == "__main__":

@@ -53,10 +53,18 @@ def build_review_queue(entities, relations, warns):
     return items
 
 
-def write(cfg, entities, relations, errs, warns, ue_report, out_root="pipeline/snapshots"):
+def dir_for(spec, version, label=None, out_root="pipeline/snapshots"):
+    """Resolve a snapshot directory. A ``label`` (e.g. a model name) puts the run
+    in its own sub-dir so parallel runs over the same spec/version don't collide.
+    Single source of truth shared by write(), viz, and compare."""
     if not os.path.isabs(out_root):
         out_root = os.path.join(_ROOT, out_root)
-    out_dir = os.path.join(out_root, "%s-%s" % (cfg.spec.replace(" ", "").replace(".", ""), cfg.version))
+    d = os.path.join(out_root, "%s-%s" % (spec.replace(" ", "").replace(".", ""), version))
+    return os.path.join(d, label) if label else d
+
+
+def write(cfg, entities, relations, errs, warns, ue_report, out_root="pipeline/snapshots", label=None):
+    out_dir = dir_for(cfg.spec, cfg.version, label, out_root)
     os.makedirs(out_dir, exist_ok=True)
 
     snap = {

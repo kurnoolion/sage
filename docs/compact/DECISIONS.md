@@ -406,6 +406,37 @@ Does not relax the leading-word-drift tolerance already present. If exact-whites
 needed (it isn't for review triage), it would be a separate stricter check.
 **Relates to**: refines D-008 (KG ⊨ corpus anchor check); reduces D-012/D-017 review-queue noise.
 
+---
+
+## D-020: Parallel multi-LLM runs via labeled snapshots; compare by content id
+**Status**: Active
+**Date**: 2026-06-09
+**Context**: We want to evaluate different on-prem LLMs (and prompt/config variants) against the same
+corpus and compare what each extracts. Two blockers: LLM config was global env-only, and every run
+wrote the same `snapshots/<SPEC>-<VER>/` path, so concurrent runs would clobber each other.
+**Decision**: (a) A run takes an optional `--label` that namespaces its output to
+`snapshots/<SPEC>-<VER>/<label>/` (label-less runs keep the flat path — back-compat). (b) Per-run LLM
+config via `--llm-base-url/--llm-model/--llm-api-key`, which win over `SAGE_LLM_*` env
+(`llm.endpoint()` gained optional args). (c) Parallelism is **process-level** — launch N labeled
+processes — not an in-process thread/async orchestrator. (d) `pipeline/compare.py` diffs snapshots by
+**id** (entities by canonical id, relations by content-derived `rel:<type>:<from>:<to>`), reporting
+per-label counts and pairwise entity/relation/LLM-fact overlap (Jaccard) + sample divergences, written
+to `compare.json`. `dir_for()` in `snapshot.py` is the single source of truth for the path, shared by
+write/viz/compare.
+**Why**: Separate processes are the simplest correct isolation — the corpus is read-only, the only
+writable state is the per-label output dir, so there is no shared mutable state to guard; the OS
+already schedules them. Comparing by content id makes "agreement" meaningful (same id == same fact);
+since the deterministic spine is identical across runs, the LLM-fact overlap is the real model-vs-model
+signal.
+**Alternatives considered**:
+  - *In-process threaded/async orchestrator running both models in one command* — rejected for now:
+    more failure surface (managing subprocesses, interleaved logs, partial-failure semantics) for no
+    isolation benefit over `&` + separate log files.
+**Consequences**: A multi-model eval is two `run --label …` invocations + one `compare`. `viz --label`
+renders a specific run. If both models share one GPU host they contend (true parallelism wants two
+endpoints). `compare.json` is a local artifact (gitignored with the snapshots).
+**Relates to**: serves D-010 (extraction) and D-015 (model selection / curation); reuses D-017 logging.
+
 <!--
 Template for new entries:
 
