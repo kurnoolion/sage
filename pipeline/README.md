@@ -72,7 +72,7 @@ the **anchor must be a verbatim clause span** so `KG ⊨ corpus` holds.
 |---|---|
 | `ontology.py` | shared TBox (entity + relationship types, `subtype_of`); subtype-aware `domain_range_ok` |
 | `ids.py` | namespaced ids `3gpp:<layer>/<type>/<name>` (D-013) |
-| `config.py` | per-spec `SpecConfig` (corpus path, layer, UE-relevance hints) + registry |
+| `config.py` | version-independent per-spec `SpecConfig` template (layer, UE-relevance hints); `get(spec, version)` derives the store path so any fetched version works |
 | `corpus.py` | load a frozen corpus store; `haystack()` for anchor resolution |
 | `ue_filter.py` | **stage 1** — select UE-side clauses (structural + actor-term fallback) + report |
 | `extractors.py` | **stage 2** — deterministic: Procedures (titles), SIP vocab, INVOKES (cross-refs) |
