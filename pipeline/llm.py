@@ -59,18 +59,45 @@ def max_clause_chars():
         return _DEFAULT_MAX_CLAUSE_CHARS
 
 
-def _chunk_text(text, max_chars):
-    """Greedily pack newline-separated paragraphs into chunks of <= max_chars.
+def _hard_split(block, max_chars):
+    """Last-resort split of a single over-long line into <= max_chars pieces.
 
-    Never splits a paragraph (each chunk begins at a paragraph/line boundary). A
-    lone paragraph longer than max_chars becomes its own oversized chunk rather
-    than being cut mid-sentence. Concatenating the chunks with '\\n' reproduces the
-    original text exactly, so every chunk is a verbatim substring of the clause.
+    Breaks at the last space before the limit when there is one (keeping the space
+    on the left piece), else cuts at the limit. ``"".join(pieces) == block`` — no
+    characters are added or lost — so every piece stays a verbatim substring.
+    """
+    pieces = []
+    s = block
+    while len(s) > max_chars:
+        cut = s.rfind(" ", 0, max_chars)
+        cut = max_chars if cut <= 0 else cut + 1   # +1 keeps the space on the left
+        pieces.append(s[:cut])
+        s = s[cut:]
+    if s:
+        pieces.append(s)
+    return pieces
+
+
+def _chunk_text(text, max_chars):
+    """Split clause text into chunks of <= max_chars, each a verbatim substring.
+
+    Greedily packs newline-separated paragraphs without ever splitting one across a
+    chunk (each chunk begins at a paragraph/line boundary). A single line longer
+    than max_chars (e.g. a giant table block) is the only case that gets cut
+    mid-line, via _hard_split — and even then on a real character index, so the
+    piece is still a verbatim substring and its anchors resolve against the full
+    clause (KG ⊨ corpus). Chunks are in-order, non-overlapping, and cover all the
+    text (only the inter-paragraph '\\n' separators are dropped at chunk seams).
     """
     if max_chars <= 0 or len(text) <= max_chars:
         return [text]
     chunks, cur, cur_len = [], [], 0
     for para in text.split("\n"):
+        if len(para) > max_chars:                  # over-long single line: flush, then hard-split
+            if cur:
+                chunks.append("\n".join(cur)); cur, cur_len = [], 0
+            chunks.extend(_hard_split(para, max_chars))
+            continue
         add = len(para) + (1 if cur else 0)        # +1 for the rejoining '\n'
         if cur and cur_len + add > max_chars:
             chunks.append("\n".join(cur))

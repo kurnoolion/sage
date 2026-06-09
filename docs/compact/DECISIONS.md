@@ -353,11 +353,15 @@ feed long clauses to the model in smaller pieces.
 **Decision**: In the LLM extractor (`pipeline/llm.py`), when a clause's text exceeds
 `SAGE_LLM_MAX_CLAUSE_CHARS` (env, default 6000; 0 disables), greedily pack its **newline-separated
 paragraphs** into chunks of ≤ that size and send one request per chunk; facts from all chunks merge by
-id. A paragraph is never split (each chunk starts at a paragraph/line boundary); a lone paragraph over
-the limit becomes its own oversized chunk rather than being cut. Provenance for every fact uses the
-real clause key (not a chunk label), so anchors still resolve against the full clause text
-(**KG ⊨ corpus**, D-008). Splitting is **deterministic** — `build_corpus.py` already stores paragraphs
-newline-separated, so `text.split("\n")` recovers them and the chunks rejoin to the verbatim original.
+id. A paragraph is never split across chunks; the one exception is a single line already longer than
+the limit (e.g. a giant table block), which is hard-split (`_hard_split`) at the last space before the
+limit, else at the limit — a last-resort fallback so no chunk can exceed the limit and silently time
+out, regardless of what the UE filter feeds in. Every chunk — grouped or hard-split — is a verbatim
+substring on a real character index, and provenance for every fact uses the real clause key (not a
+chunk label), so anchors still resolve against the full clause text (**KG ⊨ corpus**, D-008).
+Splitting is **deterministic** — `build_corpus.py` stores paragraphs newline-separated, so
+`text.split("\n")` recovers them; chunks are in-order, non-overlapping, and lose nothing but the
+inter-paragraph `\n` separators at chunk seams.
 **Why**: Smaller prompts finish within timeout on local models, with no quality loss for our
 single-anchor facts (each fact's verbatim quote lives within one paragraph, so paragraph-boundary
 splits keep anchors intact).
@@ -371,7 +375,11 @@ splits keep anchors intact).
 **Consequences**: Cross-paragraph relational context split across chunks may be missed by the LLM
 (acceptable — the LLM stage is lossy and review-gated by design; the deterministic spine and few-shot
 context cover the backbone). Per-chunk calls are logged individually (`clause#i/n`). Tables (stored as
-newline-separated rows) split by row, which is fine for row-local anchors.
+newline-separated rows) split by row, which is fine for row-local anchors; a single oversized table
+block is hard-split mid-line. Verified: across all 169 UE-selected clauses of TS 24.229 the largest
+single block is 2072 chars (no hard-split triggered in practice — the giant Annex A table blocks up to
+180K are dropped by the UE filter), but the fallback removes the latent coupling to the filter.
+Quality of chunked extraction vs whole-clause is not yet empirically verified (needs the endpoint).
 **Relates to**: serves D-010 (LLM stage 3); preserves D-008 (KG ⊨ corpus); follows D-017 logging.
 
 <!--
