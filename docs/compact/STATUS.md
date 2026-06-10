@@ -1,13 +1,14 @@
 # Status
 
 **Active phase**: requirements
-**Last updated**: 2026-06-08
+**Last updated**: 2026-06-10
 
-> **Note**: Formally still pre-requirements; work has moved into design/architecture. The three-layer
-> architecture is built + validated only on the **RRC pilot** (TS 38.331, clauses 5.3.3 + 5.3.5 — a
-> deliberately small schema/method validation, not complete). For **IMS** (TS 24.229) only the raw
-> **corpus** is ingested — no taxonomy/ontology/KG yet (that's the upcoming D-010 extraction pipeline).
-> Decisions D-001…D-014 recorded. Research artifacts live in `docs/research/` (outside the COMPACT state files).
+> **Note**: Formally still pre-requirements; work has moved into implementation. The three-layer
+> architecture is built + validated on the **RRC pilot** (TS 38.331, clauses 5.3.3 + 5.3.5 — a
+> deliberately small schema/method validation, not complete). For **IMS** (TS 24.229) the **D-010
+> extraction pipeline now runs**: deterministic spine + on-prem LLM stage, producing per-version
+> snapshots (corpus stays gitignored — rebuild via `corpus/fetch_spec.py`). Decisions D-001…D-021
+> recorded. Research artifacts live in `docs/research/` (outside the COMPACT state files).
 
 ## Done
 
@@ -27,17 +28,25 @@
 - 2026-06-07 Recorded **D-012** (change-tracking/derivation) + **D-013** (NORA integration contract) after a grounded NORA deep-read; added a **risk register (R1–R14)** + post-ingestion risk-auditor design (scratchpad §I); captured open D-013 contract TODOs (§H.15).
 - 2026-06-08 Removed Claude co-author from all commit history; recorded the no-co-author preference.
 - 2026-06-08 Named the project **SAGE** (Specification-Anchored Graph of Entities) — **D-014**; rebranded docs; renamed dir + GitHub repo `3gpp-kg` → `sage`.
+- 2026-06-08 D-010 pipeline **deterministic spine** built (`pipeline/`): UE filter → extractors → merge → validate → snapshot; TS 24.229 169 UE clauses → 149 entities / 30 relations, 0/0. Viewer wired to pipeline snapshots; ambiguous procedure anchors demoted to the review queue.
+- 2026-06-08 Recorded **D-015** (ontology evolution: additive, subtype-first, human + frontier-LLM curated) and **D-016** (post-ingestion risk-monitoring auditor — design promoted from scratchpad §I).
+- 2026-06-09 On-prem enablement: repo-root-anchored paths; `corpus/fetch_spec.py` rebuilds the gitignored corpus from the public HF dataset (reuses NORA's downloader) — **D-021**; `SpecConfig` made version-agnostic (any fetched version runs).
+- 2026-06-09 LLM stage hardened for local models: structured logging + stable error codes (**D-017**), `llm_debug --clause` prompt/response inspection, deterministic paragraph-boundary chunking with hard-split fallback (**D-018**), cumulative progress line + mid-run checkpoint snapshots, configurable timeout.
+- 2026-06-09 Whitespace-normalized anchor matching (**D-019**) — removes false KG⊨corpus warnings.
+- 2026-06-09 Parallel multi-LLM runs via `--label` + per-run LLM overrides; `pipeline/compare.py` diffs runs by fact id (**D-020**). README documents the full operate/debug/compare workflow.
 
 ## In progress
 
 - **D-013 NORA integration contract** — drafted; **9 open contract TODOs** remain (scratchpad §H.15: inbound manifest, outbound artifacts, per-release projection API, representative-version table, feature crosswalk, base-assertion id, overlay form, tier-2 edges, update cadence).
 - Seed schema: **15 entity types / 24 relationship types** (release + concept-scheme aware) in `rrc-pilot/ontology/ontology.json`; agreed **extensible**. Open question: procedure modes vs. variants (research doc 03 §4).
+- Running real on-prem LLM extraction over TS 24.229 and comparing two local models (D-020 labels + `pipeline.compare`). Chunked-extraction quality (D-018) not yet empirically verified.
 
 ## Next
 
-- **Decision point**: close the **[now] D-013 contract items** (§H.15) OR build the **D-010 extraction pipeline** (gold seed → few-shot prompt → local-model extraction → validation → review queue) — the latter is the path to the first **IMS** taxonomy/ontology/KG (can't hand-author a 1000-page prose spec).
+- Evaluate the two-model comparison (LLM-fact Jaccard, review queue) and verify chunked-extraction quality on a long clause (e.g. `llm_debug --clause 5.4.3.2`).
+- Close the **D-013 contract items** (§H.15).
 - Build the **post-ingestion risk auditor** (**D-016**; scratchpad §I, R1–R14).
-- Formalize: `/switch-phase architecture`; when schema stabilizes across RRC+IMS, pick the production store (RDF/SKOS vs property graph).
+- Formalize: `/switch-phase architecture` (or development) — active phase has lagged actual work for several sessions; when schema stabilizes across RRC+IMS, pick the production store (RDF/SKOS vs property graph).
 
 ## Flags
 

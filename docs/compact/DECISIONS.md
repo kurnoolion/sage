@@ -437,6 +437,32 @@ renders a specific run. If both models share one GPU host they contend (true par
 endpoints). `compare.json` is a local artifact (gitignored with the snapshots).
 **Relates to**: serves D-010 (extraction) and D-015 (model selection / curation); reuses D-017 logging.
 
+## D-021: Corpus is rebuilt on-prem from the public source, never distributed with the repo
+**Status**: Active
+**Date**: 2026-06-09
+**Context**: The corpus store (`corpus/store/<spec>-<ver>/clauses.json`) is gitignored (verbatim 3GPP
+text — copyright), so a fresh `git clone`/`pull` on the on-prem box has the pipeline code but no
+corpus, and the run fails with "No such file or directory: …/clauses.json". The corpus has to get to
+every machine that runs the pipeline somehow.
+**Decision**: Each machine **rebuilds** the corpus locally with `corpus/fetch_spec.py <spec> <ver>
+<release>` (or `--all`). The tool reuses NORA's `core/src/standards` downloader (public GSMA/3GPP
+HuggingFace dataset, stdlib urllib), converts legacy `.doc` to `.docx` via NORA's LibreOffice helper
+where needed (e.g. TS 24.229), and then runs the existing `build_corpus.py`. NORA's location comes
+from `--nora-root` / `SAGE_NORA_ROOT` (default `~/work/nora`).
+**Why**: The corpus must never be committed or redistributed (3GPP copyright), and a private artifact
+store adds infrastructure for data that is deterministic to regenerate from a public source. Reusing
+NORA's downloader avoids a second implementation of HF listing/version-code mapping (Rel-19 `j`,
+Rel-17 `h` prefixes).
+**Alternatives considered**:
+  - *Commit the corpus* — rejected: copyright; also bloats the repo with MB-scale regenerable data.
+  - *Private artifact storage (S3/rsync)* — rejected for now: extra infrastructure + credentials for
+    something a one-command rebuild produces; revisit only if 3GPP/HF availability becomes a problem.
+**Consequences**: Fresh checkouts need one extra bootstrap step (documented in `pipeline/README.md`);
+on-prem machines need network access to HuggingFace and LibreOffice for `.doc`-only specs. Corpus
+builds are reproducible per exact version, so two machines fetching the same version get identical
+stores.
+**Relates to**: feeds D-010 (pipeline input); same copyright posture as the gitignored snapshots (D-020).
+
 <!--
 Template for new entries:
 
