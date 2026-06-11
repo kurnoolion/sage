@@ -18,6 +18,10 @@ Modes (pick one):
       tiny completion ("ping"), and report latency. If one ping is slow, the
       per-clause extraction will be slower still — raise SAGE_LLM_TIMEOUT.
 
+--check and --clause accept --llm-base-url / --llm-model / --llm-api-key, which
+win over the SAGE_LLM_* env — same flags as pipeline.run, handy when comparing
+two models without re-exporting.
+
   python3 -m pipeline.llm_debug --clause 5.1.1.1 [--spec "TS 24.229"] [--version 19.6.0]
                                 [--no-call] [--out FILE]
       Show the EXACT prompt the pipeline builds for one clause (system + few-shot
@@ -164,10 +168,11 @@ def cmd_probe(url, api_key):
     return 0 if (ollama or openai) else 1
 
 
-def cmd_check():
-    ep = llm.endpoint()
+def cmd_check(base_url=None, model=None, api_key=None):
+    ep = llm.endpoint(base_url, model, api_key)
     if ep is None:
-        print("SAGE_LLM_BASE_URL is not set — nothing to check (the pipeline would run in stub mode).")
+        print("No endpoint: SAGE_LLM_BASE_URL is not set and no --llm-base-url given "
+              "(the pipeline would run in stub mode).")
         return 1
     print("Resolved endpoint: base=%s model=%s timeout=%ds" % (ep["base"], ep["model"], ep["timeout"]))
     print("Sending one-line probe completion 'ping' ...")
@@ -186,7 +191,7 @@ def cmd_check():
     return 0
 
 
-def cmd_clause(spec, version, clause_key, call, out):
+def cmd_clause(spec, version, clause_key, call, out, base_url=None, model=None, api_key=None):
     from . import config, corpus
     cfg = config.get(spec, version)
     cps = corpus.Corpus(cfg.store_dir)
@@ -215,9 +220,10 @@ def cmd_clause(spec, version, clause_key, call, out):
             sink.close(); print("wrote prompt to %s" % out)
         return 0
 
-    ep = llm.endpoint()
+    ep = llm.endpoint(base_url, model, api_key)
     if ep is None:
-        emit("\n# SAGE_LLM_BASE_URL not set — cannot call (prompt shown above is what WOULD be sent).")
+        emit("\n# no endpoint (SAGE_LLM_BASE_URL unset, no --llm-base-url) — cannot call "
+             "(prompt shown above is what WOULD be sent).")
         if sink:
             sink.close(); print("wrote prompt to %s" % out)
         return 1
@@ -254,6 +260,9 @@ def main():
     ap.add_argument("--version", default="19.6.0", help="version for --clause (default: 19.6.0)")
     ap.add_argument("--no-call", action="store_true", help="--clause: build/show the prompt but do not send it")
     ap.add_argument("--out", default=None, help="--clause: write the dump to this file instead of stdout")
+    ap.add_argument("--llm-base-url", default=None, help="override SAGE_LLM_BASE_URL (--check/--clause)")
+    ap.add_argument("--llm-model", default=None, help="override SAGE_LLM_MODEL (--check/--clause)")
+    ap.add_argument("--llm-api-key", default=None, help="override SAGE_LLM_API_KEY (--check/--clause)")
     a = ap.parse_args()
 
     modes = [bool(a.probe), bool(a.check), bool(a.clause)]
@@ -264,8 +273,9 @@ def main():
     if a.probe:
         sys.exit(cmd_probe(a.probe, a.api_key))
     if a.check:
-        sys.exit(cmd_check())
-    sys.exit(cmd_clause(a.spec, a.version, a.clause, not a.no_call, a.out))
+        sys.exit(cmd_check(a.llm_base_url, a.llm_model, a.llm_api_key))
+    sys.exit(cmd_clause(a.spec, a.version, a.clause, not a.no_call, a.out,
+                        a.llm_base_url, a.llm_model, a.llm_api_key))
 
 
 if __name__ == "__main__":

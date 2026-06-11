@@ -126,6 +126,10 @@ python3 -m pipeline.llm_debug --clause 5.1.1.1 --no-call        # just show the 
 python3 -m pipeline.run --version 19.6.0 --limit 3 -v          # 3 clauses, DEBUG logging
 ```
 
+`--check` and `--clause` take the same `--llm-base-url` / `--llm-model` /
+`--llm-api-key` overrides as `pipeline.run` (they win over `SAGE_LLM_*` env) —
+useful when probing two models side by side without re-exporting.
+
 `--clause` is how you see exactly *what was sent and what came back* for one
 clause. It dumps corpus prose, so it is a local operator diagnostic — don't paste
 it into a cross-boundary report (`--out FILE` writes it to disk; gitignore that).
