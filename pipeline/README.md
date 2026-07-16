@@ -206,6 +206,8 @@ A/B over the same corpus (`--label v1 …` / `--label v2 --prompt-variant v2` +
 | `llm_debug.py` | endpoint probe (`--probe`) + configured-LLM ping (`--check`) for diagnosing hangs/timeouts |
 | `align.py` | alias suggester — nearest canonical neighbour per unmatched LLM entity (embedding endpoint or difflib; KARMA ρ cutoff: below ρ → propose-only merge, above → new entity). CLI re-runs on an existing snapshot for ρ tuning |
 | `compare.py` | diff snapshots across run labels (entity/relation/LLM-fact overlap, Jaccard, object divergence) for multi-LLM eval |
+| `eval_gold.py` | score a snapshot against a hand-built gold KG (per-type entity/relation P/R + the C3 LLM-vs-expert-gold metric); writes `eval-gold.json` |
+| `report.py` | **share-safe** compact summary of one or more labeled runs (counts, metrics, alias histogram, eval-gold, pairwise diffs) — ids/labels/counts only, never anchors or clause text, so the output can leave the machine |
 | `error_codes.py` | stable `{MODULE}-{SEVERITY}{NUMBER}` codes + `PipelineError` (D-017; NORA D-012a convention) |
 | `records.py` | KG entity/relation builders (canonical shape + D-011 lifecycle/provenance) |
 | `validate.py` | **stage 4** — `KG ⊨ ontology` (subtype-aware) + `KG ⊨ corpus` |
