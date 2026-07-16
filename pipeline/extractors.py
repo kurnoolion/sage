@@ -78,6 +78,35 @@ def extract(corpus, cfg, ue_keys):
         add_entity(e)
         proc_at_clause[cl.get("number") or key] = e["id"]
 
+    # 1b. Procedures from ancestor headings ----------------------------------
+    # Family-level procedure names ("RRC reconfiguration" at 5.3.5) live on
+    # container clauses that have a title but no prose, which the UE filter
+    # drops (no-text) — so pass 1 never sees them. Walk each kept clause's
+    # parent chain and anchor those headings too: they are the canonical
+    # procedure granularity the hand-built pilot curates, and INVOKES targets
+    # like "as specified in 5.3.5" need them to resolve. Anchor = the title,
+    # which corpus.haystack() includes, so KG⊨corpus holds.
+    for key in ue_keys:
+        if "/" in key:
+            continue
+        seen_ancestors = {key}               # top-level clauses are their own parent
+        parent = corpus[key].get("parent")   # in the store — guard against cycles
+        while parent and parent in corpus and parent not in seen_ancestors:
+            seen_ancestors.add(parent)
+            cl = corpus[parent]
+            num = cl.get("number") or parent
+            title = (cl.get("title") or "").strip()
+            if (num not in proc_at_clause and cl.get("level") in _PROC_LEVELS
+                    and title and title.lower() not in _GENERIC_TITLES):
+                ambiguous = bool(_AMBIGUOUS_TITLE.search(title))
+                extra = {"confidence": "med", "review": "ambiguous-procedure-title"} if ambiguous \
+                    else {"confidence": "high"}
+                e = records.entity(cfg, "Procedure", title, parent, anchor=title,
+                                   extractor="deterministic:procedure-heading", **extra)
+                add_entity(e)
+                proc_at_clause[num] = e["id"]
+            parent = cl.get("parent")
+
     # 2. controlled vocabulary (per-spec, cfg.vocab) -------------------------
     vocab_re = [(typ, term, re.compile(r"\b%s\b" % re.escape(term)))
                 for typ, terms in cfg.vocab for term in terms]

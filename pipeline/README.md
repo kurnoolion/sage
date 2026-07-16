@@ -224,10 +224,14 @@ silently merged.
 
 ## Status
 
-Deterministic spine runs on TS 24.229 (157/2096 UE clauses → 146 entities /
-35 relations, 0/0) and TS 38.331 (548/1506 → 383 entities / 257 relations,
-0/0; pilot scope `--clauses 5.3.3,5.3.5` → 108 / 48). LLM stage built +
-stubbed, pending an endpoint. Procedure anchors whose titles look structural (parameters / "as a
+Deterministic spine runs on TS 24.229 (157/2096 UE clauses → 180 entities /
+52 relations, 0/0) and TS 38.331 (548/1506 → 479 entities / 324 relations,
+0/0; pilot scope `--clauses 5.3.3,5.3.5` → 121 / 52). LLM stage built +
+stubbed, pending an endpoint. `eval_gold` scores a snapshot against the
+hand-built pilot KG (`rrc-pilot/knowledge-graph/kg.json`): deterministic
+pilot-scope baseline = entity recall 20/41 (all 5 Timers, 5/6 Messages,
+both States, 6/10 Procedures; IEs/Events are the LLM's job), relation
+recall 0/51 (behavioural edges are the LLM's job). Procedure anchors whose titles look structural (parameters / "as a
 security mechanism" / "- general" / "abnormal cases") are kept but **demoted to
 `confidence=med` and routed to `review-queue.json`** (currently 16) rather than
 presented as solid facts — precise re-typing is the LLM/review's job
