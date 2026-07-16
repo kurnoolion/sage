@@ -35,6 +35,7 @@
 - 2026-06-09 Whitespace-normalized anchor matching (**D-019**) — removes false KG⊨corpus warnings.
 - 2026-06-09 Parallel multi-LLM runs via `--label` + per-run LLM overrides; `pipeline/compare.py` diffs runs by fact id (**D-020**). README documents the full operate/debug/compare workflow.
 - 2026-07-16 Deep-research validation of all documented external claims (25 verified, 0 refuted): headline findings stand; research doc 01 refreshed (§1.4) — TelcoAgent + DeepSpecs added to the landscape, Telco-oRAG wording softened, TSpec-LLM gating noted, spec-sourcing question closed (GSMA/3GPP mirror). Rel-19 confirmed frozen; TS 24.229 now at 19.7.0 + first Rel-20 20.0.0 (`k` prefix) — fresh diff candidates for D-012.
+- 2026-07-16 Full-text deep-read of TelcoAgent + DeepSpecs (research doc 01 §1.5). Verdict: TelcoAgent's pipeline is unusable as-is for SAGE (no provenance, no extraction validation, no UE scoping, no versioning, undocumented schema) but yields two leads — an LLM **aligner stage** (entity canonicalization, propose-only per D-015) and its **released KG covering TS 38.331** as comparison data for the RRC pilot. DeepSpecs' **CR-rationale mining** (ChangeDB/TDocDB) adopted as a D-012 idea (*what* changed + *why*); its QA sets are email-request-only.
 
 ## In progress
 
@@ -47,14 +48,18 @@
 - Evaluate the two-model comparison (LLM-fact Jaccard, review queue) and verify chunked-extraction quality on a long clause (e.g. `llm_debug --clause 5.4.3.2`).
 - Ingest TS 24.229 **19.7.0** and **20.0.0** (published 2026-06-29) — first real cross-release diff for D-012 `derive()` and first `k`-prefix (Rel-20) exercise; NORA's downloader already supports it.
 - Close the **D-013 contract items** (§H.15).
+- Cheap external sanity check: diff TelcoAgent's released TS 38.331 KG (github.com/NextG-Wireless-Lab-NC-State/TelcoAgent) against our RRC pilot KG (research doc 01 §1.5).
+- When D-012 `derive()` gets built: fold in **CR-rationale mining** (DeepSpecs-style ChangeDB/TDocDB — *what* changed + *why*) over the 24.229 19.6.0→19.7.0→20.0.0 diffs.
 - Build the **post-ingestion risk auditor** (**D-016**; scratchpad §I, R1–R14).
 - Formalize: `/switch-phase architecture` (or development) — active phase has lagged actual work for several sessions; when schema stabilizes across RRC+IMS, pick the production store (RDF/SKOS vs property graph).
 
 ## Flags
 
 - Stakeholder map deferred — no domain-validator or eval-data channel named yet (v1 risk).
-  *Partial lead (2026-07-16): DeepSpecs (arXiv 2511.01305) ships a 350-question
-  evolution-focused 5G QA set — candidate eval for the D-011/D-012 change-tracking queries.*
+  *Partial lead (2026-07-16): DeepSpecs (arXiv 2511.01305) has a 350-question
+  evolution-focused 5G QA set — candidate eval for the D-011/D-012 change-tracking queries.
+  Deep-read caveat: **not publicly released** (code/data "upon email request") — pursuing it
+  means emailing the authors.*
 - Store choice (RDF/SKOS vs. property graph) unresolved — architecture-phase `D-XXX`; model so far is store-agnostic.
 - Schema (entity/relationship types) is an **open/extensible seed** — expected to grow per spec; avoid premature closure. Evolution policy now formalized: **D-015** (additive, subtype-first, human + frontier-LLM curated; on-prem extractor conforms only).
 - Layer-D validation (validating LLM-extracted behavioral triples without exhaustive human review) is the key unsolved problem inherited from prior work.

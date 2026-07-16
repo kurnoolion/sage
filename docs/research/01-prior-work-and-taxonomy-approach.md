@@ -1,7 +1,7 @@
 # Phase-0 Research: Prior Work & UE Taxonomy Approach
 
 **Status**: Phase-0 (pre-requirements research). Living document — capture as we explore.
-**Last updated**: 2026-07-16 (validation refresh — see §1.4)
+**Last updated**: 2026-07-16 (validation refresh §1.4; TelcoAgent/DeepSpecs deep-read §1.5)
 **Scope**: 3GPP **UE-related** specifications only. Goal of the project: a correct,
 first-class **taxonomy/ontology** of the UE domain, then a **knowledge graph** on it.
 The MNO Q&A bot is out of scope (motivation only).
@@ -41,8 +41,8 @@ The MNO Q&A bot is out of scope (motivation only).
 | **TeleQnA** | ~10k telecom MCQs | A *starting* downstream eval | MCQ format; does not measure taxonomy coverage/correctness — we need our own eval |
 | **TM Forum SID → OWL** | Mature telecom enterprise ontology, OWL-translated | Upper vocabulary for any network-side anchor | SID is **OSS/BSS + network-resource (SA5)** oriented — models functions/services/resources, not RRC procedures/timers/IEs. Largely orthogonal to UE |
 | **Chat3GPP / TelcoAI / ORAN RAG bench** | More open 3GPP RAG pipelines; hybrid vector+graph retrieval benchmarks | Engineering patterns (chunking, hybrid retrieval evidence) | All retrieval-focused; KG is a means, not the artifact |
-| **TelcoAgent** *(added 2026-07-16; arXiv 2606.19821, Jun 2026)* | Three-agent LLM pipeline that **auto-builds a 3GPP KG** from 13 RAN/performance specs (incl. TS 38.331), ontology-based schema, grounding KPM-forecast explainability | The closest new neighbor — watch its auto-construction pipeline for extraction ideas | KG serves forecast *explainability*, not a spec model; no UE-vs-network distinction; no multi-release modeling. Confirms, not threatens, our thesis |
-| **DeepSpecs** *(added 2026-07-16; arXiv 2511.01305)* | RAG for 5G spec QA enhanced with **structural/temporal metadata** databases; two new curated QA sets (573 practitioner + **350 evolution-focused** questions) | The **evolution-focused QA set** is a candidate eval for our D-011/D-012 change-tracking queries (partial answer to the unowned-eval-data flag) | Still RAG-first; no taxonomy/ontology/KG; no UE scoping |
+| **TelcoAgent** *(added 2026-07-16; arXiv 2606.19821, Jun 2026)* | Three-agent LLM pipeline that **auto-builds a 3GPP KG** from 13 RAN/performance specs (incl. TS 38.331), ontology-based schema, grounding KPM-forecast explainability | The closest new neighbor — aligner-stage idea + released KG covers TS 38.331 (comparison data for our RRC pilot); deep-read in §1.5 | KG serves forecast *explainability*, not a spec model; no provenance, no extraction validation, no UE-vs-network distinction, no multi-release modeling (§1.5). Confirms, not threatens, our thesis |
+| **DeepSpecs** *(added 2026-07-16; arXiv 2511.01305)* | RAG for 5G spec QA enhanced with **structural/temporal metadata** databases; two new curated QA sets (573 practitioner + **350 evolution-focused** questions) | The **evolution-focused QA set** is a candidate eval for our D-011/D-012 change-tracking queries (partial answer to the unowned-eval-data flag); **CR-rationale mining** (§1.5) is worth adopting for D-012 | Still RAG-first; no taxonomy/ontology/KG; no UE scoping. **QA sets/code not publicly released** — "available upon email request" (§1.5) |
 
 ### 1.3 Borrowable ideas — pros / cons
 
@@ -81,6 +81,58 @@ All external claims in this review were re-verified via adversarially-checked we
   6G lands in Rel-21 (Stage-3 freeze Dec 2028, timeline approved 2026-06-10).
 - **Spec-content spot-checks all correct** (5.3.3/T300, 5.3.5/T304, three RRC states,
   Need M/N/S/R codes, TS 24.229 = prose SIP/SDP Stage-3).
+
+### 1.5 Deep-read: TelcoAgent & DeepSpecs (2026-07-16)
+
+Full-text review of the two new papers, asking: *could we adopt TelcoAgent's pipeline for
+KG construction on UE-relevant specs — what does it lack for our purpose?*
+
+**TelcoAgent (arXiv 2606.19821) — what it actually does.** Three sequential LLM agents:
+an **Extractor** (section-level chunks → subject–predicate–object triples, aimed at "KPM
+relationships and causal chains"), an **Aligner** (normalizes entities onto a "canonical
+3GPP ontology"), an **Evaluator** (LLM self-scores each triple q ∈ [0,1]; q < 0.9 triggers
+re-alignment). Ingests 13 specs: TS 28.552/28.554/38.314, TS 38.211–215 + TR 38.901,
+TS 38.300/38.321/38.322/38.331. The KG's purpose is grounding *explanations of
+KPM-forecast degradations* — not modeling spec behavior.
+
+**Why it doesn't serve our purpose as-is** — five load-bearing gaps, measured against
+SAGE's requirements:
+
+1. **No provenance/grounding.** Triples carry no link back to clauses (not even the
+   section chunk is tracked). Fatal vs. our `KG ⊨ corpus` invariant (D-008/D-019) and
+   NORA's need to cite spec text behind every assertion.
+2. **No extraction validation.** No precision/recall, no ground truth, no human eval of
+   the KG; quality control is the LLM grading its own output (Evaluator confidence).
+   This is exactly the Layer-D validation problem — TelcoAgent doesn't solve it, it
+   doesn't confront it. Our deterministic backbone + validation + review queue + gold
+   seed (D-010) stays the more conservative, auditable answer.
+3. **No UE-vs-network scoping** — no filter, no actor distinction (reconfirms headline
+   finding 2 / D-001).
+4. **No release/version modeling** — no 3GPP release is even mentioned; single timeless
+   snapshot. No counterpart to D-011/D-012.
+5. **Undocumented schema.** The "canonical 3GPP ontology" is never enumerated (no type
+   counts, no origin); the extraction LLM is unnamed, so on-prem feasibility (our D-010
+   constraint) can't be assessed. KG size and node/edge counts unreported.
+
+Implementing it faithfully would produce an ungrounded, unversioned, unvalidated triple
+soup — the failure mode SAGE's architecture is designed against. **Worth taking:**
+(a) the **Aligner as a distinct stage** — an LLM pass canonicalizing surface forms onto
+ontology entities could cut review-queue noise (constrained propose-only, human-confirmed,
+per D-015); (b) their **released KG** (github.com/NextG-Wireless-Lab-NC-State/TelcoAgent)
+covers **TS 38.331 — same spec as our RRC pilot** — diffing their 38.331 triples against
+our pilot KG is a cheap external sanity check on what unvalidated extraction produces.
+
+**DeepSpecs (arXiv 2511.01305) — the more useful paper, with a catch.** No KG; RAG over
+three metadata databases, two of which map onto our D-012 gap: **ChangeDB**
+(clause-aligned, line-level diffs between adjacent spec versions) and **TDocDB** (mines
+approved Change Requests — summary of change, reasons, consequences of non-approval).
+Our `derive()` tracks *what* changed across releases; **CR mining adds *why*** — adopt
+for the cross-release work. The catch: the 573-question practitioner set and the
+350-question CR-focused set (built from 997 approved Rel-17/18 CRs) are **not publicly
+released** — code "available upon email request", no dataset URL — so the eval-data lead
+requires contacting the authors. Also instructive: their best cross-reference-resolution
+F1 is **0.28** (903 references) — evidence that our deterministic INVOKES extractor is
+the right call over retrieval-based reference resolution.
 
 ---
 
@@ -197,6 +249,6 @@ them as IEs/properties? Revisit during RRC pilot.*
 - TelcoAI (agentic multimodal RAG) — https://arxiv.org/abs/2601.16984
 - ORAN vector/graph/hybrid RAG benchmark — https://arxiv.org/pdf/2507.03608
 - TM Forum SID → OWL (Semantic Arts) — https://www.semanticarts.com/telecom-frameworx-model-simplified-with-gist-full-article/
-- TelcoAgent (3GPP KG for KPM-forecast explainability) — https://arxiv.org/abs/2606.19821 *(added 2026-07-16)*
+- TelcoAgent (3GPP KG for KPM-forecast explainability) — https://arxiv.org/abs/2606.19821 · released KG: https://github.com/NextG-Wireless-Lab-NC-State/TelcoAgent *(added 2026-07-16)*
 - DeepSpecs (5G spec QA; evolution-focused QA set) — https://arxiv.org/abs/2511.01305 *(added 2026-07-16)*
 - GSMA/3GPP raw-spec mirror (D-021 corpus source, Rel-8→20) — https://huggingface.co/datasets/GSMA/3GPP *(added 2026-07-16)*
