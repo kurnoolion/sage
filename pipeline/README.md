@@ -50,7 +50,8 @@ sub-directory for parallel runs (`--label`):
 pipeline/snapshots/
   TS24229-19.6.0/              # <SPEC>-<VER>; a label-less run
     snapshot.json             # the KG: entities + relations + validation (same shape as the pilot's kg.json)
-    review-queue.json         # ambiguous / low-confidence items + validation warnings
+    review-queue.json         # ambiguous / low-confidence items + conflict groups + alias merge proposals + validation warnings
+    alias-suggestions.json    # nearest-canonical-neighbour per LLM entity (ρ-tuning data + D-012 alias-table seed)
     ue-filter-report.json     # what the UE filter kept / dropped
     ontology.json             # TBox exported for the viewer  (written by `pipeline.viz`)
     kg-view.html              # rendered graph                (written by `pipeline.viz`)
@@ -120,6 +121,9 @@ export SAGE_LLM_TIMEOUT=300                             # per-request seconds (d
 export SAGE_LLM_MAX_CLAUSE_CHARS=6000                  # split longer clauses into chunks (0=off)
 export SAGE_LLM_PROMPT_VARIANT=v1                      # v1 (default) | v2 (entity-pass-then-
                                                        # relation-pass; or --prompt-variant)
+export SAGE_EMBED_MODEL=nomic-embed-text               # enables embedding-based alias
+export SAGE_EMBED_BASE_URL=$SAGE_LLM_BASE_URL          # suggestions (unset -> difflib fallback)
+export SAGE_ALIGN_RHO=0.35                             # merge-vs-new-entity distance cutoff
 ```
 
 Long clauses are split into **paragraph-boundary chunks** of ≤ `SAGE_LLM_MAX_CLAUSE_CHARS`
@@ -200,7 +204,8 @@ A/B over the same corpus (`--label v1 …` / `--label v2 --prompt-variant v2` +
 | `extractors.py` | **stage 2** — deterministic: Procedures (titles), per-spec controlled vocab (`cfg.vocab`), INVOKES (cross-refs, both "subclause N" and bare-"N" idioms) |
 | `llm.py` | **stage 3** — OpenAI-compatible client + few-shot prompt builder (stub-safe); per-call timing/token logging + timeout/error surfacing |
 | `llm_debug.py` | endpoint probe (`--probe`) + configured-LLM ping (`--check`) for diagnosing hangs/timeouts |
-| `compare.py` | diff snapshots across run labels (entity/relation/LLM-fact overlap, Jaccard) for multi-LLM eval |
+| `align.py` | alias suggester — nearest canonical neighbour per unmatched LLM entity (embedding endpoint or difflib; KARMA ρ cutoff: below ρ → propose-only merge, above → new entity). CLI re-runs on an existing snapshot for ρ tuning |
+| `compare.py` | diff snapshots across run labels (entity/relation/LLM-fact overlap, Jaccard, object divergence) for multi-LLM eval |
 | `error_codes.py` | stable `{MODULE}-{SEVERITY}{NUMBER}` codes + `PipelineError` (D-017; NORA D-012a convention) |
 | `records.py` | KG entity/relation builders (canonical shape + D-011 lifecycle/provenance) |
 | `validate.py` | **stage 4** — `KG ⊨ ontology` (subtype-aware) + `KG ⊨ corpus` |

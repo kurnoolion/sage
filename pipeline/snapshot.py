@@ -12,7 +12,7 @@ import json
 import os
 import time
 
-from . import ontology
+from . import align, ontology
 
 # Repo root, so a relative out_root resolves to the repo's snapshots dir no matter
 # what CWD the pipeline is launched from (matches corpus.py).
@@ -104,11 +104,15 @@ def write(cfg, entities, relations, errs, warns, ue_report, out_root="pipeline/s
         "entities": entities, "relations": relations,
         "validation": {"errors": errs, "warnings": warns},
     }
-    review = build_review_queue(entities, relations, warns)
+    suggestions, backend = align.suggest(entities)
+    aliases = {"spec": cfg.spec, "version": cfg.version, "backend": backend,
+               "rho": align.rho(), "suggestions": suggestions}
+    review = build_review_queue(entities, relations, warns) + align.review_items(suggestions)
 
     paths = {}
     for name, obj in (("snapshot.json", snap),
                       ("review-queue.json", review),
+                      ("alias-suggestions.json", aliases),
                       ("ue-filter-report.json", ue_report)):
         p = os.path.join(out_dir, name)
         with open(p, "w") as f:
