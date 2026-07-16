@@ -168,8 +168,9 @@ Ranked by value-for-effort:
    different-object fact groups. Small pure-Python change; unblocks sharper D-020
    comparison and feeds D-012.
 2. **Embedding alias suggester** (the Aligner, embedding-first): local SBERT
-   nearest-neighbor, propose-only suggestions with distances; doubles as the D-012
-   alias table builder.
+   nearest-neighbor, propose-only suggestions with distances, **with KARMA's ρ
+   cutoff** (above the distance threshold → propose *new entity*, not a merge — §5.3);
+   doubles as the D-012 alias table builder.
 3. **Entity-pass-then-relation-pass prompt instruction**: free; A/B-test with
    `pipeline.compare`.
 4. **Bounded auto-retry on unparseable clause output**: low priority.
@@ -189,12 +190,54 @@ This is direct empirical support for SAGE's D-008 hard-validation design and for
 D-015's "extractor conforms, humans extend" division: schema discipline must live in
 a validator, not in a prompt.
 
-## 5. Sources
+## 5. KARMA itself — review of the upstream framework (added 2026-07-16)
+
+TelcoAgent's pipeline is an implementation of **KARMA** (arXiv 2502.06472, NeurIPS 2025
+spotlight; Peking U / Georgia Tech / Tsinghua) — nine collaborative agents enriching a
+biomedical KG from 1,200 PubMed articles: Ingestion → Reader (relevance δ) → Summarizer
+→ Entity Extraction + embedding normalization (`ê = argmin_v d(φ(e), ψ(v))`, flagged
+*new* if distance > ρ) → Relation Extraction (`p(r|ê_i, ê_j) ≥ θ_r`) → Schema Alignment
+→ Conflict Resolution (LLM debate) → Evaluator (3 signals C/Cl/R, sigmoid-weighted,
+mean ≥ Θ). Findings that matter for SAGE:
+
+1. **The LLM-vs-human correctness gap is quantified.** KARMA reports **83.1%
+   LLM-verified correctness** (hold-out DeepSeek-v3 judge) against **0.625 human-expert
+   scores** on the same output — a ~21-point gap between what an LLM judge approves and
+   what domain experts accept. This is the cleanest published number behind our
+   rejection of LLM self-scored quality gates and behind the Layer-D validation flag
+   (STATUS): LLM-judged quality systematically overstates expert-judged quality. Their
+   own limitations concede "domain experts must ultimately verify critical claims."
+2. **TelcoAgent diverged from KARMA where it mattered most.** KARMA's CRA, on a
+   Contradict verdict, "discards **or queues for manual expert review**, depending on
+   the system's confidence" — the review-queue path is in the original design.
+   TelcoAgent auto-drops the loser. Our adoption (§3 item 1: grouping → review queue,
+   never auto-drop) is *more* faithful to KARMA than TelcoAgent is. KARMA's ablation
+   makes CRA the biggest measured quality lever (~9.7% correctness drop without it;
+   conflict ratios 0.132–0.238 — 13–24% of extracted edges removed as contradictory),
+   supporting conflict grouping's #1 rank in §3.
+3. **Take the ρ threshold.** KARMA's entity normalization flags an entity as *new*
+   when embedding distance exceeds ρ, instead of force-mapping to the nearest
+   neighbor. TelcoAgent's SAA has no such cutoff. Our alias suggester (§3 item 2)
+   should include it: suggestions above the distance cutoff propose a *new entity*,
+   not a merge.
+4. **The grounding gap is inherited, not a TelcoAgent shortcut.** KARMA stores no
+   provenance and never verifies triples against source passages; extraction runs on
+   Summarizer output (paraphrase), same as TelcoAgent. The whole framework lineage
+   lacks what `KG ⊨ corpus` provides. Also no benchmark against gold-standard IE
+   datasets — evaluation is LLM-metric-first by their own admission.
+5. **No code release from KARMA** — TelcoAgent is the accessible implementation (and
+   the only telecom one), which is why reviewing its code (§2) was the right proxy.
+
+*Caveat: reviewed via fetched full text, not a line-by-line PDF read; formulas and
+numbers are quoted from the paper's text.*
+
+## 6. Sources
 
 - TelcoAgent repo (MIT) — https://github.com/NextG-Wireless-Lab-NC-State/TelcoAgent
   (cloned + reviewed 2026-07-16; 4 commits; `data/enriched_kg.json` sha256-locked)
 - TelcoAgent paper — https://arxiv.org/abs/2606.19821
-- KARMA (the framework the code implements) — https://arxiv.org/abs/2502.06472
+- KARMA (the framework the code implements; reviewed in §5) — https://arxiv.org/abs/2502.06472
+  *(NeurIPS 2025 spotlight; biomedical; no code release)*
 - SAGE counterparts: `pipeline/llm.py` (D-018 chunking, anchor contract),
   `pipeline/validate.py` (D-008/D-019), `pipeline/ue_filter.py`,
   `pipeline/extractors.py`, `pipeline/run.py`, `pipeline/README.md`
