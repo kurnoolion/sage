@@ -18,6 +18,12 @@ configured purely via env — no SDK dependency (stdlib urllib only):
                         already stores paragraphs newline-separated, and each chunk is
                         a verbatim substring so anchors still resolve against the full
                         clause (KG ⊨ corpus). Facts from all chunks merge by id.
+    SAGE_LLM_PROMPT_VARIANT
+                        extraction system-prompt variant: "v1" (default) or "v2".
+                        v2 adds the entity-pass-then-relation-pass instruction
+                        (KARMA EEA→REA, research doc 05 §3.3). Kept switchable so
+                        v1/v2 can be A/B-compared over the same corpus with
+                        --label + pipeline.compare before v2 earns the default.
 
 If the endpoint is not configured (or ``--dry-run`` is passed to run.py), the
 extractor runs in **stub mode**: it builds the few-shot prompt (so prompts are
@@ -139,11 +145,36 @@ def ontology_card():
     return "ENTITY TYPES:\n  %s\n\nRELATION TYPES (domain -> range):\n%s" % (ents, rels)
 
 
-def build_messages(cfg, clause_key, clause, gold_examples):
-    sys = ("You extract a knowledge graph from 3GPP UE specification prose. "
-           "Only output facts about the UE's behaviour that are explicitly stated. "
-           "Conform to the ontology. Every fact's anchor MUST be a verbatim quote "
-           "from the clause text. Return ONLY a JSON array, no prose.")
+_SYSTEM_V1 = ("You extract a knowledge graph from 3GPP UE specification prose. "
+              "Only output facts about the UE's behaviour that are explicitly stated. "
+              "Conform to the ontology. Every fact's anchor MUST be a verbatim quote "
+              "from the clause text. Return ONLY a JSON array, no prose.")
+
+# v2 = v1 + entity-pass-then-relation-pass (KARMA EEA→REA via TelcoAgent; doc 05 §3.3).
+# Two-pass decomposition first enumerates entities, then only relates enumerated
+# entities — aimed at fewer hallucinated endpoints. Opt-in until A/B-validated.
+_SYSTEM_V2 = _SYSTEM_V1 + (
+    " Work in two passes before answering. PASS 1: enumerate every entity the clause"
+    " explicitly names, with its ontology type. PASS 2: for pairs of PASS-1 entities"
+    " only, assert the relations the clause explicitly states — never emit a fact"
+    " whose subject or object you did not enumerate in PASS 1. Output only the final"
+    " JSON array of PASS-2 facts.")
+
+_SYSTEM = {"v1": _SYSTEM_V1, "v2": _SYSTEM_V2}
+
+
+def prompt_variant(variant=None):
+    """Resolve the prompt variant: explicit arg > SAGE_LLM_PROMPT_VARIANT env > v1."""
+    v = variant or os.environ.get("SAGE_LLM_PROMPT_VARIANT") or "v1"
+    if v not in _SYSTEM:
+        logger.warning("unknown prompt variant %r — using v1 (known: %s)",
+                       v, ", ".join(sorted(_SYSTEM)))
+        return "v1"
+    return v
+
+
+def build_messages(cfg, clause_key, clause, gold_examples, variant=None):
+    sys = _SYSTEM[prompt_variant(variant)]
     shots = "\n\n".join(
         "CLAUSE %s:\n%s\nFACTS:\n%s" % (ex["clause"], ex["text"], json.dumps(ex["facts"]))
         for ex in gold_examples)
@@ -210,13 +241,20 @@ def _call(ep, messages, clause_key=""):
 
 
 def _parse(content):
+    """Parse the model's reply into a list of facts.
+
+    Returns the list on success (an explicit ``[]`` reply is a *valid* "no facts
+    here" answer), or ``None`` when the reply has no parseable JSON array — the
+    signal extract_clause's bounded retry keys off.
+    """
     s = content.find("["); e = content.rfind("]")
     if s == -1 or e == -1:
-        return []
+        return None
     try:
-        return json.loads(content[s:e + 1])
+        parsed = json.loads(content[s:e + 1])
     except json.JSONDecodeError:
-        return []
+        return None
+    return parsed if isinstance(parsed, list) else None
 
 
 def _facts_to_records(cfg, clause_key, facts, ents, rels, rel_ids):
@@ -245,11 +283,20 @@ def _facts_to_records(cfg, clause_key, facts, ents, rels, rel_ids):
     return dropped
 
 
-def extract_clause(cfg, clause_key, clause, gold_examples, ep=None, max_chars=None):
+_RETRY_REMINDER = ("That reply was not a parseable JSON array. Return ONLY the JSON "
+                   "array of facts for the clause above (or [] if there are none) — "
+                   "no prose, no markdown fences.")
+
+
+def extract_clause(cfg, clause_key, clause, gold_examples, ep=None, max_chars=None,
+                   variant=None):
     """Return (entities, relations) for one clause. Stub -> ([], []) with no call.
 
     Long clauses are split into paragraph-boundary chunks (see _chunk_text) so a
     slow local model sees several short prompts; facts from all chunks are merged.
+    A chunk whose reply is non-empty but unparseable gets exactly one retry with a
+    terse format reminder (doc 05 §3.4); still unparseable -> 0 facts, logged (the
+    review of gaps stays human).
     """
     if ep is None:
         return [], []                      # stub mode
@@ -264,13 +311,22 @@ def extract_clause(cfg, clause_key, clause, gold_examples, ep=None, max_chars=No
     ents, rels, rel_ids, total_facts = {}, [], set(), 0
     for i, ch in enumerate(chunks):
         ck = clause_key if len(chunks) == 1 else "%s#%d/%d" % (clause_key, i + 1, len(chunks))
-        messages = build_messages(cfg, clause_key, dict(clause, text=ch), gold_examples)
+        messages = build_messages(cfg, clause_key, dict(clause, text=ch), gold_examples,
+                                  variant=variant)
         content = _call(ep, messages, ck)
         facts = _parse(content)
+        if facts is None and content.strip():  # bounded retry: 1 attempt, then give up
+            logger.warning("clause=%s: no parseable JSON array in %d-char response — retrying once",
+                           ck, len(content))
+            retry_messages = messages + [{"role": "assistant", "content": content},
+                                         {"role": "user", "content": _RETRY_REMINDER}]
+            content = _call(ep, retry_messages, ck + "+retry")
+            facts = _parse(content)
+            if facts is None:
+                logger.warning("clause=%s: retry still unparseable (%d chars) — 0 facts from this chunk",
+                               ck, len(content))
+        facts = facts or []
         total_facts += len(facts)
-        if not facts and content.strip():
-            logger.debug("clause=%s: response had no parseable JSON array (%d chars)",
-                         ck, len(content))
         _facts_to_records(cfg, clause_key, facts, ents, rels, rel_ids)
     logger.debug("clause=%s: %d facts parsed -> %d entities, %d relations (across %d chunk(s))",
                  clause_key, total_facts, len(ents), len(rels), len(chunks))

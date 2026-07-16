@@ -12,6 +12,8 @@ import json
 import os
 import time
 
+from . import ontology
+
 # Repo root, so a relative out_root resolves to the repo's snapshots dir no matter
 # what CWD the pipeline is launched from (matches corpus.py).
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -34,8 +36,36 @@ def merge(*record_lists):
     return list(out.values())
 
 
+def conflict_groups(relations):
+    """Same (from, relation-type), different objects, on a **functional** type.
+
+    KARMA CRA-derived, deterministic (doc 05 §2.7/§3.1): only the grouping is
+    adopted — no LLM debate, and no auto-drop, because under multi-release
+    modeling (D-011/D-012) a conflicting object is often the change signal
+    derive() exists to capture, not noise. Functional types are flagged in the
+    ontology (``functional: True``); everything else is legitimately
+    multi-valued and never grouped.
+    """
+    groups = {}
+    for r in relations:
+        if ontology.RELATIONSHIP_TYPES.get(r["type"], {}).get("functional"):
+            groups.setdefault((r["from"], r["type"]), []).append(r)
+    out = []
+    for (frm, typ), rs in sorted(groups.items()):
+        if len({r["to"] for r in rs}) < 2:
+            continue
+        out.append({"kind": "conflict-group", "from": frm, "type": typ,
+                    "members": [{"id": r["id"], "to": r["to"],
+                                 "confidence": r.get("confidence"),
+                                 "extractor": r.get("extractor"),
+                                 "anchor": (r.get("provenance") or [{}])[0].get("anchor"),
+                                 "clause": (r.get("provenance") or [{}])[0].get("clause")}
+                                for r in rs]})
+    return out
+
+
 def build_review_queue(entities, relations, warns):
-    items = []
+    items = conflict_groups(relations)
     for e in entities:                            # ambiguous / low-confidence entity typing
         if e.get("confidence") in ("low", "med"):
             items.append({"kind": "ambiguous-entity-type", "id": e["id"],

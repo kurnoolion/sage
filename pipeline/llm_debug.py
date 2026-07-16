@@ -241,8 +241,12 @@ def cmd_clause(spec, version, clause_key, call, out, base_url=None, model=None, 
          % (len(content), time.time() - t0))
     emit(content)
     facts = llm._parse(content)
-    emit("\n================== PARSED FACTS (%d) ==================" % len(facts))
-    emit(json.dumps(facts, indent=2, ensure_ascii=False))
+    if facts is None:
+        emit("\n================== PARSED FACTS ==================")
+        emit("# response has no parseable JSON array (pipeline.run would retry once here)")
+    else:
+        emit("\n================== PARSED FACTS (%d) ==================" % len(facts))
+        emit(json.dumps(facts, indent=2, ensure_ascii=False))
     if sink:
         sink.close(); print("wrote prompt+response to %s" % out)
     return 0

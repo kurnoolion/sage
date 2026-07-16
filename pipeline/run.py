@@ -68,7 +68,7 @@ def _build_and_write(cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, 
 
 
 def run(spec, version, dry_run=False, limit=None, progress_every=25, checkpoint_every=0,
-        label=None, llm_base_url=None, llm_model=None, llm_api_key=None):
+        label=None, llm_base_url=None, llm_model=None, llm_api_key=None, prompt_variant=None):
     cfg = config.get(spec, version)
     cps = corpus.Corpus(cfg.store_dir)
 
@@ -85,13 +85,15 @@ def run(spec, version, dry_run=False, limit=None, progress_every=25, checkpoint_
     if ep is not None:
         keys = [k for k in (ue_keys[:limit] if limit else ue_keys) if "/" not in k]
         total = len(keys)
-        log.info("LLM stage%s: %d clauses to process (model=%s, timeout=%ds, max_clause_chars=%d)",
-                 " [%s]" % label if label else "", total, ep["model"], ep["timeout"], llm.max_clause_chars())
+        log.info("LLM stage%s: %d clauses to process (model=%s, timeout=%ds, max_clause_chars=%d, prompt=%s)",
+                 " [%s]" % label if label else "", total, ep["model"], ep["timeout"],
+                 llm.max_clause_chars(), llm.prompt_variant(prompt_variant))
         t0 = time.time()
         for i, k in enumerate(keys, 1):
             log.info("[%d/%d] clause %s (%d chars)", i, total, k, len(cps[k].get("text") or ""))
             try:
-                e, r = llm.extract_clause(cfg, k, cps[k], gold.get("examples", []), ep)
+                e, r = llm.extract_clause(cfg, k, cps[k], gold.get("examples", []), ep,
+                                          variant=prompt_variant)
             except Exception as exc:       # report which clause died, then re-raise
                 log.error("LLM stage aborted at clause %s (%d/%d) after %.0fs total: %s",
                           k, i, total, time.time() - t0, exc)
@@ -156,6 +158,9 @@ def main():
     ap.add_argument("--llm-base-url", default=None, help="override SAGE_LLM_BASE_URL for this run")
     ap.add_argument("--llm-model", default=None, help="override SAGE_LLM_MODEL for this run")
     ap.add_argument("--llm-api-key", default=None, help="override SAGE_LLM_API_KEY for this run")
+    ap.add_argument("--prompt-variant", default=None, choices=("v1", "v2"),
+                    help="extraction prompt variant (default: SAGE_LLM_PROMPT_VARIANT or v1; "
+                         "v2 = entity-pass-then-relation-pass)")
     ap.add_argument("--verbose", "-v", action="store_true",
                     help="DEBUG logging (per-call request shapes, parsed-fact counts)")
     a = ap.parse_args()
@@ -165,7 +170,8 @@ def main():
         datefmt="%H:%M:%S")
     run(a.spec, a.version, dry_run=a.dry_run, limit=a.limit,
         progress_every=a.progress_every, checkpoint_every=a.checkpoint_every,
-        label=a.label, llm_base_url=a.llm_base_url, llm_model=a.llm_model, llm_api_key=a.llm_api_key)
+        label=a.label, llm_base_url=a.llm_base_url, llm_model=a.llm_model,
+        llm_api_key=a.llm_api_key, prompt_variant=a.prompt_variant)
 
 
 if __name__ == "__main__":

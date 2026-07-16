@@ -91,7 +91,9 @@ python3 -m pipeline.compare --version 19.6.0 qwen llama
 Snapshots land in `pipeline/snapshots/<SPEC>-<VER>/<label>/`. `compare` reports
 per-label counts and, for each pair, the entity / relation / **LLM-fact** overlap
 by id (Jaccard = how much the models agree on what they extracted), prints sample
-divergent facts, and writes `compare.json`. View either run with
+divergent facts plus the **object-divergence view** (subjects both models assert
+a relation for, but with different objects — the sharpest disagreement signal),
+and writes `compare.json`. View either run with
 `python3 -m pipeline.viz --version 19.6.0 --label qwen`. Runs are fully isolated
 (separate processes, read-only corpus, per-label output) — if both models share
 one GPU box they'll contend for it, so true parallelism wants two endpoints.
@@ -107,6 +109,8 @@ export SAGE_LLM_MODEL=qwen2.5:32b-instruct
 export SAGE_LLM_API_KEY=…                               # optional (vLLM/OpenAI)
 export SAGE_LLM_TIMEOUT=300                             # per-request seconds (default 300)
 export SAGE_LLM_MAX_CLAUSE_CHARS=6000                  # split longer clauses into chunks (0=off)
+export SAGE_LLM_PROMPT_VARIANT=v1                      # v1 (default) | v2 (entity-pass-then-
+                                                       # relation-pass; or --prompt-variant)
 ```
 
 Long clauses are split into **paragraph-boundary chunks** of ≤ `SAGE_LLM_MAX_CLAUSE_CHARS`
@@ -164,7 +168,16 @@ With no `SAGE_LLM_BASE_URL` (or `--dry-run`), stage 3 is a **no-op stub**: the
 prompt is still built (inspectable) but no network call is made, so the
 deterministic spine always runs. The model must return a JSON array of facts
 (`{subject, subject_type, rel, object, object_type, modality, confidence, anchor}`);
-the **anchor must be a verbatim clause span** so `KG ⊨ corpus` holds.
+the **anchor must be a verbatim clause span** so `KG ⊨ corpus` holds. A reply
+that is non-empty but has no parseable JSON array gets exactly **one retry**
+with a terse format reminder; still unparseable → 0 facts from that chunk,
+logged as a warning.
+
+The extraction prompt has two variants (`--prompt-variant` / env): `v1`
+(default) and `v2`, which adds an entity-pass-then-relation-pass instruction
+(KARMA EEA→REA via TelcoAgent — research doc 05 §3.3). v2 is opt-in until an
+A/B over the same corpus (`--label v1 …` / `--label v2 --prompt-variant v2` +
+`pipeline.compare`) shows it earns the default.
 
 ## Modules
 
@@ -182,7 +195,7 @@ the **anchor must be a verbatim clause span** so `KG ⊨ corpus` holds.
 | `error_codes.py` | stable `{MODULE}-{SEVERITY}{NUMBER}` codes + `PipelineError` (D-017; NORA D-012a convention) |
 | `records.py` | KG entity/relation builders (canonical shape + D-011 lifecycle/provenance) |
 | `validate.py` | **stage 4** — `KG ⊨ ontology` (subtype-aware) + `KG ⊨ corpus` |
-| `snapshot.py` | **stage 5** — write snapshot + review queue (low-confidence / warnings) |
+| `snapshot.py` | **stage 5** — write snapshot + review queue (low-confidence / warnings / **conflict groups**: same subject + functional relation type, different objects — flagged, never auto-dropped) |
 | `run.py` | orchestrator / CLI |
 | `viz.py` | export shared ontology → JSON + render the snapshot via the generic viewer |
 | `gold/<SPEC>.json` | curated gold seed = few-shot examples **and** precision/recall eval set |

@@ -58,11 +58,20 @@ DOMAIN_ENTITY_TYPES = ["Procedure", "Message", "InformationElement", "Timer", "S
 # Relationship types  (name -> {domain, range, desc, attrs})
 # domain/range are checked **subtype-aware** (a from-type is OK if it is a
 # subtype-or-equal of any listed domain type). ["*"] means "any".
+#
+# ``functional: True`` marks a type whose subject is expected to have ONE object
+# (within a release): two different objects for the same (from, type) is a
+# conflict candidate, and snapshot.conflict_groups routes the group to the
+# review queue (KARMA CRA-derived, minus the LLM debate and minus the auto-drop
+# — research doc 05 §2.7/§3.1). Most SAGE relations are legitimately
+# multi-valued (a Procedure EXCHANGES many messages), so the flag is opt-in per
+# type and, like the rest of the schema, an open seed (D-015) — extend it as
+# evidence accumulates.
 # ---------------------------------------------------------------------------
 RELATIONSHIP_TYPES = {
     "DEFINED_IN":          {"domain": ["*"], "range": ["Clause"], "desc": "Entity's source/home clause (provenance).", "attrs": []},
     "CONTAINS":            {"domain": ["Message", "InformationElement"], "range": ["InformationElement"], "desc": "Structural containment (ASN.1 / SIP header set).", "attrs": ["presence"]},
-    "HAS_DOMAIN":          {"domain": ["InformationElement"], "range": ["InformationElement", "Capability"], "desc": "IE's value domain / enumerated type.", "attrs": []},
+    "HAS_DOMAIN":          {"domain": ["InformationElement"], "range": ["InformationElement", "Capability"], "desc": "IE's value domain / enumerated type.", "attrs": [], "functional": True},
     "EXCHANGES":           {"domain": ["Procedure"], "range": ["Message"], "desc": "Procedure sends/receives a message (incl. SIP request/response).", "attrs": ["direction"]},
     "REUSED_BY":           {"domain": ["Message"], "range": ["Procedure"], "desc": "Message is reused by another procedure.", "attrs": ["role"]},
     "STARTS":              {"domain": ["Procedure"], "range": ["Timer"], "desc": "Procedure starts a timer.", "attrs": []},
@@ -73,9 +82,9 @@ RELATIONSHIP_TYPES = {
     "ALTERNATIVE_OUTCOME": {"domain": ["Procedure"], "range": ["Message"], "desc": "Alternative (e.g. reject/error response) outcome.", "attrs": []},
     "ESTABLISHES":         {"domain": ["Procedure"], "range": ["Bearer"], "desc": "Procedure establishes a bearer.", "attrs": []},
     "INVOKES":             {"domain": ["Procedure"], "range": ["Procedure"], "desc": "Procedure invokes a sub-procedure (cross-reference).", "attrs": ["guard"]},
-    "ON_EXPIRY_OF":        {"domain": ["Event"], "range": ["Timer"], "desc": "Event is the expiry of a timer.", "attrs": []},
+    "ON_EXPIRY_OF":        {"domain": ["Event"], "range": ["Timer"], "desc": "Event is the expiry of a timer.", "attrs": [], "functional": True},
     "CONFIGURES":          {"domain": ["InformationElement"], "range": ["Timer"], "desc": "IE delivers/configures a timer value.", "attrs": []},
-    "GOVERNS":             {"domain": ["Timer"], "range": ["Procedure"], "desc": "Timer supervises a procedure.", "attrs": []},
+    "GOVERNS":             {"domain": ["Timer"], "range": ["Procedure"], "desc": "Timer supervises a procedure.", "attrs": [], "functional": True},
     "READS":               {"domain": ["Procedure"], "range": ["UEVariable"], "desc": "Procedure reads a UE variable.", "attrs": []},
     "WRITES":              {"domain": ["Procedure"], "range": ["UEVariable"], "desc": "Procedure writes a UE variable.", "attrs": []},
     "ACTS_ON":             {"domain": ["Procedure"], "range": ["ProtocolLayer"], "desc": "Procedure acts on another layer's entity.", "attrs": ["cross-spec"]},

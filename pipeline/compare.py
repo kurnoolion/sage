@@ -55,6 +55,29 @@ def _rel_brief(r):
     return "%s: %s -> %s (%s)" % (r["type"], r["from"], r["to"], r.get("confidence", "?"))
 
 
+def _object_divergence(rels_a, rels_b):
+    """Cross-label object disagreement (doc 05 §3.1): group each side's relations
+    by (from, type) and report keys BOTH labels assert but with different object
+    sets — "model A says X, model B says Y about the same subject". Reported for
+    all relation types (it is a diff view, not a conflict verdict — most SAGE
+    relations are legitimately multi-valued; the functional-type conflict check
+    lives in snapshot.conflict_groups)."""
+    def groups(rels):
+        g = {}
+        for r in rels.values():
+            g.setdefault((r["from"], r["type"]), set()).add(r["to"])
+        return g
+    ga, gb = groups(rels_a), groups(rels_b)
+    out = []
+    for key in sorted(set(ga) & set(gb)):
+        if ga[key] != gb[key]:
+            out.append({"from": key[0], "type": key[1],
+                        "both": sorted(ga[key] & gb[key]),
+                        "only_a": sorted(ga[key] - gb[key]),
+                        "only_b": sorted(gb[key] - ga[key])})
+    return out
+
+
 def compare(spec, version, labels, samples=8, out=None):
     snaps = {lab: _load(spec, version, lab) for lab in labels}
     rels = {lab: {r["id"]: r for r in s["relations"]} for lab, s in snaps.items()}
@@ -78,8 +101,10 @@ def compare(spec, version, labels, samples=8, out=None):
         rel_cmp = _setcmp(rels[a], rels[b])
         llm_cmp = _setcmp(llm_rels[a], llm_rels[b])
         ent_cmp = _setcmp(ents[a], ents[b])
+        divergence = _object_divergence(llm_rels[a], llm_rels[b])
         pairs.append({"a": a, "b": b, "relations": rel_cmp,
-                      "llm_relations": llm_cmp, "entities": ent_cmp})
+                      "llm_relations": llm_cmp, "entities": ent_cmp,
+                      "llm_object_divergence": divergence})
 
         print("  === %s vs %s ===" % (a, b))
         print("  entities     : both=%d  only-%s=%d  only-%s=%d  jaccard=%.3f"
@@ -94,6 +119,11 @@ def compare(spec, version, labels, samples=8, out=None):
                 print("    LLM facts only %s found (not %s), first %d:" % (lab, others, len(ex)))
                 for rid in ex:
                     print("      %s" % _rel_brief(rels[lab][rid]))
+        print("  object divergence: %d (from, type) subjects where both models assert "
+              "but objects differ" % len(divergence))
+        for d in divergence[:samples]:
+            print("    %s %s: only-%s=%s  only-%s=%s" % (
+                d["from"], d["type"], a, d["only_a"] or "-", b, d["only_b"] or "-"))
         print()
 
     if out is None:
