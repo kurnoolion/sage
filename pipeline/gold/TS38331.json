@@ -1,0 +1,108 @@
+{
+  "_doc": "Curated gold seed for TS 38.331 (NR RRC). Doubles as (a) few-shot examples for the LLM extractor and (b) the precision/recall eval set (D-010). Every anchor is a VERBATIM span of the cited clause in corpus/store/38331-19.2.0 so facts satisfy KG⊨corpus. Facts use the ontology in pipeline/ontology.py; entity naming follows the hand-built RRC pilot (rrc-pilot/) so pipeline output stays comparable to the pilot KG.",
+  "spec": "TS 38.331",
+  "version": "19.2.0",
+  "examples": [
+    {
+      "clause": "5.3.3.2",
+      "title": "RRC connection establishment — Initiation",
+      "text": "The UE initiates the procedure when upper layers request establishment of an RRC connection while the UE is in RRC_IDLE and it has acquired essential system information, or for sidelink communication as specified in clause 5.3.3.1a.\nUpon initiation of the procedure, the UE shall:\n   1>\tstart timer T300;\n   1>\tinitiate transmission of the RRCSetupRequest message in accordance with 5.3.3.3;",
+      "facts": [
+        {
+          "subject": "RRC connection establishment",
+          "subject_type": "Procedure",
+          "rel": "HAS_PRECONDITION",
+          "object": "RRC_IDLE",
+          "object_type": "State",
+          "modality": "prose",
+          "confidence": "high",
+          "anchor": "while the UE is in RRC_IDLE"
+        },
+        {
+          "subject": "RRC connection establishment",
+          "subject_type": "Procedure",
+          "rel": "STARTS",
+          "object": "T300",
+          "object_type": "Timer",
+          "modality": "prose",
+          "confidence": "high",
+          "anchor": "start timer T300"
+        },
+        {
+          "subject": "RRC connection establishment",
+          "subject_type": "Procedure",
+          "rel": "EXCHANGES",
+          "object": "RRCSetupRequest",
+          "object_type": "Message",
+          "modality": "prose",
+          "confidence": "high",
+          "anchor": "initiate transmission of the RRCSetupRequest message"
+        }
+      ]
+    },
+    {
+      "clause": "5.3.3.4",
+      "title": "Reception of the RRCSetup by the UE",
+      "text": "The UE shall perform the following actions upon reception of the RRCSetup:\n   1>\tstop timer T300, T301, T319;\n   2>\tenter RRC_CONNECTED;\n   1>\tsubmit the RRCSetupComplete message to lower layers for transmission, upon which the procedure ends.",
+      "facts": [
+        {
+          "subject": "RRC connection establishment",
+          "subject_type": "Procedure",
+          "rel": "EXCHANGES",
+          "object": "RRCSetup",
+          "object_type": "Message",
+          "modality": "prose",
+          "confidence": "high",
+          "anchor": "upon reception of the RRCSetup"
+        },
+        {
+          "subject": "RRC connection establishment",
+          "subject_type": "Procedure",
+          "rel": "STOPS",
+          "object": "T300",
+          "object_type": "Timer",
+          "modality": "prose",
+          "confidence": "high",
+          "anchor": "stop timer T300"
+        },
+        {
+          "subject": "RRC connection establishment",
+          "subject_type": "Procedure",
+          "rel": "TRANSITIONS_TO",
+          "object": "RRC_CONNECTED",
+          "object_type": "State",
+          "modality": "prose",
+          "confidence": "high",
+          "anchor": "enter RRC_CONNECTED"
+        },
+        {
+          "subject": "RRC connection establishment",
+          "subject_type": "Procedure",
+          "rel": "EXCHANGES",
+          "object": "RRCSetupComplete",
+          "object_type": "Message",
+          "modality": "prose",
+          "confidence": "high",
+          "anchor": "submit the RRCSetupComplete message to lower layers for transmission"
+        }
+      ]
+    },
+    {
+      "clause": "5.3.3.7",
+      "title": "T300 expiry",
+      "text": "The UE shall:\n   1>\tif timer T300 expires:\n      2>\treset MAC, release the MAC configuration and re-establish RLC for all RBs that are established (except broadcast MRBs);",
+      "facts": [
+        {
+          "subject": "T300 expiry",
+          "subject_type": "Event",
+          "rel": "ON_EXPIRY_OF",
+          "object": "T300",
+          "object_type": "Timer",
+          "modality": "prose",
+          "confidence": "high",
+          "anchor": "if timer T300 expires"
+        }
+      ]
+    }
+  ]
+}

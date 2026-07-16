@@ -7,8 +7,9 @@ itself (that is the LLM's job). So it only emits things that are unambiguous fro
 structure or controlled vocabulary:
 
   * Procedures   — from UE clause titles (clause graph).
-  * SIPMethod    — controlled vocabulary tokens appearing in UE prose.
-  * SIPHeader    — controlled vocabulary tokens appearing in UE prose.
+  * Vocab        — per-spec controlled-vocabulary tokens appearing in UE prose
+                   (``cfg.vocab``: SIP methods/headers for 24.229; RRC messages,
+                   timers, states, UE variables, bearers for 38.331).
   * INVOKES      — explicit cross-references ("... as specified in subclause 5.1.x").
 
 Everything is anchored (provenance resolves in the corpus) so it passes KG⊨corpus.
@@ -17,20 +18,6 @@ left to the LLM extractor.
 """
 import re
 from . import records
-
-# --- controlled vocabularies ------------------------------------------------
-SIP_METHODS = ["REGISTER", "INVITE", "ACK", "BYE", "CANCEL", "OPTIONS", "SUBSCRIBE",
-               "NOTIFY", "PUBLISH", "MESSAGE", "REFER", "INFO", "PRACK", "UPDATE"]
-
-SIP_HEADERS = [
-    "P-Access-Network-Info", "P-Preferred-Identity", "P-Asserted-Identity",
-    "P-Associated-URI", "P-Called-Party-ID", "P-Visited-Network-ID",
-    "P-Preferred-Service", "P-Asserted-Service", "P-Profile-Key",
-    "Service-Route", "Path", "Contact", "Authorization", "WWW-Authenticate",
-    "Security-Client", "Security-Verify", "Security-Server", "Require",
-    "Proxy-Require", "Supported", "Route", "Privacy", "Feature-Caps",
-    "Accept-Contact", "Reject-Contact", "Request-Disposition", "Expires",
-]
 
 _GENERIC_TITLES = {"general", "void", "introduction", "scope", "", "purpose"}
 
@@ -91,22 +78,22 @@ def extract(corpus, cfg, ue_keys):
         add_entity(e)
         proc_at_clause[cl.get("number") or key] = e["id"]
 
-    # 2. SIP vocabulary (methods + headers) ---------------------------------
-    method_re = {m: re.compile(r"\b%s\b" % re.escape(m)) for m in SIP_METHODS}
-    header_re = {h: re.compile(r"\b%s\b" % re.escape(h)) for h in SIP_HEADERS}
+    # 2. controlled vocabulary (per-spec, cfg.vocab) -------------------------
+    vocab_re = [(typ, term, re.compile(r"\b%s\b" % re.escape(term)))
+                for typ, terms in cfg.vocab for term in terms]
     for key in ue_keys:
         text = corpus[key].get("text") or ""
-        for m, rx in method_re.items():
+        for typ, term, rx in vocab_re:
             if rx.search(text):
-                add_entity(records.entity(cfg, "SIPMethod", m, key, anchor=m,
-                                          extractor="deterministic:sip-method"))
-        for h, rx in header_re.items():
-            if rx.search(text):
-                add_entity(records.entity(cfg, "SIPHeader", h, key, anchor=h,
-                                          extractor="deterministic:sip-header"))
+                add_entity(records.entity(cfg, typ, term, key, anchor=term,
+                                          extractor="deterministic:vocab:%s" % typ))
 
     # 3. INVOKES from explicit cross-references -----------------------------
-    xref_re = re.compile(r"(?:as )?(?:specified|described|defined) in subclause\s+(\d+(?:\.\d+)+[A-Z]?)")
+    # Both idioms: "as specified in subclause 5.1.1.2" (24.229) and the bare
+    # "as specified in 5.3.3.4" (38.331). Target must resolve to a known UE
+    # procedure clause, so the looser pattern stays high-precision.
+    xref_re = re.compile(r"(?:as )?(?:specified|described|defined) in "
+                         r"(?:(?:sub)?clause\s+)?(\d+(?:\.\d+)+[A-Z]?)")
     for key in ue_keys:
         if "/" in key:
             continue

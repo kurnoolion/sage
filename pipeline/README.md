@@ -19,6 +19,7 @@ specs served as legacy `.doc`, e.g. TS 24.229):
 
 ```bash
 python3 corpus/fetch_spec.py "TS 24.229" 19.6.0 Rel-19   # one spec, exact version
+python3 corpus/fetch_spec.py "TS 38.331" 19.2.0 Rel-19   # NR RRC (matches the hand-built pilot)
 python3 corpus/fetch_spec.py --all                       # every spec SAGE uses
 # NORA elsewhere? --nora-root <path> or export SAGE_NORA_ROOT=<path>
 ```
@@ -29,7 +30,15 @@ python3 corpus/fetch_spec.py --all                       # every spec SAGE uses
 python3 -m pipeline.run --spec "TS 24.229" --version 19.6.0 --dry-run   # deterministic spine only
 python3 -m pipeline.run --spec "TS 24.229" --version 19.6.0             # + LLM if endpoint configured
 python3 -m pipeline.run --version 19.6.0 --limit 20                     # LLM over first 20 UE clauses
+python3 -m pipeline.run --spec "TS 38.331" --version 19.2.0 \
+    --clauses "5.3.3,5.3.5" --label pilot-scope                          # scope the whole run to
+                                                                         # clause subtrees (use a
+                                                                         # --label so the full-spec
+                                                                         # snapshot isn't clobbered)
 ```
+
+Registered specs (`pipeline/config.py` templates): **TS 24.229** (IMS) and
+**TS 38.331** (NR RRC). Any fetched version of a registered spec runs.
 
 ### Where snapshots are stored
 
@@ -185,10 +194,10 @@ A/B over the same corpus (`--label v1 …` / `--label v2 --prompt-variant v2` +
 |---|---|
 | `ontology.py` | shared TBox (entity + relationship types, `subtype_of`); subtype-aware `domain_range_ok` |
 | `ids.py` | namespaced ids `3gpp:<layer>/<type>/<name>` (D-013) |
-| `config.py` | version-independent per-spec `SpecConfig` template (layer, UE-relevance hints); `get(spec, version)` derives the store path so any fetched version works |
+| `config.py` | version-independent per-spec `SpecConfig` template (layer, UE-relevance hints, controlled vocab); `get(spec, version)` derives the store path so any fetched version works |
 | `corpus.py` | load a frozen corpus store; `haystack()` for anchor resolution |
 | `ue_filter.py` | **stage 1** — select UE-side clauses (structural + actor-term fallback) + report |
-| `extractors.py` | **stage 2** — deterministic: Procedures (titles), SIP vocab, INVOKES (cross-refs) |
+| `extractors.py` | **stage 2** — deterministic: Procedures (titles), per-spec controlled vocab (`cfg.vocab`), INVOKES (cross-refs, both "subclause N" and bare-"N" idioms) |
 | `llm.py` | **stage 3** — OpenAI-compatible client + few-shot prompt builder (stub-safe); per-call timing/token logging + timeout/error surfacing |
 | `llm_debug.py` | endpoint probe (`--probe`) + configured-LLM ping (`--check`) for diagnosing hangs/timeouts |
 | `compare.py` | diff snapshots across run labels (entity/relation/LLM-fact overlap, Jaccard) for multi-LLM eval |
@@ -210,9 +219,10 @@ silently merged.
 
 ## Status
 
-Deterministic spine runs on TS 24.229 (169/2096 UE clauses → 149 entities /
-30 relations, 0 errors / 0 warnings). LLM stage built + stubbed, pending an
-endpoint. Procedure anchors whose titles look structural (parameters / "as a
+Deterministic spine runs on TS 24.229 (157/2096 UE clauses → 146 entities /
+35 relations, 0/0) and TS 38.331 (548/1506 → 383 entities / 257 relations,
+0/0; pilot scope `--clauses 5.3.3,5.3.5` → 108 / 48). LLM stage built +
+stubbed, pending an endpoint. Procedure anchors whose titles look structural (parameters / "as a
 security mechanism" / "- general" / "abnormal cases") are kept but **demoted to
 `confidence=med` and routed to `review-queue.json`** (currently 16) rather than
 presented as solid facts — precise re-typing is the LLM/review's job

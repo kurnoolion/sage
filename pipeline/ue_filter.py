@@ -37,9 +37,11 @@ def select(corpus, cfg=None):
             kept.append(key); continue
 
         # actor-term fallback for clauses outside the structural core --------
+        # (haystack is lowercased, so terms must be compared lowercased too —
+        # mixed-case terms in config previously never matched: dead fallback)
         text = (title + "\n" + cl.get("text", "")).lower()
-        ue_hit = any(t in text for t in cfg.ue_actor_terms)
-        net_hit = any(t in text for t in cfg.network_actor_terms)
+        ue_hit = any(t.lower() in text for t in cfg.ue_actor_terms)
+        net_hit = any(t.lower() in text for t in cfg.network_actor_terms)
         if ue_hit and not net_hit:
             kept.append(key)
         else:

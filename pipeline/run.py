@@ -67,13 +67,37 @@ def _build_and_write(cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, 
     return entities, relations, errs, warns, out_dir, paths
 
 
+def _scope_to_clauses(ue_keys, clauses):
+    """Restrict UE keys to the given clause-number prefixes (e.g. "5.3.3,5.3.5").
+
+    A prefix matches itself, its sub-clauses ("5.3.3.4"), and its named
+    sub-units ("5.3.3.4/tab-x") — but not lookalike siblings ("5.3.30").
+    Scoping applies to the whole run (deterministic + LLM), so a scoped
+    snapshot contains only facts from those clauses — the mode the RRC
+    pilot rebuild-and-compare uses.
+    """
+    if not clauses:
+        return ue_keys
+    prefixes = [c.strip() for c in clauses.split(",") if c.strip()]
+    return [k for k in ue_keys
+            if any(k == p or k.startswith(p + ".") or k.startswith(p + "/")
+                   for p in prefixes)]
+
+
 def run(spec, version, dry_run=False, limit=None, progress_every=25, checkpoint_every=0,
-        label=None, llm_base_url=None, llm_model=None, llm_api_key=None, prompt_variant=None):
+        label=None, llm_base_url=None, llm_model=None, llm_api_key=None, prompt_variant=None,
+        clauses=None):
     cfg = config.get(spec, version)
     cps = corpus.Corpus(cfg.store_dir)
 
     # 1. UE filter
     ue_keys, ue_report = ue_filter.select(cps, cfg)
+    if clauses:
+        before = len(ue_keys)
+        ue_keys = _scope_to_clauses(ue_keys, clauses)
+        ue_report["clause_scope"] = {"prefixes": clauses, "kept": len(ue_keys),
+                                     "of_ue_filtered": before}
+        log.info("clause scope %s: %d of %d UE clauses kept", clauses, len(ue_keys), before)
 
     # 2. deterministic extractors
     det_ents, det_rels = extractors.extract(cps, cfg, ue_keys)
@@ -161,6 +185,9 @@ def main():
     ap.add_argument("--prompt-variant", default=None, choices=("v1", "v2"),
                     help="extraction prompt variant (default: SAGE_LLM_PROMPT_VARIANT or v1; "
                          "v2 = entity-pass-then-relation-pass)")
+    ap.add_argument("--clauses", default=None,
+                    help="comma-separated clause-number prefixes to scope the whole run to "
+                         "(e.g. '5.3.3,5.3.5'); default: all UE-filtered clauses")
     ap.add_argument("--verbose", "-v", action="store_true",
                     help="DEBUG logging (per-call request shapes, parsed-fact counts)")
     a = ap.parse_args()
@@ -171,7 +198,7 @@ def main():
     run(a.spec, a.version, dry_run=a.dry_run, limit=a.limit,
         progress_every=a.progress_every, checkpoint_every=a.checkpoint_every,
         label=a.label, llm_base_url=a.llm_base_url, llm_model=a.llm_model,
-        llm_api_key=a.llm_api_key, prompt_variant=a.prompt_variant)
+        llm_api_key=a.llm_api_key, prompt_variant=a.prompt_variant, clauses=a.clauses)
 
 
 if __name__ == "__main__":
