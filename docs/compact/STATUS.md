@@ -1,7 +1,7 @@
 # Status
 
 **Active phase**: requirements
-**Last updated**: 2026-06-10
+**Last updated**: 2026-07-16
 
 > **Note**: Formally still pre-requirements; work has moved into implementation. The three-layer
 > architecture is built + validated on the **RRC pilot** (TS 38.331, clauses 5.3.3 + 5.3.5 — a
@@ -34,6 +34,7 @@
 - 2026-06-09 LLM stage hardened for local models: structured logging + stable error codes (**D-017**), `llm_debug --clause` prompt/response inspection, deterministic paragraph-boundary chunking with hard-split fallback (**D-018**), cumulative progress line + mid-run checkpoint snapshots, configurable timeout.
 - 2026-06-09 Whitespace-normalized anchor matching (**D-019**) — removes false KG⊨corpus warnings.
 - 2026-06-09 Parallel multi-LLM runs via `--label` + per-run LLM overrides; `pipeline/compare.py` diffs runs by fact id (**D-020**). README documents the full operate/debug/compare workflow.
+- 2026-07-16 Deep-research validation of all documented external claims (25 verified, 0 refuted): headline findings stand; research doc 01 refreshed (§1.4) — TelcoAgent + DeepSpecs added to the landscape, Telco-oRAG wording softened, TSpec-LLM gating noted, spec-sourcing question closed (GSMA/3GPP mirror). Rel-19 confirmed frozen; TS 24.229 now at 19.7.0 + first Rel-20 20.0.0 (`k` prefix) — fresh diff candidates for D-012.
 
 ## In progress
 
@@ -44,6 +45,7 @@
 ## Next
 
 - Evaluate the two-model comparison (LLM-fact Jaccard, review queue) and verify chunked-extraction quality on a long clause (e.g. `llm_debug --clause 5.4.3.2`).
+- Ingest TS 24.229 **19.7.0** and **20.0.0** (published 2026-06-29) — first real cross-release diff for D-012 `derive()` and first `k`-prefix (Rel-20) exercise; NORA's downloader already supports it.
 - Close the **D-013 contract items** (§H.15).
 - Build the **post-ingestion risk auditor** (**D-016**; scratchpad §I, R1–R14).
 - Formalize: `/switch-phase architecture` (or development) — active phase has lagged actual work for several sessions; when schema stabilizes across RRC+IMS, pick the production store (RDF/SKOS vs property graph).
@@ -51,6 +53,8 @@
 ## Flags
 
 - Stakeholder map deferred — no domain-validator or eval-data channel named yet (v1 risk).
+  *Partial lead (2026-07-16): DeepSpecs (arXiv 2511.01305) ships a 350-question
+  evolution-focused 5G QA set — candidate eval for the D-011/D-012 change-tracking queries.*
 - Store choice (RDF/SKOS vs. property graph) unresolved — architecture-phase `D-XXX`; model so far is store-agnostic.
 - Schema (entity/relationship types) is an **open/extensible seed** — expected to grow per spec; avoid premature closure. Evolution policy now formalized: **D-015** (additive, subtype-first, human + frontier-LLM curated; on-prem extractor conforms only).
 - Layer-D validation (validating LLM-extracted behavioral triples without exhaustive human review) is the key unsolved problem inherited from prior work.

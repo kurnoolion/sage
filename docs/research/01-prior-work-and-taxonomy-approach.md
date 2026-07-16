@@ -1,7 +1,7 @@
 # Phase-0 Research: Prior Work & UE Taxonomy Approach
 
 **Status**: Phase-0 (pre-requirements research). Living document — capture as we explore.
-**Last updated**: 2026-06-05
+**Last updated**: 2026-07-16 (validation refresh — see §1.4)
 **Scope**: 3GPP **UE-related** specifications only. Goal of the project: a correct,
 first-class **taxonomy/ontology** of the UE domain, then a **knowledge graph** on it.
 The MNO Q&A bot is out of scope (motivation only).
@@ -17,9 +17,12 @@ The MNO Q&A bot is out of scope (motivation only).
    and tuned for retrieval recall — not a rigorous, standalone domain model. → What we
    want to build (a validated UE taxonomy as the primary artifact) is **not redundant**,
    but also has **little prior art to copy** for the hard parts.
-2. **The UE-vs-network split is essentially unaddressed.** Telco-oRAG explicitly states it
-   does not model it; others organize by publication series, not by UE perspective. → Our
-   UE scoping is genuinely under-explored.
+2. **The UE-vs-network split is essentially unaddressed.** Telco-oRAG does not model it —
+   its treatment of 3GPP structure is series-level retrieval routing, with no UE/network
+   distinction anywhere in the paper's framing *(softened 2026-07-16: no "explicit"
+   disclaimer was located on re-verification; the split is absent rather than disclaimed)*;
+   others organize by publication series, not by UE perspective. → Our UE scoping is
+   genuinely under-explored.
 3. **The reusable contribution from prior work is architectural, not ontological.** The
    *pipeline patterns* (series-scoped corpus, hybrid deterministic+LLM extraction,
    provenance on every node, triple-validation) are sound and worth adopting. The
@@ -34,10 +37,12 @@ The MNO Q&A bot is out of scope (motivation only).
 | **Telco-RAG / Telco-oRAG** | RAG over 3GPP; **neural router over the 18 series (21–38)** with per-series summary embeddings | The series-numbering-as-top-level-taxonomy idea; per-series summaries as a cheap corpus-layer artifact | Series organize *publication*, not *concepts*; one UE procedure spans several series. Routing is a runtime trick (out of our scope) |
 | **Dynamic KG + Explainable RAG** | Domain ontology aligned to **3GPP SA2**; **hybrid deterministic + LLM** triple extraction; triple-validation vs. existing knowledge; provenance via source citation | Validates our **Layer C (deterministic) vs Layer D (LLM)** split; the "validate new triples against the existing graph to curb hallucination" technique | Anchored to **SA2 (architecture/core)** — wrong WG for UE radio/NAS. Its own stated limits (informal-language coverage, release dynamics, validation difficulty) are real and **unsolved** |
 | **SpecGraph-style typed KG** | Typed nodes (Procedure, Message, Property), typed edges, metadata storing **clause/table/figure provenance** | The typed-node + **provenance-metadata-on-every-node** pattern (our provenance spine) | Published schemas are thin; "Property" is a catch-all. Design our own type system; borrow the pattern |
-| **TSpec-LLM** | Open dataset, **all 3GPP docs Rel-8→19**, ~535M words, preprocessed | A ready **corpus source** — saves scraping/parsing .docx ourselves | Built for LLM *comprehension eval*, not taxonomy; doesn't tell us if a taxonomy is "right" |
+| **TSpec-LLM** | Open dataset, **all 3GPP docs Rel-8→19**, ~535M words, preprocessed | A ready **corpus source** — saves scraping/parsing .docx ourselves | Built for LLM *comprehension eval*, not taxonomy; doesn't tell us if a taxonomy is "right". **Gated (CC-BY-NC-4.0 + HF login)** — the NC license matters if SAGE artifacts ever go commercial; the ungated `GSMA/3GPP` HF mirror (Rel-8→20, originals + markdown) is what D-021 actually uses |
 | **TeleQnA** | ~10k telecom MCQs | A *starting* downstream eval | MCQ format; does not measure taxonomy coverage/correctness — we need our own eval |
 | **TM Forum SID → OWL** | Mature telecom enterprise ontology, OWL-translated | Upper vocabulary for any network-side anchor | SID is **OSS/BSS + network-resource (SA5)** oriented — models functions/services/resources, not RRC procedures/timers/IEs. Largely orthogonal to UE |
 | **Chat3GPP / TelcoAI / ORAN RAG bench** | More open 3GPP RAG pipelines; hybrid vector+graph retrieval benchmarks | Engineering patterns (chunking, hybrid retrieval evidence) | All retrieval-focused; KG is a means, not the artifact |
+| **TelcoAgent** *(added 2026-07-16; arXiv 2606.19821, Jun 2026)* | Three-agent LLM pipeline that **auto-builds a 3GPP KG** from 13 RAN/performance specs (incl. TS 38.331), ontology-based schema, grounding KPM-forecast explainability | The closest new neighbor — watch its auto-construction pipeline for extraction ideas | KG serves forecast *explainability*, not a spec model; no UE-vs-network distinction; no multi-release modeling. Confirms, not threatens, our thesis |
+| **DeepSpecs** *(added 2026-07-16; arXiv 2511.01305)* | RAG for 5G spec QA enhanced with **structural/temporal metadata** databases; two new curated QA sets (573 practitioner + **350 evolution-focused** questions) | The **evolution-focused QA set** is a candidate eval for our D-011/D-012 change-tracking queries (partial answer to the unowned-eval-data flag) | Still RAG-first; no taxonomy/ontology/KG; no UE scoping |
 
 ### 1.3 Borrowable ideas — pros / cons
 
@@ -57,6 +62,25 @@ The MNO Q&A bot is out of scope (motivation only).
   build taxonomy-specific eval ourselves.
 - **SID/OWL & SA2-aligned ontologies.** *Pro:* mature upper vocabulary. *Con:* wrong domain
   (network/core, not UE protocol). *Decision:* borrow sparingly for network-side anchors only.
+
+### 1.4 Validation refresh (2026-07-16)
+
+All external claims in this review were re-verified via adversarially-checked web research
+(25 top claims verified, 0 refuted). Outcomes:
+
+- **Headline findings 1–3 stand.** Two new papers appeared since the June review — TelcoAgent
+  (Jun 2026) and DeepSpecs — both added to §1.2; both are still RAG/explainability-first with
+  no UE-vs-network modeling and no multi-release evolution.
+- **All eight prior-work citations check out** (papers exist, characterizations accurate); the
+  Telco-oRAG wording in finding 2 was softened (absent, not explicitly disclaimed).
+- **Spec versions moved on** (expected; the D-011/D-012 machinery's use case): TS 38.331 is at
+  19.3.0 (2026-06-26); TS 24.229 is at 19.7.0 *and* has a first **Rel-20 version 20.0.0**
+  (`24229-k00.zip`, 2026-06-29 — 'k' prefix confirmed; NORA's downloader already handles it).
+- **Rel-19 is fully frozen** (functional freeze Sep 2025 TSG#109; code freeze Dec 2025
+  TSG#110) — a stable v1 substrate. Rel-20 = 5G-Advanced + first 6G *studies*; first normative
+  6G lands in Rel-21 (Stage-3 freeze Dec 2028, timeline approved 2026-06-10).
+- **Spec-content spot-checks all correct** (5.3.3/T300, 5.3.5/T304, three RRC states,
+  Need M/N/S/R codes, TS 24.229 = prose SIP/SDP Stage-3).
 
 ---
 
@@ -150,7 +174,9 @@ them as IEs/properties? Revisit during RRC pilot.*
 
 ## 4. Open questions / next steps
 
-- **Spec sourcing:** download from 3gpp.org vs. reuse TSpec-LLM's preprocessed corpus.
+- ~~**Spec sourcing:** download from 3gpp.org vs. reuse TSpec-LLM's preprocessed corpus.~~
+  *(resolved by D-021, noted 2026-07-16: corpus rebuilds from the ungated `GSMA/3GPP`
+  HF mirror via NORA's downloader; TSpec-LLM is gated CC-BY-NC and not used.)*
 - **Entity-type completeness (D2):** Bearer / QoS Flow / Identity / Channel — types or IEs?
 - **Taxonomy correctness eval:** TeleQnA is insufficient; design a coverage/correctness check.
 - **Store choice** (RDF/SKOS vs. property graph): still deferred to architecture; the
@@ -171,3 +197,6 @@ them as IEs/properties? Revisit during RRC pilot.*
 - TelcoAI (agentic multimodal RAG) — https://arxiv.org/abs/2601.16984
 - ORAN vector/graph/hybrid RAG benchmark — https://arxiv.org/pdf/2507.03608
 - TM Forum SID → OWL (Semantic Arts) — https://www.semanticarts.com/telecom-frameworx-model-simplified-with-gist-full-article/
+- TelcoAgent (3GPP KG for KPM-forecast explainability) — https://arxiv.org/abs/2606.19821 *(added 2026-07-16)*
+- DeepSpecs (5G spec QA; evolution-focused QA set) — https://arxiv.org/abs/2511.01305 *(added 2026-07-16)*
+- GSMA/3GPP raw-spec mirror (D-021 corpus source, Rel-8→20) — https://huggingface.co/datasets/GSMA/3GPP *(added 2026-07-16)*
