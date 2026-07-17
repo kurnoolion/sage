@@ -24,6 +24,28 @@ python3 corpus/fetch_spec.py --all                       # every spec SAGE uses
 # NORA elsewhere? --nora-root <path> or export SAGE_NORA_ROOT=<path>
 ```
 
+## Setup & verify
+
+No build step and **no dependencies to install** — the pipeline is pure Python
+stdlib (any Python ≥ 3.8). The only external tool is LibreOffice, and only for
+fetching corpora served as legacy `.doc` (see above); the pipeline itself never
+needs it. On a fresh clone:
+
+```bash
+python3 -m pipeline.tests                    # 1. test suite (stdlib unittest)
+python3 corpus/fetch_spec.py "TS 38.331" 19.2.0 Rel-19   # 2. fetch a corpus
+python3 -m pipeline.tests                    # 3. corpus smoke tests now run too
+python3 -m pipeline.run --spec "TS 38.331" --version 19.2.0 --dry-run  # 4. end-to-end
+```
+
+The test suite has two layers: pure-logic tests (parsing, chunking, prompt
+variants, conflict grouping, alias suggester, gold-seed conformance) always
+run; corpus smoke tests auto-skip until the named store is fetched, then
+assert the invariants that must hold anywhere (UE filter non-trivial,
+deterministic spine non-empty, **0 validation errors**, gold anchors resolve
+in the real corpus). A healthy dry-run ends with `validation: 0 errors,
+0 warnings`. Nothing here calls an LLM or the network.
+
 ## Run
 
 ```bash
@@ -213,6 +235,7 @@ A/B over the same corpus (`--label v1 …` / `--label v2 --prompt-variant v2` +
 | `validate.py` | **stage 4** — `KG ⊨ ontology` (subtype-aware) + `KG ⊨ corpus` |
 | `snapshot.py` | **stage 5** — write snapshot + review queue (low-confidence / warnings / **conflict groups**: same subject + functional relation type, different objects — flagged, never auto-dropped) |
 | `run.py` | orchestrator / CLI |
+| `tests.py` | test suite (`python3 -m pipeline.tests`) — pure-logic tests + corpus smoke tests that auto-skip when no store is fetched |
 | `viz.py` | export shared ontology → JSON + render the snapshot via the generic viewer |
 | `gold/<SPEC>.json` | curated gold seed = few-shot examples **and** precision/recall eval set |
 
