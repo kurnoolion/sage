@@ -216,10 +216,42 @@ python3 -m pipeline.run --version 17.12.0 --progress-every 10 --checkpoint-every
   2>&1 | tee /tmp/sage-run.log          # follow elsewhere with: tail -f /tmp/sage-run.log
 ```
 
+### Recovering from failures (retry + resume)
+
+Two layers protect a long run against a flaky local endpoint:
+
+- **Transient retry.** A `5xx`, `429`, or dropped connection is *temporary* — the
+  GPU was briefly busy, a worker restarted — so `_call` retries it with
+  exponential backoff (2s, 4s, 8s… capped at 30s), up to `SAGE_LLM_RETRIES`
+  (default 3), before giving up. A blip no longer aborts the run. Deterministic
+  failures (`4xx`, malformed reply) and timeouts are **not** retried — another
+  attempt would fail identically, or (timeout) just wait out `SAGE_LLM_TIMEOUT`
+  again; raise that instead.
+
+- **Resume.** Every clause's facts are appended to a per-clause cache
+  (`<snapshot-dir>/llm-cache.jsonl`, flushed immediately) the moment they're
+  produced. If a run still dies — the outage outlasts the retries, an OOM, a
+  Ctrl-C — rerun with **`--resume`** (same `--spec/--version/--label`) and it
+  reuses the cached clauses and continues from the first one missing, instead of
+  re-calling the model for work already done:
+
+  ```bash
+  python3 -m pipeline.run --version 19.6.0 --label qwen --resume
+  ```
+
+  The cache pins the params that change extraction output (spec, version, model,
+  prompt variant, chunk size, sentinel); a `--resume` whose params disagree is
+  refused rather than silently mixing two runs into one graph. Without `--resume`
+  a fresh run overwrites the cache (with a heads-up if one existed). A clause that
+  legitimately yields zero facts is still recorded, so "done" is never confused
+  with "found nothing", and a line torn by a crash mid-write is skipped on read.
+
 The run also logs per-call latency / tokens-per-second, so a hang or timeout names the exact clause. Failures
 carry a **stable error code + hint** (D-017): a timeout aborts with `[LLM-E001] LLM
 timeout after Ns (limit Ns) on clause <key> | hint: raise SAGE_LLM_TIMEOUT …`
-(`LLM-E002` HTTP, `LLM-E003` network, `LLM-E004` bad shape). Run logging defaults
+(`LLM-E002` HTTP, `LLM-E003` network, `LLM-E004` bad shape). Transient ones
+(`LLM-E003`, or `LLM-E002` with a 5xx/429) are retried first (see above); only a
+failure that survives the retries aborts — and then `--resume` picks up where it stopped. Run logging defaults
 to INFO; `-v` adds DEBUG (request shapes, parsed-fact counts). Logs carry only
 clause ids + char/token counts — never corpus prose — and API keys are never logged.
 
@@ -258,7 +290,8 @@ A/B over the same corpus (`--label v1 …` / `--label v2 --prompt-variant v2` +
 | `corpus.py` | load a frozen corpus store; `haystack()` for anchor resolution |
 | `ue_filter.py` | **stage 1** — select UE-side clauses (structural + actor-term fallback) + report |
 | `extractors.py` | **stage 2** — deterministic: Procedures (titles), per-spec controlled vocab (`cfg.vocab`), INVOKES (cross-refs, both "subclause N" and bare-"N" idioms) |
-| `llm.py` | **stage 3** — OpenAI-compatible client + few-shot prompt builder (stub-safe); per-call timing/token logging + timeout/error surfacing |
+| `llm.py` | **stage 3** — OpenAI-compatible client + few-shot prompt builder (stub-safe); per-call timing/token logging, timeout/error surfacing, transient-failure retry with backoff, reasoning-strip + truncation salvage |
+| `llm_cache.py` | resumable per-clause LLM cache (`llm-cache.jsonl`) backing `--resume`; header pins extraction params so a mismatched resume is refused |
 | `llm_debug.py` | endpoint probe (`--probe`) + configured-LLM ping (`--check`) for diagnosing hangs/timeouts |
 | `align.py` | alias suggester — nearest canonical neighbour per unmatched LLM entity (embedding endpoint or difflib; KARMA ρ cutoff: below ρ → propose-only merge, above → new entity). CLI re-runs on an existing snapshot for ρ tuning |
 | `compare.py` | diff snapshots across run labels (entity/relation/LLM-fact overlap, Jaccard, object divergence) for multi-LLM eval |

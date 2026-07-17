@@ -9,6 +9,11 @@ configured purely via env — no SDK dependency (stdlib urllib only):
     SAGE_LLM_TIMEOUT    per-request timeout in seconds (default 300; local 32B models
                         on a busy GPU can take minutes per clause — raise if you hit
                         timeouts). Debug with: python3 -m pipeline.llm_debug --check
+    SAGE_LLM_RETRIES    times to retry a transient endpoint failure (default 3) — a 5xx,
+                        429, or dropped connection is retried with exponential backoff
+                        (2s, 4s, 8s… capped at 30s) so a blip doesn't abort the run.
+                        4xx, malformed replies, and timeouts are not retried. The run's
+                        --resume cache is the backstop for failures that outlast this.
     SAGE_LLM_MAX_TOKENS max completion tokens per request (unset -> the server's own
                         default). Set this when replies get truncated mid-array
                         (finish_reason=length, logged as a warning): a long clause with
@@ -149,6 +154,45 @@ def max_clause_chars():
         return _DEFAULT_MAX_CLAUSE_CHARS
 
 
+# Transient-failure retry (D-0xx): a busy local endpoint intermittently 500s, drops
+# the connection, or 429s while another job holds the GPU. Those are temporary, so
+# _call retries them with exponential backoff instead of aborting the whole run
+# (the run's resumable cache is the backstop for failures that outlast the retries).
+# Deterministic *client* errors (4xx) and malformed replies are NOT retried — they
+# would fail identically. Timeouts are not auto-retried either: another attempt just
+# waits out the full SAGE_LLM_TIMEOUT again; raise that instead.
+_DEFAULT_RETRIES = 3
+_RETRY_BASE_SECS = 2.0
+_RETRY_CAP_SECS = 30.0
+_TRANSIENT_HTTP = frozenset({429, 500, 502, 503, 504})
+
+
+def _retries():
+    raw = os.environ.get("SAGE_LLM_RETRIES")
+    if raw is None:
+        return _DEFAULT_RETRIES
+    try:
+        return max(0, int(raw))
+    except ValueError:
+        logger.warning("SAGE_LLM_RETRIES=%r is not an int — using %d", raw, _DEFAULT_RETRIES)
+        return _DEFAULT_RETRIES
+
+
+def _is_transient(err):
+    """Whether a PipelineError from _call_once is worth retrying."""
+    if err.code == "LLM-E003":                     # connection-level failure
+        return True
+    if err.code == "LLM-E002":                     # HTTP error — only 5xx / 429
+        status = (err.context or {}).get("status")
+        return isinstance(status, int) and (status in _TRANSIENT_HTTP or status >= 500)
+    return False                                   # LLM-E001 timeout, LLM-E004 shape: no
+
+
+def _backoff_secs(attempt):
+    """Exponential backoff, capped: 2s, 4s, 8s, … up to 30s."""
+    return min(_RETRY_CAP_SECS, _RETRY_BASE_SECS * (2 ** (attempt - 1)))
+
+
 def _hard_split(block, max_chars):
     """Last-resort split of a single over-long line into <= max_chars pieces.
 
@@ -221,9 +265,11 @@ def endpoint(base_url=None, model=None, api_key=None, max_tokens=None):
             ep["max_tokens"] = int(mt)
         except (ValueError, TypeError):
             logger.warning("max_tokens=%r is not an int — using the server default", mt)
+    ep["retries"] = _retries()
     # api_key deliberately not logged.
-    logger.info("LLM endpoint: base=%s model=%s timeout=%ds max_tokens=%s",
-                ep["base"], ep["model"], ep["timeout"], ep.get("max_tokens", "<server default>"))
+    logger.info("LLM endpoint: base=%s model=%s timeout=%ds max_tokens=%s retries=%d",
+                ep["base"], ep["model"], ep["timeout"],
+                ep.get("max_tokens", "<server default>"), ep["retries"])
     return ep
 
 
@@ -285,10 +331,36 @@ def build_messages(cfg, clause_key, clause, gold_examples, variant=None):
 
 
 def _call(ep, messages, clause_key=""):
+    """POST one chat-completion, retrying transient endpoint failures.
+
+    A busy local endpoint intermittently 500s / drops the connection / 429s; those
+    are retried with exponential backoff (up to ``ep["retries"]``, default
+    SAGE_LLM_RETRIES=3) so a blip doesn't abort the run. Deterministic failures
+    (4xx, malformed reply, timeout) raise on the first occurrence — see
+    _is_transient. Returns the assistant content string, or raises the last
+    PipelineError so the orchestrator can report which clause died and why.
+    """
+    retries = ep.get("retries", _DEFAULT_RETRIES)
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            return _call_once(ep, messages, clause_key)
+        except PipelineError as err:
+            if attempt <= retries and _is_transient(err):
+                delay = _backoff_secs(attempt)
+                logger.warning("clause=%s: %s — transient, retry %d/%d in %.0fs",
+                               clause_key, err.code, attempt, retries, delay)
+                time.sleep(delay)
+                continue
+            raise
+
+
+def _call_once(ep, messages, clause_key=""):
     """POST one chat-completion. Returns the assistant content string.
 
-    Raises RuntimeError (with the API's error body / timeout context) on failure,
-    so the orchestrator can report exactly which clause and why it died.
+    Raises PipelineError (with the API's error body / timeout context) on failure,
+    so the caller can classify it (transient vs terminal) and report precisely.
     """
     payload = {"model": ep["model"], "messages": messages, "temperature": 0, "stream": False}
     if ep.get("max_tokens"):

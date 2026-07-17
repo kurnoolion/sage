@@ -13,10 +13,13 @@ Two layers:
 """
 import json
 import os
+import shutil
+import tempfile
 import unittest
 
-from . import align, config, llm, ontology, snapshot
+from . import align, config, llm, llm_cache, ontology, snapshot
 from .compare import _object_divergence
+from .error_codes import PipelineError
 from .eval_gold import _norm
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -197,6 +200,142 @@ class TestMaxTokens(unittest.TestCase):
             self.assertEqual(llm.endpoint(max_tokens=4096)["max_tokens"], 4096)
         finally:
             del os.environ["SAGE_LLM_BASE_URL"], os.environ["SAGE_LLM_MAX_TOKENS"]
+
+
+class TestRetry(unittest.TestCase):
+    """_call retries transient endpoint failures, not terminal ones."""
+
+    @staticmethod
+    def _http(status):
+        return PipelineError("LLM-E002", {"status": status, "reason": "x", "clause": "c", "body": ""})
+
+    def test_is_transient(self):
+        self.assertTrue(llm._is_transient(PipelineError("LLM-E003", {"clause": "c", "reason": "down"})))
+        self.assertTrue(llm._is_transient(self._http(500)))
+        self.assertTrue(llm._is_transient(self._http(503)))
+        self.assertTrue(llm._is_transient(self._http(429)))
+        self.assertFalse(llm._is_transient(self._http(400)))          # client error
+        self.assertFalse(llm._is_transient(self._http(404)))
+        self.assertFalse(llm._is_transient(PipelineError("LLM-E001", {"secs": 1, "limit": 1, "clause": "c"})))
+        self.assertFalse(llm._is_transient(PipelineError("LLM-E004", {"clause": "c", "body": ""})))
+
+    def test_backoff_grows_and_caps(self):
+        self.assertEqual([llm._backoff_secs(n) for n in (1, 2, 3, 4)], [2.0, 4.0, 8.0, 16.0])
+        self.assertEqual(llm._backoff_secs(10), 30.0)                 # capped
+
+    def test_retries_env(self):
+        self.assertEqual(llm._retries(), 3)
+        os.environ["SAGE_LLM_RETRIES"] = "5"
+        try:
+            self.assertEqual(llm._retries(), 5)
+        finally:
+            del os.environ["SAGE_LLM_RETRIES"]
+
+    def test_retries_transient_then_succeeds(self):
+        n = {"c": 0}
+        def flaky(ep, messages, clause_key=""):
+            n["c"] += 1
+            if n["c"] < 3:
+                raise self._http(503)
+            return "ok"
+        real_once, real_sleep = llm._call_once, llm.time.sleep
+        llm._call_once, llm.time.sleep = flaky, lambda s: None
+        try:
+            self.assertEqual(llm._call({"retries": 3, "model": "m"}, [], "c"), "ok")
+            self.assertEqual(n["c"], 3)
+        finally:
+            llm._call_once, llm.time.sleep = real_once, real_sleep
+
+    def test_gives_up_after_retries(self):
+        n = {"c": 0}
+        def always(ep, messages, clause_key=""):
+            n["c"] += 1
+            raise PipelineError("LLM-E003", {"clause": clause_key, "reason": "down"})
+        real_once, real_sleep = llm._call_once, llm.time.sleep
+        llm._call_once, llm.time.sleep = always, lambda s: None
+        try:
+            with self.assertRaises(PipelineError):
+                llm._call({"retries": 2, "model": "m"}, [], "c")
+            self.assertEqual(n["c"], 3)                               # 1 try + 2 retries
+        finally:
+            llm._call_once, llm.time.sleep = real_once, real_sleep
+
+    def test_terminal_error_not_retried(self):
+        n = {"c": 0}
+        def client_err(ep, messages, clause_key=""):
+            n["c"] += 1
+            raise self._http(400)
+        real_once, real_sleep = llm._call_once, llm.time.sleep
+        llm._call_once, llm.time.sleep = client_err, lambda s: None
+        try:
+            with self.assertRaises(PipelineError):
+                llm._call({"retries": 3, "model": "m"}, [], "c")
+            self.assertEqual(n["c"], 1)                               # no retry on 4xx
+        finally:
+            llm._call_once, llm.time.sleep = real_once, real_sleep
+
+
+class TestLLMCache(unittest.TestCase):
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.d, ignore_errors=True)
+
+    def _hdr(self, model="m", variant="v1"):
+        return llm_cache.build_header("TS 38.331", "19.2.0", model, variant, 6000, False)
+
+    def test_absent_cache(self):
+        self.assertEqual(llm_cache.read(self.d), (None, {}))
+
+    def test_write_read_roundtrip(self):
+        h = self._hdr()
+        with llm_cache.Writer(self.d, h) as w:
+            w.add("5.1", [{"id": "e1"}], [{"id": "r1"}])
+            w.add("5.2", [], [])                                      # zero-fact clause
+        header, done = llm_cache.read(self.d)
+        self.assertEqual(header, h)
+        self.assertEqual(set(done), {"5.1", "5.2"})
+        self.assertEqual(done["5.1"]["relations"], [{"id": "r1"}])
+        self.assertEqual(done["5.2"]["entities"], [])                # recorded, not "missing"
+
+    def test_resume_appends_single_header(self):
+        h = self._hdr()
+        with llm_cache.Writer(self.d, h) as w:
+            w.add("5.1", [], [{"id": "r1"}])
+        with llm_cache.Writer(self.d, h, resume=True) as w:
+            w.add("5.2", [], [{"id": "r2"}])
+        _, done = llm_cache.read(self.d)
+        self.assertEqual(set(done), {"5.1", "5.2"})
+        with open(llm_cache.cache_path(self.d)) as f:
+            self.assertEqual(sum(1 for ln in f if "_header" in ln), 1)
+
+    def test_fresh_write_truncates(self):
+        h = self._hdr()
+        with llm_cache.Writer(self.d, h) as w:
+            w.add("5.1", [], [])
+        with llm_cache.Writer(self.d, h) as w:                       # resume=False -> truncate
+            w.add("5.9", [], [])
+        _, done = llm_cache.read(self.d)
+        self.assertEqual(set(done), {"5.9"})
+
+    def test_header_mismatch_refused(self):
+        with llm_cache.Writer(self.d, self._hdr(model="a")) as w:
+            w.add("5.1", [], [])
+        prev, _ = llm_cache.read(self.d)
+        with self.assertRaises(llm_cache.HeaderMismatch):
+            llm_cache.check_header(prev, self._hdr(model="b"))
+        llm_cache.check_header(prev, self._hdr(model="a"))           # matching -> ok
+        llm_cache.check_header(None, self._hdr())                    # no cache -> no-op
+
+    def test_torn_final_line_skipped(self):
+        h = self._hdr()
+        with llm_cache.Writer(self.d, h) as w:
+            w.add("5.1", [], [{"id": "r1"}])
+        with open(llm_cache.cache_path(self.d), "a") as f:
+            f.write('{"clause": "5.2", "entiti')                     # crash mid-write, no newline
+        header, done = llm_cache.read(self.d)
+        self.assertEqual((header, set(done)), (h, {"5.1"}))
 
 
 class TestPromptVariants(unittest.TestCase):

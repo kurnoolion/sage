@@ -5,7 +5,7 @@
 
 Usage:
     python3 -m pipeline.run --spec "TS 24.229" --version 19.6.0 [--dry-run] [--limit N]
-                            [--progress-every N] [--checkpoint-every N]
+                            [--progress-every N] [--checkpoint-every N] [--resume]
                             [--label NAME] [--llm-base-url URL] [--llm-model M] [--llm-api-key K]
                             [--max-tokens N]
 
@@ -33,7 +33,7 @@ import logging
 import os
 import time
 
-from . import config, corpus, extractors, llm, snapshot, ue_filter, validate
+from . import config, corpus, extractors, llm, llm_cache, snapshot, ue_filter, validate
 
 log = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ def _scope_to_clauses(ue_keys, clauses):
 
 def run(spec, version, dry_run=False, limit=None, progress_every=25, checkpoint_every=0,
         label=None, llm_base_url=None, llm_model=None, llm_api_key=None, prompt_variant=None,
-        clauses=None, max_tokens=None):
+        clauses=None, max_tokens=None, resume=False):
     cfg = config.get(spec, version)
     cps = corpus.Corpus(cfg.store_dir)
 
@@ -110,35 +110,66 @@ def run(spec, version, dry_run=False, limit=None, progress_every=25, checkpoint_
     if ep is not None:
         keys = [k for k in (ue_keys[:limit] if limit else ue_keys) if "/" not in k]
         total = len(keys)
+        variant = llm.prompt_variant(prompt_variant)
         log.info("LLM stage%s: %d clauses to process (model=%s, timeout=%ds, max_clause_chars=%d, prompt=%s)",
                  " [%s]" % label if label else "", total, ep["model"], ep["timeout"],
-                 llm.max_clause_chars(), llm.prompt_variant(prompt_variant))
+                 llm.max_clause_chars(), variant)
+
+        # Resumable per-clause cache: skip clauses already extracted on a prior run.
+        snap_dir = snapshot.dir_for(cfg.spec, version, label)
+        header = llm_cache.build_header(cfg.spec, version, ep["model"], variant,
+                                        llm.max_clause_chars(), llm.reasoning_sentinel_enabled())
+        prev_header, done = llm_cache.read(snap_dir)
+        if resume:
+            llm_cache.check_header(prev_header, header)   # raises on param mismatch
+            if done:
+                log.info("resume: %d clause(s) already cached — reusing them, continuing from the rest",
+                         len(done))
+        else:
+            if done:
+                log.warning("existing LLM cache has %d clause(s) — overwriting; pass --resume "
+                            "to continue from it instead", len(done))
+            done = {}                                     # fresh run ignores any prior cache
+        writer = llm_cache.Writer(snap_dir, header, resume=resume)
+
         t0 = time.time()
-        for i, k in enumerate(keys, 1):
-            log.info("[%d/%d] clause %s (%d chars)", i, total, k, len(cps[k].get("text") or ""))
-            try:
-                e, r = llm.extract_clause(cfg, k, cps[k], gold.get("examples", []), ep,
-                                          variant=prompt_variant)
-            except Exception as exc:       # report which clause died, then re-raise
-                log.error("LLM stage aborted at clause %s (%d/%d) after %.0fs total: %s",
-                          k, i, total, time.time() - t0, exc)
-                raise
-            llm_ents += e
-            llm_rels += r
+        try:
+            for i, k in enumerate(keys, 1):
+                cached = done.get(k)
+                if cached is not None:                    # already done on a prior run
+                    llm_ents += cached["entities"]
+                    llm_rels += cached["relations"]
+                    log.info("[%d/%d] clause %s — cached, skipped", i, total, k)
+                    continue
+                log.info("[%d/%d] clause %s (%d chars)", i, total, k, len(cps[k].get("text") or ""))
+                try:
+                    e, r = llm.extract_clause(cfg, k, cps[k], gold.get("examples", []), ep,
+                                              variant=prompt_variant)
+                except Exception as exc:   # report which clause died; cache holds the rest
+                    log.error("LLM stage aborted at clause %s (%d/%d) after %.0fs total: %s\n"
+                              "  progress is cached — rerun with --resume%s to continue",
+                              k, i, total, time.time() - t0, exc,
+                              " --label %s" % label if label else "")
+                    raise
+                llm_ents += e
+                llm_rels += r
+                writer.add(k, e, r)                       # persist before moving on
 
-            if progress_every and i % progress_every == 0 and i < total:
-                elapsed = time.time() - t0
-                eta = elapsed / i * (total - i)
-                log.info("  progress: %d/%d clauses (%.0f%%), %d LLM facts so far (pre-merge), "
-                         "%s elapsed, ~%s remaining",
-                         i, total, 100.0 * i / total, len(llm_rels), _fmt_dur(elapsed), _fmt_dur(eta))
+                if progress_every and i % progress_every == 0 and i < total:
+                    elapsed = time.time() - t0
+                    eta = elapsed / i * (total - i)
+                    log.info("  progress: %d/%d clauses (%.0f%%), %d LLM facts so far (pre-merge), "
+                             "%s elapsed, ~%s remaining",
+                             i, total, 100.0 * i / total, len(llm_rels), _fmt_dur(elapsed), _fmt_dur(eta))
 
-            if checkpoint_every and i % checkpoint_every == 0 and i < total:
-                cp_ents, cp_rels, cp_errs, _, cp_dir, _ = _build_and_write(
-                    cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, ue_report, label)
-                log.info("  checkpoint: partial graph after %d/%d clauses -> %s "
-                         "(%d entities, %d relations, %d errors) — open it in the viewer",
-                         i, total, cp_dir, len(cp_ents), len(cp_rels), len(cp_errs))
+                if checkpoint_every and i % checkpoint_every == 0 and i < total:
+                    cp_ents, cp_rels, cp_errs, _, cp_dir, _ = _build_and_write(
+                        cfg, det_ents, det_rels, llm_ents, llm_rels, cps, version, ue_report, label)
+                    log.info("  checkpoint: partial graph after %d/%d clauses -> %s "
+                             "(%d entities, %d relations, %d errors) — open it in the viewer",
+                             i, total, cp_dir, len(cp_ents), len(cp_rels), len(cp_errs))
+        finally:
+            writer.close()
 
         log.info("LLM stage done: %d clauses in %s -> %d entities, %d relations (pre-merge)",
                  total, _fmt_dur(time.time() - t0), len(llm_ents), len(llm_rels))
@@ -178,6 +209,9 @@ def main():
                     help="cumulative progress line every N clauses (0 disables; default 25)")
     ap.add_argument("--checkpoint-every", type=int, default=0,
                     help="write the partial graph every N clauses for mid-run viewing (default 0 = off)")
+    ap.add_argument("--resume", action="store_true",
+                    help="reuse the per-clause LLM cache from a prior interrupted run "
+                         "(same spec/version/label) and continue from where it stopped")
     ap.add_argument("--label", default=None,
                     help="run label (e.g. model name); namespaces the snapshot dir for parallel runs")
     ap.add_argument("--llm-base-url", default=None, help="override SAGE_LLM_BASE_URL for this run")
@@ -203,7 +237,7 @@ def main():
         progress_every=a.progress_every, checkpoint_every=a.checkpoint_every,
         label=a.label, llm_base_url=a.llm_base_url, llm_model=a.llm_model,
         llm_api_key=a.llm_api_key, prompt_variant=a.prompt_variant, clauses=a.clauses,
-        max_tokens=a.max_tokens)
+        max_tokens=a.max_tokens, resume=a.resume)
 
 
 if __name__ == "__main__":
