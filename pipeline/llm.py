@@ -199,7 +199,7 @@ def _chunk_text(text, max_chars):
     return chunks
 
 
-def endpoint(base_url=None, model=None, api_key=None):
+def endpoint(base_url=None, model=None, api_key=None, max_tokens=None):
     """Build an endpoint config. Explicit args win over env (for parallel runs that
     each target a different model/endpoint); anything unset falls back to env."""
     base = base_url or os.environ.get("SAGE_LLM_BASE_URL")
@@ -215,13 +215,12 @@ def endpoint(base_url=None, model=None, api_key=None):
           "model": model or os.environ.get("SAGE_LLM_MODEL", "qwen2.5:32b-instruct"),
           "key": api_key if api_key is not None else os.environ.get("SAGE_LLM_API_KEY", ""),
           "timeout": timeout}
-    raw_mt = os.environ.get("SAGE_LLM_MAX_TOKENS")
-    if raw_mt:                                     # unset -> omit, let the server default
+    mt = max_tokens if max_tokens is not None else os.environ.get("SAGE_LLM_MAX_TOKENS")
+    if mt:                                         # unset -> omit, let the server default
         try:
-            ep["max_tokens"] = int(raw_mt)
-        except ValueError:
-            logger.warning("SAGE_LLM_MAX_TOKENS=%r is not an int — using the server default",
-                           raw_mt)
+            ep["max_tokens"] = int(mt)
+        except (ValueError, TypeError):
+            logger.warning("max_tokens=%r is not an int — using the server default", mt)
     # api_key deliberately not logged.
     logger.info("LLM endpoint: base=%s model=%s timeout=%ds max_tokens=%s",
                 ep["base"], ep["model"], ep["timeout"], ep.get("max_tokens", "<server default>"))

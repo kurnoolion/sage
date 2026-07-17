@@ -7,6 +7,7 @@ Usage:
     python3 -m pipeline.run --spec "TS 24.229" --version 19.6.0 [--dry-run] [--limit N]
                             [--progress-every N] [--checkpoint-every N]
                             [--label NAME] [--llm-base-url URL] [--llm-model M] [--llm-api-key K]
+                            [--max-tokens N]
 
 --dry-run forces LLM stub mode even if SAGE_LLM_BASE_URL is set. Without an
 endpoint configured the LLM stage is automatically a no-op, so the deterministic
@@ -86,7 +87,7 @@ def _scope_to_clauses(ue_keys, clauses):
 
 def run(spec, version, dry_run=False, limit=None, progress_every=25, checkpoint_every=0,
         label=None, llm_base_url=None, llm_model=None, llm_api_key=None, prompt_variant=None,
-        clauses=None):
+        clauses=None, max_tokens=None):
     cfg = config.get(spec, version)
     cps = corpus.Corpus(cfg.store_dir)
 
@@ -103,7 +104,7 @@ def run(spec, version, dry_run=False, limit=None, progress_every=25, checkpoint_
     det_ents, det_rels = extractors.extract(cps, cfg, ue_keys)
 
     # 3. LLM extractor (stub unless endpoint configured and not --dry-run)
-    ep = None if dry_run else llm.endpoint(llm_base_url, llm_model, llm_api_key)
+    ep = None if dry_run else llm.endpoint(llm_base_url, llm_model, llm_api_key, max_tokens)
     gold = load_gold(spec)
     llm_ents, llm_rels = [], []
     if ep is not None:
@@ -182,6 +183,9 @@ def main():
     ap.add_argument("--llm-base-url", default=None, help="override SAGE_LLM_BASE_URL for this run")
     ap.add_argument("--llm-model", default=None, help="override SAGE_LLM_MODEL for this run")
     ap.add_argument("--llm-api-key", default=None, help="override SAGE_LLM_API_KEY for this run")
+    ap.add_argument("--max-tokens", type=int, default=None,
+                    help="override SAGE_LLM_MAX_TOKENS (max completion tokens; raise if replies "
+                         "truncate at finish_reason=length)")
     ap.add_argument("--prompt-variant", default=None, choices=("v1", "v2"),
                     help="extraction prompt variant (default: SAGE_LLM_PROMPT_VARIANT or v1; "
                          "v2 = entity-pass-then-relation-pass)")
@@ -198,7 +202,8 @@ def main():
     run(a.spec, a.version, dry_run=a.dry_run, limit=a.limit,
         progress_every=a.progress_every, checkpoint_every=a.checkpoint_every,
         label=a.label, llm_base_url=a.llm_base_url, llm_model=a.llm_model,
-        llm_api_key=a.llm_api_key, prompt_variant=a.prompt_variant, clauses=a.clauses)
+        llm_api_key=a.llm_api_key, prompt_variant=a.prompt_variant, clauses=a.clauses,
+        max_tokens=a.max_tokens)
 
 
 if __name__ == "__main__":

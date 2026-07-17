@@ -188,8 +188,10 @@ python3 -m pipeline.run --version 19.6.0 --limit 3 -v          # 3 clauses, DEBU
 ```
 
 `--check` and `--clause` take the same `--llm-base-url` / `--llm-model` /
-`--llm-api-key` overrides as `pipeline.run` (they win over `SAGE_LLM_*` env) —
-useful when probing two models side by side without re-exporting.
+`--llm-api-key` / `--max-tokens` overrides as `pipeline.run` (they win over the
+`SAGE_LLM_*` env) — useful when probing two models side by side, or trying a
+bigger token cap against a clause that truncated, without re-exporting. `--check`
+prints the resolved `max_tokens` (or `<server default>`).
 
 `--clause` is how you see exactly *what was sent and what came back* for one
 clause. It dumps corpus prose, so it is a local operator diagnostic — don't paste

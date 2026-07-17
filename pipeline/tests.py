@@ -189,6 +189,15 @@ class TestMaxTokens(unittest.TestCase):
         finally:
             del os.environ["SAGE_LLM_BASE_URL"], os.environ["SAGE_LLM_MAX_TOKENS"]
 
+    def test_explicit_arg_wins_over_env(self):
+        # the --max-tokens flow: an explicit int arg overrides the env var
+        os.environ["SAGE_LLM_BASE_URL"] = "http://x/v1"
+        os.environ["SAGE_LLM_MAX_TOKENS"] = "512"
+        try:
+            self.assertEqual(llm.endpoint(max_tokens=4096)["max_tokens"], 4096)
+        finally:
+            del os.environ["SAGE_LLM_BASE_URL"], os.environ["SAGE_LLM_MAX_TOKENS"]
+
 
 class TestPromptVariants(unittest.TestCase):
     class Cfg:

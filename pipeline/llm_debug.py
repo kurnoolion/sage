@@ -18,9 +18,10 @@ Modes (pick one):
       tiny completion ("ping"), and report latency. If one ping is slow, the
       per-clause extraction will be slower still — raise SAGE_LLM_TIMEOUT.
 
---check and --clause accept --llm-base-url / --llm-model / --llm-api-key, which
-win over the SAGE_LLM_* env — same flags as pipeline.run, handy when comparing
-two models without re-exporting.
+--check and --clause accept --llm-base-url / --llm-model / --llm-api-key /
+--max-tokens, which win over the SAGE_LLM_* env — same flags as pipeline.run,
+handy when comparing two models (or trying a bigger token cap) without
+re-exporting.
 
   python3 -m pipeline.llm_debug --clause 5.1.1.1 [--spec "TS 24.229"] [--version 19.6.0]
                                 [--no-call] [--out FILE]
@@ -168,13 +169,14 @@ def cmd_probe(url, api_key):
     return 0 if (ollama or openai) else 1
 
 
-def cmd_check(base_url=None, model=None, api_key=None):
-    ep = llm.endpoint(base_url, model, api_key)
+def cmd_check(base_url=None, model=None, api_key=None, max_tokens=None):
+    ep = llm.endpoint(base_url, model, api_key, max_tokens)
     if ep is None:
         print("No endpoint: SAGE_LLM_BASE_URL is not set and no --llm-base-url given "
               "(the pipeline would run in stub mode).")
         return 1
-    print("Resolved endpoint: base=%s model=%s timeout=%ds" % (ep["base"], ep["model"], ep["timeout"]))
+    print("Resolved endpoint: base=%s model=%s timeout=%ds max_tokens=%s"
+          % (ep["base"], ep["model"], ep["timeout"], ep.get("max_tokens", "<server default>")))
     print("Sending one-line probe completion 'ping' ...")
     messages = [{"role": "system", "content": "Reply with exactly one word."},
                 {"role": "user", "content": "Reply with the single word: pong"}]
@@ -191,7 +193,8 @@ def cmd_check(base_url=None, model=None, api_key=None):
     return 0
 
 
-def cmd_clause(spec, version, clause_key, call, out, base_url=None, model=None, api_key=None):
+def cmd_clause(spec, version, clause_key, call, out, base_url=None, model=None, api_key=None,
+               max_tokens=None):
     from . import config, corpus
     cfg = config.get(spec, version)
     cps = corpus.Corpus(cfg.store_dir)
@@ -220,7 +223,7 @@ def cmd_clause(spec, version, clause_key, call, out, base_url=None, model=None, 
             sink.close(); print("wrote prompt to %s" % out)
         return 0
 
-    ep = llm.endpoint(base_url, model, api_key)
+    ep = llm.endpoint(base_url, model, api_key, max_tokens)
     if ep is None:
         emit("\n# no endpoint (SAGE_LLM_BASE_URL unset, no --llm-base-url) — cannot call "
              "(prompt shown above is what WOULD be sent).")
@@ -267,6 +270,8 @@ def main():
     ap.add_argument("--llm-base-url", default=None, help="override SAGE_LLM_BASE_URL (--check/--clause)")
     ap.add_argument("--llm-model", default=None, help="override SAGE_LLM_MODEL (--check/--clause)")
     ap.add_argument("--llm-api-key", default=None, help="override SAGE_LLM_API_KEY (--check/--clause)")
+    ap.add_argument("--max-tokens", type=int, default=None,
+                    help="override SAGE_LLM_MAX_TOKENS (--check/--clause; max completion tokens)")
     a = ap.parse_args()
 
     modes = [bool(a.probe), bool(a.check), bool(a.clause)]
@@ -277,9 +282,9 @@ def main():
     if a.probe:
         sys.exit(cmd_probe(a.probe, a.api_key))
     if a.check:
-        sys.exit(cmd_check(a.llm_base_url, a.llm_model, a.llm_api_key))
+        sys.exit(cmd_check(a.llm_base_url, a.llm_model, a.llm_api_key, a.max_tokens))
     sys.exit(cmd_clause(a.spec, a.version, a.clause, not a.no_call, a.out,
-                        a.llm_base_url, a.llm_model, a.llm_api_key))
+                        a.llm_base_url, a.llm_model, a.llm_api_key, a.max_tokens))
 
 
 if __name__ == "__main__":
