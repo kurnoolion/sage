@@ -1,7 +1,7 @@
 # Status
 
 **Active phase**: requirements
-**Last updated**: 2026-07-16
+**Last updated**: 2026-07-17
 
 > **Note**: Formally still pre-requirements; work has moved into implementation. The three-layer
 > architecture is built + validated on the **RRC pilot** (TS 38.331, clauses 5.3.3 + 5.3.5 — a
@@ -38,6 +38,7 @@
 - 2026-07-16 Full-text deep-read of TelcoAgent + DeepSpecs (research doc 01 §1.5). Verdict: TelcoAgent's pipeline is unusable as-is for SAGE but yields an **aligner stage** lead (propose-only per D-015). DeepSpecs' **CR-rationale mining** (ChangeDB/TDocDB) adopted as a D-012 idea (*what* changed + *why*); its QA sets are email-request-only. *(Two paper-level claims corrected same day by the code review below.)*
 - 2026-07-16 **TelcoAgent code review** (cloned the MIT repo; research doc 05): the code is KARMA-based and richer than the paper — clause-level provenance exists, but no span grounding, evaluator never sees source text, and the prompt-mandated schema eroded (~20 free-form predicates, 71% catch-all nodes) because the builder absorbs violations — direct empirical support for D-008 hard validation. Released KG has **zero TS 38.331 edges** → RRC-pilot comparison idea dead. Adopting: (1) conflict grouping → review queue, (2) embedding-first alias suggester (doubles as D-012 alias table), (3) entity-pass-then-relation-pass prompt instruction, (4) bounded retry on unparseable output. Rejected: LLM summarization, LLM self-scored gates, LLM relevance filter, ReAct tool-loops on-prem (pending `llm_debug` evidence).
 - 2026-07-16 **KARMA paper review** (doc 05 §5): TelcoAgent's upstream framework (NeurIPS'25 spotlight, biomedical, no code release). Three consequences: (1) LLM-vs-human correctness gap quantified (83.1% vs 0.625) → cited under the Layer-D flag; (2) KARMA's CRA queues conflicts for expert review — our review-queue adoption is more faithful to KARMA than TelcoAgent's auto-drop; CRA is their biggest ablation lever (~9.7%), reinforcing conflict grouping at #1; (3) adopted KARMA's ρ distance cutoff into the alias-suggester design (beyond ρ → propose new entity, not a merge). Grounding gap confirmed inherited: KARMA also extracts from paraphrased text with no provenance.
+- 2026-07-17 **Reasoning-model output stripping** (NORA-aligned; commit `8b55247`). Ported NORA's `core/src/llm/openai_provider._strip_reasoning` into `pipeline/llm.py` so a reasoning model's chain of thought no longer corrupts `_parse` (its bracket-laden prose — clause refs like `[T300]`, lists — would otherwise be mistaken for the JSON array). Two paths: (a) tagged `<think>`/`<thinking>`/`<reason>`/`<reasoning>` blocks stripped **always** (multi-tag backref regex, tolerant of attributes/case, plus a dangling-close cut for servers that drop the opening tag); (b) the `===FINAL_ANSWER===` **sentinel** for *untagged* reasoning, opt-in via `SAGE_LLM_REASONING_SENTINEL` — `build_messages` appends the marker instruction to the system prompt only when enabled, keeping prompt + strip in lockstep. Live env check (not import-time) so per-run/test toggling works. 10 new tests (`TestReasoningStrip`); suite 30/30. *(Strand `telcoagent-adoption`: hardens the A4 LLM-parse path for reasoning endpoints; decision draft pending at close-session.)*
 
 ## In progress
 
