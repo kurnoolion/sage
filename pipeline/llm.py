@@ -24,6 +24,19 @@ configured purely via env — no SDK dependency (stdlib urllib only):
                         (KARMA EEA→REA, research doc 05 §3.3). Kept switchable so
                         v1/v2 can be A/B-compared over the same corpus with
                         --label + pipeline.compare before v2 earns the default.
+    SAGE_LLM_REASONING_SENTINEL
+                        reasoning-model handling (mirrors NORA's design). Inline
+                        <think>…</think> (also <thinking>/<reason>/<reasoning>)
+                        blocks are ALWAYS stripped from the reply before JSON
+                        parsing — that thinking prose contains '[' / ']' (clause
+                        refs like [T300], lists) that would corrupt _parse's
+                        bracket-bounded extraction; a no-op for models that never
+                        emit the tags. Setting this to 1/true/yes/on additionally
+                        activates the FINAL_ANSWER_MARKER sentinel for models whose
+                        reasoning is UNtagged (plain prose): the system prompt then
+                        instructs the model to print "===FINAL_ANSWER===" before
+                        the JSON array and _strip_reasoning drops everything up to
+                        it (prompt + strip stay in lockstep). Off by default.
 
 If the endpoint is not configured (or ``--dry-run`` is passed to run.py), the
 extractor runs in **stub mode**: it builds the few-shot prompt (so prompts are
@@ -39,6 +52,7 @@ The anchor MUST be a verbatim span of the clause so KG⊨corpus holds.
 import json
 import logging
 import os
+import re
 import socket
 import time
 import urllib.error
@@ -51,6 +65,69 @@ logger = logging.getLogger(__name__)
 
 _DEFAULT_TIMEOUT = 300            # local 32B models on a busy GPU routinely exceed 120s
 _DEFAULT_MAX_CLAUSE_CHARS = 6000  # split longer clause text into paragraph-boundary chunks
+
+# Reasoning ("thinking") models inline their chain-of-thought in the message
+# content as <think>…</think> (or <thinking>/<reason>/<reasoning>) rather than
+# splitting it into a separate reasoning_content field. We only want the final
+# JSON, and that prose routinely contains '[' / ']' (clause refs like [T300],
+# lists) that would corrupt _parse's bracket-bounded extraction — so strip the
+# blocks. Endpoints that already separate reasoning never hit this; plain answers
+# contain no such tags and pass through unchanged. (Mirrors NORA's
+# core/src/llm/openai_provider.py._strip_reasoning.)
+_THINK_TAGS = ("think", "thinking", "reason", "reasoning")
+_THINK_BLOCK_RE = re.compile(
+    r"<(" + "|".join(_THINK_TAGS) + r")\b[^>]*>.*?</\1\s*>",
+    re.DOTALL | re.IGNORECASE)
+_THINK_CLOSE_RE = re.compile(
+    r"</(?:" + "|".join(_THINK_TAGS) + r")\s*>", re.IGNORECASE)
+
+# Some reasoning models emit UNtagged chain-of-thought — plain prose before the
+# answer, with no <think> delimiter to match. For those, the system prompt (see
+# build_messages) instructs the model to print this sentinel on its own line just
+# before the JSON array, and _strip_reasoning drops everything up to (and
+# including) the last occurrence. This is a per-model opt-in: most models don't
+# need it and shouldn't have their output reshaped, so it is OFF by default and
+# the prompt instruction + strip are activated together — kept in lockstep — by
+# SAGE_LLM_REASONING_SENTINEL. (Mirrors NORA's FINAL_ANSWER_MARKER /
+# NORA_LLM_REASONING_SENTINEL pair.)
+FINAL_ANSWER_MARKER = "===FINAL_ANSWER==="
+ENV_REASONING_SENTINEL = "SAGE_LLM_REASONING_SENTINEL"
+
+
+def reasoning_sentinel_enabled():
+    """Whether the FINAL_ANSWER_MARKER sentinel is active (SAGE_LLM_REASONING_SENTINEL).
+
+    Read live (not cached at import) so a run can toggle it via env. Truthy
+    values: 1/true/yes/on."""
+    return os.environ.get(ENV_REASONING_SENTINEL, "").strip().lower() in (
+        "1", "true", "yes", "on")
+
+
+def _strip_reasoning(text):
+    """Remove reasoning from model output before JSON parsing.
+
+    Handles (1) the prompt-driven FINAL_ANSWER_MARKER sentinel — only when
+    reasoning_sentinel_enabled() — for untagged chain-of-thought, and (2) inline
+    <think>…</think> tag blocks (always; harmless when absent). Idempotent and
+    safe on normal answers: no marker/tags -> returned unchanged apart from
+    surrounding whitespace.
+    """
+    if not text:
+        return text
+    # Sentinel: the only reliable signal for UNtagged reasoning, but opt-in per
+    # model — most models don't need it and shouldn't have output reshaped.
+    if reasoning_sentinel_enabled():
+        marker_at = text.rfind(FINAL_ANSWER_MARKER)
+        if marker_at != -1:
+            text = text[marker_at + len(FINAL_ANSWER_MARKER):]
+    cleaned = _THINK_BLOCK_RE.sub("", text)
+    # Some servers drop the opening tag and return "reasoning…</think>answer" — a
+    # dangling close with no matching open. Everything up to and including the
+    # last such close tag is reasoning.
+    matches = list(_THINK_CLOSE_RE.finditer(cleaned))
+    if matches:
+        cleaned = cleaned[matches[-1].end():]
+    return cleaned.strip()
 
 
 def max_clause_chars():
@@ -162,6 +239,15 @@ _SYSTEM_V2 = _SYSTEM_V1 + (
 
 _SYSTEM = {"v1": _SYSTEM_V1, "v2": _SYSTEM_V2}
 
+# Appended to the system prompt only when SAGE_LLM_REASONING_SENTINEL is on, so the
+# instruction to emit the marker and _strip_reasoning's removal of it stay in
+# lockstep (a model told to print it without the strip would leak the marker into
+# the reply; the strip without the instruction would never see one).
+_SENTINEL_INSTRUCTION = (
+    " If you reason before answering, print the line " + FINAL_ANSWER_MARKER +
+    " on its own line immediately before the JSON array, with nothing after that"
+    " line except the array itself.")
+
 
 def prompt_variant(variant=None):
     """Resolve the prompt variant: explicit arg > SAGE_LLM_PROMPT_VARIANT env > v1."""
@@ -175,6 +261,8 @@ def prompt_variant(variant=None):
 
 def build_messages(cfg, clause_key, clause, gold_examples, variant=None):
     sys = _SYSTEM[prompt_variant(variant)]
+    if reasoning_sentinel_enabled():
+        sys = sys + _SENTINEL_INSTRUCTION
     shots = "\n\n".join(
         "CLAUSE %s:\n%s\nFACTS:\n%s" % (ex["clause"], ex["text"], json.dumps(ex["facts"]))
         for ex in gold_examples)
@@ -246,7 +334,12 @@ def _parse(content):
     Returns the list on success (an explicit ``[]`` reply is a *valid* "no facts
     here" answer), or ``None`` when the reply has no parseable JSON array — the
     signal extract_clause's bounded retry keys off.
+
+    A reasoning model's chain-of-thought span is stripped first (see
+    _strip_reasoning / SAGE_LLM_THINK_SENTINEL) so brackets inside the thinking
+    don't corrupt the bracket-bounded extraction below.
     """
+    content = _strip_reasoning(content)
     s = content.find("["); e = content.rfind("]")
     if s == -1 or e == -1:
         return None

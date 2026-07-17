@@ -45,6 +45,87 @@ class TestLLMParse(unittest.TestCase):
         self.assertIsNone(llm._parse('{"a": 1}'))       # non-list JSON
 
 
+class TestReasoningStrip(unittest.TestCase):
+    """_parse strips reasoning before bracket-bounded extraction (NORA-aligned).
+
+    Inline <think>… blocks are ALWAYS stripped; the FINAL_ANSWER_MARKER sentinel
+    is opt-in via SAGE_LLM_REASONING_SENTINEL for UNtagged reasoning.
+    """
+
+    def test_inline_think_always_stripped(self):
+        # brackets inside the thinking must not be mistaken for the JSON array
+        self.assertEqual(llm._parse('<think>see [T300] and [x]</think>[{"a": 1}]'),
+                         [{"a": 1}])
+
+    def test_all_tag_aliases(self):
+        for tag in ("think", "thinking", "reason", "reasoning"):
+            self.assertEqual(
+                llm._parse("<%s>junk [z]</%s>[1, 2]" % (tag, tag)), [1, 2],
+                "tag %r not stripped" % tag)
+
+    def test_tag_with_attributes(self):
+        self.assertEqual(
+            llm._parse('<think type="internal">[x]</think>[3]'), [3])
+
+    def test_case_insensitive(self):
+        self.assertEqual(llm._parse("<THINK>[x]</THINK>[4]"), [4])
+
+    def test_orphan_close_tag(self):
+        # server dropped the opening tag: only </think> present
+        self.assertEqual(llm._parse("reasoning about [foo]\n</think>\n[]"), [])
+
+    def test_multiple_blocks(self):
+        self.assertEqual(
+            llm._parse('<think>a [1]</think>noise<think>b [2]</think>[{"k": 2}]'),
+            [{"k": 2}])
+
+    def test_thinking_only_is_unparseable(self):
+        self.assertIsNone(llm._parse("<think>[T300] only, no answer</think>"))
+
+    def test_sentinel_off_by_default(self):
+        self.assertFalse(llm.reasoning_sentinel_enabled())
+        # marker present but sentinel off -> not treated specially; the array
+        # after it still parses via the bracket span
+        self.assertEqual(
+            llm._parse("prose ===FINAL_ANSWER=== [5]"), [5])
+
+    def test_sentinel_on_strips_untagged_prefix(self):
+        os.environ["SAGE_LLM_REASONING_SENTINEL"] = "1"
+        try:
+            self.assertTrue(llm.reasoning_sentinel_enabled())
+            # untagged reasoning full of brackets, then marker, then the answer
+            reply = "Let me think about [T300] and [foo].\n===FINAL_ANSWER===\n[6]"
+            self.assertEqual(llm._parse(reply), [6])
+        finally:
+            del os.environ["SAGE_LLM_REASONING_SENTINEL"]
+
+    def test_sentinel_enabled_truthy_values(self):
+        for on in ("1", "true", "YES", "on"):
+            os.environ["SAGE_LLM_REASONING_SENTINEL"] = on
+            try:
+                self.assertTrue(llm.reasoning_sentinel_enabled(), on)
+            finally:
+                del os.environ["SAGE_LLM_REASONING_SENTINEL"]
+        for off in ("0", "false", "no", "off", ""):
+            os.environ["SAGE_LLM_REASONING_SENTINEL"] = off
+            try:
+                self.assertFalse(llm.reasoning_sentinel_enabled(), off)
+            finally:
+                del os.environ["SAGE_LLM_REASONING_SENTINEL"]
+
+    def test_prompt_carries_marker_in_lockstep(self):
+        cfg = TestPromptVariants.Cfg
+        clause = {"title": "t", "text": "x"}
+        m_off = llm.build_messages(cfg, "5.1", clause, [])
+        self.assertNotIn(llm.FINAL_ANSWER_MARKER, m_off[0]["content"])
+        os.environ["SAGE_LLM_REASONING_SENTINEL"] = "1"
+        try:
+            m_on = llm.build_messages(cfg, "5.1", clause, [])
+            self.assertIn(llm.FINAL_ANSWER_MARKER, m_on[0]["content"])
+        finally:
+            del os.environ["SAGE_LLM_REASONING_SENTINEL"]
+
+
 class TestPromptVariants(unittest.TestCase):
     class Cfg:
         spec, version, release = "TS 24.229", "19.6.0", "Rel-19"

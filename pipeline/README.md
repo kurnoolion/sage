@@ -143,6 +143,8 @@ export SAGE_LLM_TIMEOUT=300                             # per-request seconds (d
 export SAGE_LLM_MAX_CLAUSE_CHARS=6000                  # split longer clauses into chunks (0=off)
 export SAGE_LLM_PROMPT_VARIANT=v1                      # v1 (default) | v2 (entity-pass-then-
                                                        # relation-pass; or --prompt-variant)
+export SAGE_LLM_REASONING_SENTINEL=1                   # off by default; enables the untagged
+                                                       # ===FINAL_ANSWER=== sentinel (see below)
 export SAGE_EMBED_MODEL=nomic-embed-text               # enables embedding-based alias
 export SAGE_EMBED_BASE_URL=$SAGE_LLM_BASE_URL          # suggestions (unset -> difflib fallback)
 export SAGE_ALIGN_RHO=0.35                             # merge-vs-new-entity distance cutoff
@@ -154,6 +156,25 @@ huge one (D-018). Splitting is deterministic (the corpus stores paragraphs
 newline-separated) and each chunk is a verbatim substring, so anchors still
 resolve against the full clause. Facts from all chunks merge by id; lower the
 limit for more, smaller calls. Per-chunk calls log as `clause#i/n`.
+
+**Reasoning models.** If the endpoint serves a reasoning model (DeepSeek-R1, QwQ,
+Qwen3-thinking, …), its reply carries a chain of thought ahead of the JSON, whose
+prose routinely contains `[` / `]` (clause refs like `[T300]`, lists) that would
+corrupt the bracket-bounded JSON extraction. The parser (`_strip_reasoning`,
+mirroring NORA's `openai_provider.py`) handles both shapes:
+
+- **Tagged** thinking — `<think>…</think>`, also `<thinking>`/`<reason>`/`<reasoning>`,
+  with or without attributes, any case — is **always** stripped (a no-op for models
+  that never emit it). A dangling close tag with no matching open (server dropped
+  the `<think>`) is handled too: everything up to the last close tag is dropped.
+- **Untagged** thinking — plain prose with no delimiter — needs the opt-in sentinel.
+  Set `SAGE_LLM_REASONING_SENTINEL=1` (or `true`/`yes`/`on`) and the system prompt
+  gains an instruction to print `===FINAL_ANSWER===` on its own line before the JSON;
+  the parser then drops everything up to that marker. Prompt and strip are wired
+  together so they can never drift. Off by default — most models don't need it.
+
+`llm_debug --clause` still prints the full raw response above the parsed facts, so
+you can see exactly what was stripped.
 
 ### Debugging the endpoint (do this before a long run)
 
