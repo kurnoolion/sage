@@ -41,8 +41,10 @@ class TestLLMParse(unittest.TestCase):
     def test_unparseable(self):
         self.assertIsNone(llm._parse("no array here"))
         self.assertIsNone(llm._parse("[not json]"))
-        self.assertIsNone(llm._parse("[1, 2"))
         self.assertIsNone(llm._parse('{"a": 1}'))       # non-list JSON
+        # note: "[1, 2" (truncated) is NOT unparseable — salvage recovers [1, 2];
+        # see TestParseSalvage.
+        self.assertEqual(llm._parse("[1, 2"), [1, 2])
 
 
 class TestReasoningStrip(unittest.TestCase):
@@ -124,6 +126,68 @@ class TestReasoningStrip(unittest.TestCase):
             self.assertIn(llm.FINAL_ANSWER_MARKER, m_on[0]["content"])
         finally:
             del os.environ["SAGE_LLM_REASONING_SENTINEL"]
+
+
+class TestParseSalvage(unittest.TestCase):
+    """_parse recovers complete leading objects from a truncated/unparseable array."""
+
+    def test_complete_array_unaffected(self):
+        self.assertEqual(llm._parse('[{"a": 1}, {"b": 2}]'), [{"a": 1}, {"b": 2}])
+
+    def test_truncated_recovers_complete_objects(self):
+        # generation cut off mid-third-object -> keep the two complete ones
+        content = '[{"a": 1}, {"b": 2}, {"c":'
+        self.assertEqual(llm._parse(content), [{"a": 1}, {"b": 2}])
+
+    def test_bracket_in_string_not_mistaken_for_close(self):
+        # the real failure: ']' inside an anchor (RFC 3329 [48]) is the only ']'
+        # left in a truncated reply, so the bracket-bounded slice can't parse
+        content = ('[{"anchor": "RFC 3329 [48] applies"}, '
+                   '{"anchor": "also [50] here"}, {"anchor":')
+        self.assertEqual(
+            llm._parse(content),
+            [{"anchor": "RFC 3329 [48] applies"}, {"anchor": "also [50] here"}])
+
+    def test_trailing_prose_after_valid_array(self):
+        self.assertEqual(llm._parse('[{"a": 1}] and that is my answer [ref]'),
+                         [{"a": 1}])
+
+    def test_sentinel_then_truncated_array(self):
+        os.environ["SAGE_LLM_REASONING_SENTINEL"] = "1"
+        try:
+            content = '===FINAL_ANSWER===\n[{"a": 1}, {"b":'
+            self.assertEqual(llm._parse(content), [{"a": 1}])
+        finally:
+            del os.environ["SAGE_LLM_REASONING_SENTINEL"]
+
+    def test_nothing_salvageable_is_none(self):
+        self.assertIsNone(llm._parse("[garbage without any json"))
+        self.assertIsNone(llm._parse("[not json]"))
+
+
+class TestMaxTokens(unittest.TestCase):
+    def test_endpoint_reads_env(self):
+        os.environ["SAGE_LLM_BASE_URL"] = "http://x/v1"
+        os.environ["SAGE_LLM_MAX_TOKENS"] = "2048"
+        try:
+            self.assertEqual(llm.endpoint()["max_tokens"], 2048)
+        finally:
+            del os.environ["SAGE_LLM_BASE_URL"], os.environ["SAGE_LLM_MAX_TOKENS"]
+
+    def test_absent_by_default(self):
+        os.environ["SAGE_LLM_BASE_URL"] = "http://x/v1"
+        try:
+            self.assertNotIn("max_tokens", llm.endpoint())
+        finally:
+            del os.environ["SAGE_LLM_BASE_URL"]
+
+    def test_non_int_ignored(self):
+        os.environ["SAGE_LLM_BASE_URL"] = "http://x/v1"
+        os.environ["SAGE_LLM_MAX_TOKENS"] = "lots"
+        try:
+            self.assertNotIn("max_tokens", llm.endpoint())
+        finally:
+            del os.environ["SAGE_LLM_BASE_URL"], os.environ["SAGE_LLM_MAX_TOKENS"]
 
 
 class TestPromptVariants(unittest.TestCase):

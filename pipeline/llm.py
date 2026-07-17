@@ -9,6 +9,13 @@ configured purely via env — no SDK dependency (stdlib urllib only):
     SAGE_LLM_TIMEOUT    per-request timeout in seconds (default 300; local 32B models
                         on a busy GPU can take minutes per clause — raise if you hit
                         timeouts). Debug with: python3 -m pipeline.llm_debug --check
+    SAGE_LLM_MAX_TOKENS max completion tokens per request (unset -> the server's own
+                        default). Set this when replies get truncated mid-array
+                        (finish_reason=length, logged as a warning): a long clause with
+                        many facts — or a reasoning model that spends tokens thinking
+                        before the JSON — can exceed a low server cap. _parse salvages
+                        the complete leading objects from a truncated reply, but raising
+                        the cap (here or on the endpoint) is the real fix.
     SAGE_LLM_MAX_CLAUSE_CHARS
                         max clause-text chars per request (default 6000; 0 disables).
                         Clauses longer than this are split into chunks on paragraph
@@ -208,9 +215,16 @@ def endpoint(base_url=None, model=None, api_key=None):
           "model": model or os.environ.get("SAGE_LLM_MODEL", "qwen2.5:32b-instruct"),
           "key": api_key if api_key is not None else os.environ.get("SAGE_LLM_API_KEY", ""),
           "timeout": timeout}
+    raw_mt = os.environ.get("SAGE_LLM_MAX_TOKENS")
+    if raw_mt:                                     # unset -> omit, let the server default
+        try:
+            ep["max_tokens"] = int(raw_mt)
+        except ValueError:
+            logger.warning("SAGE_LLM_MAX_TOKENS=%r is not an int — using the server default",
+                           raw_mt)
     # api_key deliberately not logged.
-    logger.info("LLM endpoint: base=%s model=%s timeout=%ds",
-                ep["base"], ep["model"], ep["timeout"])
+    logger.info("LLM endpoint: base=%s model=%s timeout=%ds max_tokens=%s",
+                ep["base"], ep["model"], ep["timeout"], ep.get("max_tokens", "<server default>"))
     return ep
 
 
@@ -277,8 +291,10 @@ def _call(ep, messages, clause_key=""):
     Raises RuntimeError (with the API's error body / timeout context) on failure,
     so the orchestrator can report exactly which clause and why it died.
     """
-    body = json.dumps({"model": ep["model"], "messages": messages,
-                       "temperature": 0, "stream": False}).encode()
+    payload = {"model": ep["model"], "messages": messages, "temperature": 0, "stream": False}
+    if ep.get("max_tokens"):
+        payload["max_tokens"] = ep["max_tokens"]
+    body = json.dumps(payload).encode()
     req = urllib.request.Request(ep["base"] + "/chat/completions", data=body,
                                  headers={"Content-Type": "application/json",
                                           "Authorization": "Bearer " + ep["key"]})
@@ -325,29 +341,75 @@ def _call(ep, messages, clause_key=""):
     tps = (ntok / elapsed) if elapsed > 0 else 0.0
     logger.info("LLM clause=%s: %d tokens in %.1fs (%.1f tok/s), %d resp chars",
                 clause_key, ntok, elapsed, tps, len(content))
+    if choices[0].get("finish_reason") == "length":
+        # Server cut the completion at the token cap — the JSON array is very
+        # likely truncated (_parse will salvage the complete leading objects).
+        logger.warning("clause=%s: completion hit the token limit (finish_reason=length) "
+                       "after %d tokens — raise SAGE_LLM_MAX_TOKENS or the endpoint's cap; "
+                       "reasoning models spend tokens thinking before the JSON", clause_key, ntok)
     return content
+
+
+def _salvage_array(content, start):
+    """Recover the leading complete objects of a truncated/unparseable JSON array.
+
+    A long or reasoning reply can be cut off mid-array (the model hit its token
+    limit), leaving no closing ``]`` — so ``json.loads`` on the whole slice fails
+    and every fact is lost. Decode elements one at a time from just past the
+    opening ``[`` and keep each that parses completely, stopping at the first
+    incomplete or malformed one. Returns the recovered list, or ``None`` if
+    nothing parses (the signal extract_clause's retry keys off).
+    """
+    decoder = json.JSONDecoder()
+    items, i, n, truncated = [], start + 1, len(content), True
+    while i < n:
+        while i < n and content[i] in " \t\r\n,":     # skip whitespace + separators
+            i += 1
+        if i >= n:
+            break
+        if content[i] == "]":                          # reached a clean array close
+            truncated = False
+            break
+        try:
+            obj, i = decoder.raw_decode(content, i)     # one element; i advances past it
+        except json.JSONDecodeError:
+            break                                       # truncated/malformed tail -> stop
+        items.append(obj)
+    if not items:
+        return None
+    if truncated:
+        logger.warning("salvaged %d complete object(s) from a truncated/unparseable JSON "
+                       "array (generation likely cut off — see SAGE_LLM_MAX_TOKENS)", len(items))
+    return items
 
 
 def _parse(content):
     """Parse the model's reply into a list of facts.
 
     Returns the list on success (an explicit ``[]`` reply is a *valid* "no facts
-    here" answer), or ``None`` when the reply has no parseable JSON array — the
-    signal extract_clause's bounded retry keys off.
+    here" answer), or ``None`` when nothing parseable is found — the signal
+    extract_clause's bounded retry keys off.
 
-    A reasoning model's chain-of-thought span is stripped first (see
-    _strip_reasoning / SAGE_LLM_THINK_SENTINEL) so brackets inside the thinking
-    don't corrupt the bracket-bounded extraction below.
+    Two guards precede the parse: a reasoning model's chain-of-thought span is
+    stripped first (see _strip_reasoning / SAGE_LLM_REASONING_SENTINEL) so
+    brackets inside the thinking don't corrupt the bracket-bounded slice below;
+    and when that slice fails (a truncated array with no closing ``]``, or
+    trailing prose past the array), _salvage_array recovers the complete leading
+    objects instead of dropping the whole chunk.
     """
     content = _strip_reasoning(content)
-    s = content.find("["); e = content.rfind("]")
-    if s == -1 or e == -1:
+    s = content.find("[")
+    if s == -1:
         return None
-    try:
-        parsed = json.loads(content[s:e + 1])
-    except json.JSONDecodeError:
-        return None
-    return parsed if isinstance(parsed, list) else None
+    e = content.rfind("]")
+    if e > s:
+        try:
+            parsed = json.loads(content[s:e + 1])
+            if isinstance(parsed, list):
+                return parsed
+        except json.JSONDecodeError:
+            pass                                        # fall through to salvage
+    return _salvage_array(content, s)
 
 
 def _facts_to_records(cfg, clause_key, facts, ents, rels, rel_ids):

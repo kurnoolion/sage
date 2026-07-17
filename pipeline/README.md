@@ -140,6 +140,7 @@ export SAGE_LLM_BASE_URL=http://localhost:11434/v1      # Ollama
 export SAGE_LLM_MODEL=qwen2.5:32b-instruct
 export SAGE_LLM_API_KEY=…                               # optional (vLLM/OpenAI)
 export SAGE_LLM_TIMEOUT=300                             # per-request seconds (default 300)
+export SAGE_LLM_MAX_TOKENS=4096                         # max completion tokens (unset=server default)
 export SAGE_LLM_MAX_CLAUSE_CHARS=6000                  # split longer clauses into chunks (0=off)
 export SAGE_LLM_PROMPT_VARIANT=v1                      # v1 (default) | v2 (entity-pass-then-
                                                        # relation-pass; or --prompt-variant)
@@ -228,6 +229,16 @@ the **anchor must be a verbatim clause span** so `KG ⊨ corpus` holds. A reply
 that is non-empty but has no parseable JSON array gets exactly **one retry**
 with a terse format reminder; still unparseable → 0 facts from that chunk,
 logged as a warning.
+
+**Truncated replies.** If a completion is cut off at the token cap (the server
+logs `finish_reason=length`, surfaced as a warning), the JSON array has no
+closing `]` and the only brackets left are inside anchors (`RFC 3329 [48]`), so a
+naive parse would drop every fact. `_parse` instead **salvages the complete
+leading objects** and keeps them (logged: `salvaged N complete object(s)…`). The
+real fix is more output budget: raise `SAGE_LLM_MAX_TOKENS` (or the endpoint's
+own cap), and/or lower `SAGE_LLM_MAX_CLAUSE_CHARS` so each chunk emits a shorter
+array. Reasoning models make this worse — they spend tokens thinking before the
+JSON — so give them extra headroom.
 
 The extraction prompt has two variants (`--prompt-variant` / env): `v1`
 (default) and `v2`, which adds an entity-pass-then-relation-pass instruction
