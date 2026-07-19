@@ -551,6 +551,19 @@ class TestValidateDebug(unittest.TestCase):
             else:
                 self.assertIsNotNone(target)
 
+    def test_reversed_edges_detected(self):
+        """A reversed edge fails both slots, so it is counted twice in the error
+        total — it must be named as one direction fault, not two defects."""
+        e = lambda i, t: {"id": i, "type": t, "label": t, "extractor": "llm"}
+        r = lambda i, f, t, ty: {"id": i, "from": f, "to": t, "type": ty}
+        ents = [e("p", "Procedure"), e("ev", "Event"), e("ie", "InformationElement")]
+        # TRIGGERS is declared Event->Procedure; emit it backwards.
+        rels = [r("x1", "p", "ev", "TRIGGERS"),
+                r("x2", "p", "ie", "WRITES")]      # wrong range, but NOT reversed
+        rev = validate_debug.detect_reversed(ents, rels)
+        self.assertEqual(rev["TRIGGERS"], 1)
+        self.assertNotIn("WRITES", rev)
+
     def test_bucket_classification(self):
         self.assertEqual(validate_debug._bucket_of("3gpp:rrc/clause/5-3-3-5"), "clause")
         self.assertIn("timer", validate_debug.VALID_BUCKETS)
@@ -574,6 +587,19 @@ class TestEmbedDebug(unittest.TestCase):
     def test_shape_garbage_rejected(self):
         ok, _, _ = embed_debug.check_shape({"result": "nope"}, "openai")
         self.assertFalse(ok)
+
+    def test_unknown_model_is_a_working_route(self):
+        """A 4xx naming the MODEL means the route works — reporting it as 'no
+        embeddings endpoint' sends the operator after the wrong fix."""
+        body = ('{"detail":{"error":"unknown_model","requested":"bge-m3",'
+                '"known":["chat-model-a","chat-model-b"]}}')
+        self.assertTrue(embed_debug.model_rejected(body))
+        self.assertEqual(embed_debug.served_models(body), ["chat-model-a", "chat-model-b"])
+
+    def test_route_errors_are_not_model_errors(self):
+        self.assertFalse(embed_debug.model_rejected('{"detail":"Not authenticated"}'))
+        self.assertFalse(embed_debug.model_rejected("method not allowed"))
+        self.assertEqual(embed_debug.served_models("<!doctype html>"), [])
 
     def test_root_strips_v1(self):
         self.assertEqual(embed_debug._root("http://h:8000/v1"), "http://h:8000")

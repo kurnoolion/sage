@@ -116,6 +116,40 @@ def candidates(base, model):
     return out
 
 
+# A 4xx naming the model (rather than the route) is a *positive* signal: the
+# embeddings endpoint exists and parsed the request, it just does not serve that
+# model. Reporting it as "no embeddings here" sends the operator after the wrong
+# fix — the route is fine, the model name or the host is not.
+_UNKNOWN_MODEL_HINTS = ("unknown_model", "model not found", "does not exist",
+                        "unknown model", "no such model", "invalid model")
+
+
+def model_rejected(body):
+    """True if a 4xx body indicates a working route rejecting the model name."""
+    low = (body or "").lower()
+    return any(h in low for h in _UNKNOWN_MODEL_HINTS)
+
+
+def served_models(body):
+    """Best-effort list of models the endpoint says it does serve."""
+    try:
+        obj = json.loads(body)
+    except (json.JSONDecodeError, TypeError):
+        return []
+    stack, out = [obj], []
+    while stack:
+        cur = stack.pop()
+        if isinstance(cur, dict):
+            for k, v in cur.items():
+                if k in ("known", "available", "models") and isinstance(v, list):
+                    out += [m for m in v if isinstance(m, str)]
+                else:
+                    stack.append(v)
+        elif isinstance(cur, list):
+            stack.extend(cur)
+    return out
+
+
 def check_shape(parsed, shape):
     """Return (ok_for_align, dim, note). ok_for_align is what align.py needs."""
     if not isinstance(parsed, dict):
@@ -203,12 +237,18 @@ def main():
 
     # --- 3. probe every plausible route -------------------------------------
     print("\n[3] EMBEDDINGS ROUTE PROBE  (input: %d short strings)" % len(PROBE_INPUT))
-    working = []
+    working, wrong_model = [], []
     for label, url, payload, shape in candidates(base, model):
         st, allow, body, parsed = _post(url, payload, key)
         print("\n    POST %s" % url)
         print("         (%s)  status %s" % (label, st))
-        if st == 405:
+        if 400 <= st < 500 and model_rejected(body):
+            avail = served_models(body)
+            print("         %s — ROUTE WORKS, but it does not serve '%s'" % (st, model))
+            if avail:
+                print("         it serves: %s" % ", ".join(avail[:10]))
+            wrong_model.append((url, avail))
+        elif st == 405:
             print("         405 Method Not Allowed — path exists but refuses POST")
             print("         Allow: %s" % (allow or "(header absent)"))
         elif st == 404:
@@ -237,6 +277,22 @@ def main():
         print("      export SAGE_EMBED_MODEL=%s" % model)
         print("\n  Then re-run alignment on the existing snapshot (no re-extraction):")
         print("      python3 -m pipeline.align --spec 'TS 38.331' --version 19.2.0")
+    elif wrong_model:
+        url, avail = wrong_model[0]
+        good_base = url[:-len("/embeddings")] if url.endswith("/embeddings") else url
+        print("  The embeddings ROUTE works — it rejected the model, not the request:")
+        print("      %s" % url)
+        print("  So this is a model/host problem, not a missing endpoint.")
+        if avail:
+            print("  Models served here: %s" % ", ".join(avail[:10]))
+            print("  None of those is an embedding model, so either:")
+        print("    (a) load an embedding model (e.g. bge-m3, nomic-embed-text) on that")
+        print("        host and set SAGE_EMBED_MODEL to its exact served name; or")
+        print("    (b) point SAGE_EMBED_BASE_URL at whichever host already serves one")
+        print("        (it need not be the chat host — SAGE_EMBED_BASE_URL is separate).")
+        print("  Once it resolves, re-run alignment only — no re-extraction:")
+        print("      python3 -m pipeline.align --spec 'TS 38.331' --version 19.2.0")
+        print("  Base to export when the model is available: %s" % good_base)
     else:
         print("  No route returned an OpenAI-shaped embedding.")
         print("  If every candidate 405s or 404s, this server does not serve embeddings")

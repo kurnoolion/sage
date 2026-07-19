@@ -207,6 +207,33 @@ def resolve(ref, idx):
 # ---------------------------------------------------------------------------
 # Reporting
 # ---------------------------------------------------------------------------
+def detect_reversed(entities, relations):
+    """Relations whose endpoints satisfy the declared domain/range *swapped*.
+
+    A reversed edge fails BOTH slot checks, so it shows up twice in the error
+    count — once as a domain violation, once as a range violation. Naming them
+    separately keeps that double-count from reading as twice as many defects,
+    and points at a single fix (edge direction) rather than two.
+    """
+    by_id = {e["id"]: e for e in entities}
+    out = collections.Counter()
+    for r in relations:
+        spec = ontology.RELATIONSHIP_TYPES.get(r["type"])
+        if not spec:
+            continue
+        ft = by_id.get(r["from"], {}).get("type")
+        tt = by_id.get(r["to"], {}).get("type")
+        if not ft or not tt:
+            continue
+        wrong = (not ontology.domain_range_ok(spec["domain"], ft)
+                 and not ontology.domain_range_ok(spec["range"], tt))
+        swapped = (ontology.domain_range_ok(spec["domain"], tt)
+                   and ontology.domain_range_ok(spec["range"], ft))
+        if wrong and swapped:
+            out[r["type"]] += 1
+    return out
+
+
 def _bar(n, total):
     return "%5d %5.1f%%" % (n, 100.0 * n / total if total else 0.0)
 
@@ -357,8 +384,29 @@ def report(snap, findings, errs_expected, warns_n, top, samples, out):
         c = collections.Counter(
             "%s %s: %s not in %s" % (f["rel"], "from" if f["cat"] == "domain-violation" else "to",
                                      f["got"], f["allowed"]) for f in dr)
-        p("[4] DOMAIN / RANGE VIOLATIONS — %d" % len(dr))
+        # One miswired relation can fail both slots, so errors > defective edges.
+        distinct_rels = len({f["id"] for f in dr})
+        p("[4] DOMAIN / RANGE VIOLATIONS — %d errors across %d distinct relation(s)"
+          % (len(dr), distinct_rels))
+        if distinct_rels < len(dr):
+            p("    (%d relations fail BOTH slots, so they are counted twice above)"
+              % (len(dr) - distinct_rels))
         p(_rank(c, len(dr), top))
+
+        rev = detect_reversed(ents, rels)
+        if rev:
+            tot = sum(rev.values())
+            p("")
+            p("    REVERSED EDGES — %d relation(s) whose endpoints fit the declared"
+              % tot)
+            p("    domain/range EXACTLY, but swapped. One fix (direction), not two:")
+            for rtype, n in rev.most_common(top):
+                spec = ontology.RELATIONSHIP_TYPES[rtype]
+                p("      %5d  %s: emitted %s->%s, declared %s->%s"
+                  % (n, rtype, spec["range"], spec["domain"], spec["domain"], spec["range"]))
+            p("    -> these account for %d of the %d errors in this section." % (tot * 2, len(dr)))
+            p("       Either the prompt must pin edge direction, or the ontology")
+            p("       needs the inverse edge declared.")
         if collateral:
             p("    of which %d (%.1f%%) involve an entity of an UNDECLARED type —"
               % (collateral, 100.0 * collateral / len(dr)))
