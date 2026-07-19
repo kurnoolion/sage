@@ -614,6 +614,31 @@ class TestEmbedDebug(unittest.TestCase):
         self.assertIn("http://h:8000/api/embed", urls)
 
 
+class TestReadsWritesRange(unittest.TestCase):
+    """Pins the 2026-07-19 D-015 widening (see ontology.py comment). The full
+    38.331 run produced 609 range violations — 28% of its errors — from
+    procedures reading/writing IE fields under a UEVariable-only range."""
+
+    def test_admits_both_variable_and_ie(self):
+        for rel in ("READS", "WRITES"):
+            rng = ontology.RELATIONSHIP_TYPES[rel]["range"]
+            self.assertTrue(ontology.domain_range_ok(rng, "UEVariable"), rel)
+            self.assertTrue(ontology.domain_range_ok(rng, "InformationElement"), rel)
+
+    def test_widening_is_not_a_free_for_all(self):
+        """Additive, not permissive: unrelated types are still rejected."""
+        rng = ontology.RELATIONSHIP_TYPES["WRITES"]["range"]
+        for typ in ("Timer", "Procedure", "Message", "State"):
+            self.assertFalse(ontology.domain_range_ok(rng, typ), typ)
+
+    def test_ie_subtypes_ride_along(self):
+        """Subtype-aware, so IMS SIPHeader/Identity are admitted too — intended:
+        a procedure setting a P-Access-Network-Info header is the same act."""
+        rng = ontology.RELATIONSHIP_TYPES["WRITES"]["range"]
+        for typ in ("SIPHeader", "Identity"):
+            self.assertTrue(ontology.domain_range_ok(rng, typ), typ)
+
+
 class TestEvalGoldNorm(unittest.TestCase):
     def test_norm(self):
         self.assertEqual(_norm("RRC-connection-establishment"),

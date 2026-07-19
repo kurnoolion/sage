@@ -85,8 +85,14 @@ RELATIONSHIP_TYPES = {
     "ON_EXPIRY_OF":        {"domain": ["Event"], "range": ["Timer"], "desc": "Event is the expiry of a timer.", "attrs": [], "functional": True},
     "CONFIGURES":          {"domain": ["InformationElement"], "range": ["Timer"], "desc": "IE delivers/configures a timer value.", "attrs": []},
     "GOVERNS":             {"domain": ["Timer"], "range": ["Procedure"], "desc": "Timer supervises a procedure.", "attrs": [], "functional": True},
-    "READS":               {"domain": ["Procedure"], "range": ["UEVariable"], "desc": "Procedure reads a UE variable.", "attrs": []},
-    "WRITES":              {"domain": ["Procedure"], "range": ["UEVariable"], "desc": "Procedure writes a UE variable.", "attrs": []},
+    # Range widened from UEVariable-only (2026-07-19, D-015 additive): the full
+    # TS 38.331 run produced 609 range violations (28% of all its errors) from
+    # procedures reading/writing IE *fields*, not just UE variables — "the UE
+    # shall set the <IE> to ..." is ordinary spec prose. The narrow range came
+    # from a 2-clause pilot where only variables happened to appear; it was a
+    # sampling artefact, not a claim that procedures never touch IEs.
+    "READS":               {"domain": ["Procedure"], "range": ["UEVariable", "InformationElement"], "desc": "Procedure reads a UE variable or IE field.", "attrs": []},
+    "WRITES":              {"domain": ["Procedure"], "range": ["UEVariable", "InformationElement"], "desc": "Procedure writes a UE variable or IE field.", "attrs": []},
     "ACTS_ON":             {"domain": ["Procedure"], "range": ["ProtocolLayer"], "desc": "Procedure acts on another layer's entity.", "attrs": ["cross-spec"]},
     "ON_FAILURE_INVOKES":  {"domain": ["Procedure"], "range": ["Procedure"], "desc": "On failure, procedure invokes another.", "attrs": ["guard"]},
     # IMS additions
