@@ -17,7 +17,7 @@ import shutil
 import tempfile
 import unittest
 
-from . import align, config, embed_debug, llm, llm_cache, ontology, snapshot, validate, validate_debug
+from . import align, config, embed_debug, llm, llm_cache, migrate, ontology, snapshot, validate, validate_debug
 from .compare import _object_divergence
 from .error_codes import PipelineError
 from .eval_gold import _norm
@@ -637,6 +637,64 @@ class TestReadsWritesRange(unittest.TestCase):
         rng = ontology.RELATIONSHIP_TYPES["WRITES"]["range"]
         for typ in ("SIPHeader", "Identity"):
             self.assertTrue(ontology.domain_range_ok(rng, typ), typ)
+
+
+class TestRaisesDirection(unittest.TestCase):
+    """TS 38.331 runs both ways round — 5.3.10.3's detection procedure RAISES
+    radio link failure, and 5.3.7.2's radio link failure TRIGGERS
+    re-establishment. Both must stay declared and distinct, or cause and effect
+    become indistinguishable."""
+
+    def test_both_directions_declared(self):
+        self.assertEqual(ontology.RELATIONSHIP_TYPES["TRIGGERS"]["domain"], ["Event"])
+        self.assertEqual(ontology.RELATIONSHIP_TYPES["TRIGGERS"]["range"], ["Procedure"])
+        self.assertEqual(ontology.RELATIONSHIP_TYPES["RAISES"]["domain"], ["Procedure"])
+        self.assertEqual(ontology.RELATIONSHIP_TYPES["RAISES"]["range"], ["Event"])
+
+    def test_each_direction_validates_under_its_own_type(self):
+        rng, dom = ontology.RELATIONSHIP_TYPES["RAISES"], ontology.RELATIONSHIP_TYPES["TRIGGERS"]
+        self.assertTrue(ontology.domain_range_ok(rng["domain"], "Procedure"))
+        self.assertTrue(ontology.domain_range_ok(rng["range"], "Event"))
+        self.assertTrue(ontology.domain_range_ok(dom["domain"], "Event"))
+        self.assertTrue(ontology.domain_range_ok(dom["range"], "Procedure"))
+
+    def test_gold_seeds_one_example_of_each(self):
+        with open(os.path.join(_ROOT, "pipeline", "gold", "TS38331.json")) as f:
+            gold = json.load(f)
+        rels = [f_["rel"] for e in gold["examples"] for f_ in e["facts"]]
+        self.assertIn("RAISES", rels)
+        self.assertIn("TRIGGERS", rels)
+
+
+class TestMigrate(unittest.TestCase):
+    def _snap(self):
+        e = lambda i, t, l: {"id": i, "type": t, "label": l, "extractor": "llm"}
+        r = lambda i, f, t, ty: {"id": i, "from": f, "to": t, "type": ty, "provenance": []}
+        ents = [e("det", "Procedure", "detect"), e("ev", "Event", "rlf"),
+                e("re", "Procedure", "reest")]
+        rels = [r("m1", "det", "ev", "TRIGGERS"),    # Procedure->Event: retype
+                r("m2", "ev", "re", "TRIGGERS")]     # Event->Procedure: leave alone
+        return ents, rels
+
+    def test_retypes_only_the_wrong_shape(self):
+        ents, rels = self._snap()
+        todo = migrate.plan(ents, rels)
+        self.assertEqual(len(todo), 1)
+        rel, new = todo[0]
+        self.assertEqual(rel["id"], "m1")
+        self.assertEqual(new, "RAISES")
+
+    def test_correct_edges_are_never_touched(self):
+        ents, rels = self._snap()
+        touched = {r["id"] for r, _ in migrate.plan(ents, rels)}
+        self.assertNotIn("m2", touched)
+
+    def test_plan_is_idempotent(self):
+        """Re-running after a migration must find nothing left to do."""
+        ents, rels = self._snap()
+        for rel, new in migrate.plan(ents, rels):
+            rel["type"] = new
+        self.assertEqual(migrate.plan(ents, rels), [])
 
 
 class TestEvalGoldNorm(unittest.TestCase):

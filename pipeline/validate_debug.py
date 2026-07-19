@@ -105,12 +105,20 @@ def analyze(entities, relations, version):
                              "ref": r["to"], "slot": "to"})
         ft = by_id.get(r["from"], {}).get("type")
         tt = by_id.get(r["to"], {}).get("type")
+        # Carry the endpoint labels so a violation can be read as a concrete fact
+        # ("RRC reconfiguration --TRIGGERS--> T304 expiry"). A type-level pattern
+        # alone cannot tell a reversed edge from a genuinely different relation.
+        edge = "%s --%s--> %s" % (by_id.get(r["from"], {}).get("label", r["from"]),
+                                  r["type"],
+                                  by_id.get(r["to"], {}).get("label", r["to"]))
         if ft and not ontology.domain_range_ok(spec["domain"], ft):
             findings.append({"cat": "domain-violation", "id": r["id"], "rel": r["type"],
-                             "got": ft, "allowed": spec["domain"], "ref": r["from"]})
+                             "got": ft, "allowed": spec["domain"], "ref": r["from"],
+                             "edge": edge})
         if tt and not ontology.domain_range_ok(spec["range"], tt):
             findings.append({"cat": "range-violation", "id": r["id"], "rel": r["type"],
-                             "got": tt, "allowed": spec["range"], "ref": r["to"]})
+                             "got": tt, "allowed": spec["range"], "ref": r["to"],
+                             "edge": edge})
 
     from .config import RELEASES
     relset = set(RELEASES)
@@ -381,9 +389,13 @@ def report(snap, findings, errs_expected, warns_n, top, samples, out):
         by_id_type = {e["id"]: e["type"] for e in ents}
         undeclared = {e["id"] for e in ents if e["type"] not in ontology.ENTITY_TYPES}
         collateral = sum(1 for f in dr if f["ref"] in undeclared)
-        c = collections.Counter(
-            "%s %s: %s not in %s" % (f["rel"], "from" if f["cat"] == "domain-violation" else "to",
-                                     f["got"], f["allowed"]) for f in dr)
+        key = lambda f: "%s %s: %s not in %s" % (
+            f["rel"], "from" if f["cat"] == "domain-violation" else "to",
+            f["got"], f["allowed"])
+        c = collections.Counter(key(f) for f in dr)
+        ex = collections.defaultdict(list)
+        for f in dr:
+            ex[key(f)].append(f.get("edge", f["id"]))
         # One miswired relation can fail both slots, so errors > defective edges.
         distinct_rels = len({f["id"] for f in dr})
         p("[4] DOMAIN / RANGE VIOLATIONS — %d errors across %d distinct relation(s)"
@@ -391,7 +403,8 @@ def report(snap, findings, errs_expected, warns_n, top, samples, out):
         if distinct_rels < len(dr):
             p("    (%d relations fail BOTH slots, so they are counted twice above)"
               % (len(dr) - distinct_rels))
-        p(_rank(c, len(dr), top))
+        p(_rank(c, len(dr), top,
+                extra=lambda k: "\n".join("             e.g. %s" % s for s in ex[k][:samples])))
 
         rev = detect_reversed(ents, rels)
         if rev:

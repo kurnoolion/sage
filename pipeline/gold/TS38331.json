@@ -103,6 +103,40 @@
           "anchor": "if timer T300 expires"
         }
       ]
+    },
+    {
+      "clause": "5.3.10.3",
+      "title": "Detection of radio link failure",
+      "text": "The UE shall:\n   1>\tif any DAPS bearer is configured and T304 is running:\n      2>\tupon T310 expiry in source SpCell; or\n      2>\tupon random access problem indication from source MCG MAC:\n         3>\tconsider radio link failure to be detected for the source MCG i.e. source RLF;\n         3>\treset MAC for the source MCG;",
+      "facts": [
+        {
+          "subject": "Detection of radio link failure",
+          "subject_type": "Procedure",
+          "rel": "RAISES",
+          "object": "radio link failure",
+          "object_type": "Event",
+          "modality": "prose",
+          "confidence": "high",
+          "anchor": "consider radio link failure to be detected for the source MCG"
+        }
+      ]
+    },
+    {
+      "clause": "5.3.7.2",
+      "title": "RRC connection re-establishment — Initiation",
+      "text": "The UE initiates the procedure when one of the following conditions is met:\n   1>\tupon detecting radio link failure of the MCG and t316 is not configured, in accordance with 5.3.10; or\n   1>\tupon re-configuration with sync failure of the MCG, in accordance with clause 5.3.5.8.3; or\n   1>\tupon mobility from NR failure, in accordance with clause 5.4.3.5;",
+      "facts": [
+        {
+          "subject": "radio link failure",
+          "subject_type": "Event",
+          "rel": "TRIGGERS",
+          "object": "RRC connection re-establishment",
+          "object_type": "Procedure",
+          "modality": "prose",
+          "confidence": "high",
+          "anchor": "upon detecting radio link failure of the MCG"
+        }
+      ]
     }
   ]
 }

@@ -79,6 +79,16 @@ RELATIONSHIP_TYPES = {
     "TRANSITIONS_TO":      {"domain": ["Procedure"], "range": ["State"], "desc": "Procedure transitions the UE into a state.", "attrs": []},
     "HAS_PRECONDITION":    {"domain": ["Procedure"], "range": ["State", "Condition"], "desc": "Precondition for the procedure.", "attrs": []},
     "TRIGGERS":            {"domain": ["Event"], "range": ["Procedure"], "desc": "Event triggers a procedure.", "attrs": []},
+    # RAISES is the deliberate counterpart to TRIGGERS, not its inverse (2026-07-19,
+    # D-015 additive). The full TS 38.331 run emitted 64 Procedure->Event edges typed
+    # TRIGGERS, failing both slot checks (118 errors). They were not reversed facts:
+    # the spec really does run both ways round, and 5.3.10.3 / 5.3.7.2 show the chain —
+    # the detection procedure RAISES radio link failure ("consider radio link failure
+    # to be detected"), and that event then TRIGGERS re-establishment ("upon detecting
+    # radio link failure of the MCG"). Collapsing the two directions into one relation
+    # would have made cause and effect indistinguishable, so both are declared and the
+    # gold seeds one example of each to pin the direction.
+    "RAISES":              {"domain": ["Procedure"], "range": ["Event"], "desc": "Procedure raises/declares an event (e.g. detects a failure condition).", "attrs": []},
     "ALTERNATIVE_OUTCOME": {"domain": ["Procedure"], "range": ["Message"], "desc": "Alternative (e.g. reject/error response) outcome.", "attrs": []},
     "ESTABLISHES":         {"domain": ["Procedure"], "range": ["Bearer"], "desc": "Procedure establishes a bearer.", "attrs": []},
     "INVOKES":             {"domain": ["Procedure"], "range": ["Procedure"], "desc": "Procedure invokes a sub-procedure (cross-reference).", "attrs": ["guard"]},

@@ -328,6 +328,34 @@ with the exact `SAGE_EMBED_BASE_URL` to export, and `--end-to-end` runs
 `align._embed` against both the current and recommended base to prove the failure
 and the fix.
 
+### Migrating a snapshot after an ontology change
+
+When the TBox gains a type an earlier run could not express, those facts are
+already in the snapshot under whatever type the extractor reached for.
+Re-extraction fixes them, but a full-spec run is hours of local inference, so
+`pipeline.migrate` applies the same correction to an existing snapshot:
+
+```bash
+python3 -m pipeline.migrate --spec "TS 38.331" --version 19.2.0          # dry run
+python3 -m pipeline.migrate --spec "TS 38.331" --version 19.2.0 --apply  # writes + .bak
+```
+
+**Dry-run by default** (D-015 propose-only): it prints every edge it would
+retype with its clause and verbatim anchor, plus the validation-error delta, and
+writes nothing without `--apply`. Review rather than trust — a rule matches on
+*shape* (relation type + endpoint types), and shape cannot distinguish "the
+extractor meant a different relation" from "the extractor stated this one
+backwards". `RULES` in that module is deliberately small; each entry is one
+reviewable claim about what the extractor meant.
+
+The seeded rule is `TRIGGERS(Procedure→Event) ⇒ RAISES`. TS 38.331 genuinely
+runs both ways round — 5.3.10.3's detection procedure **raises** radio link
+failure ("consider radio link failure to be detected"), and in 5.3.7.2 that
+event **triggers** re-establishment ("upon detecting radio link failure of the
+MCG") — so both directions are declared and the gold seeds one example of each
+to pin them. Collapsing them into one relation would have made cause and effect
+indistinguishable.
+
 ## Modules
 
 | File | Stage / role |
@@ -343,6 +371,7 @@ and the fix.
 | `llm_debug.py` | endpoint probe (`--probe`) + configured-LLM ping (`--check`) for diagnosing hangs/timeouts |
 | `validate_debug.py` | break a snapshot's validation errors down by category; classifies dangling endpoints as validator-gap (pseudo-type) / near-miss id / hallucinated. Reconciles its total against `validate.py` so the breakdown can't silently drift |
 | `embed_debug.py` | diagnose the embeddings endpoint behind `align.py` — route probe (405 `Allow`, 404, auth), response-shape check, and the exact `SAGE_EMBED_BASE_URL` to export |
+| `migrate.py` | retype an existing snapshot's relations after an additive ontology change (dry-run by default, `--apply` writes + `.bak`); seeded rule `TRIGGERS(Procedure→Event) ⇒ RAISES` |
 | `align.py` | alias suggester — nearest canonical neighbour per unmatched LLM entity (embedding endpoint or difflib; KARMA ρ cutoff: below ρ → propose-only merge, above → new entity). CLI re-runs on an existing snapshot for ρ tuning |
 | `compare.py` | diff snapshots across run labels (entity/relation/LLM-fact overlap, Jaccard, object divergence) for multi-LLM eval |
 | `eval_gold.py` | score a snapshot against a hand-built gold KG (per-type entity/relation P/R + the C3 LLM-vs-expert-gold metric); writes `eval-gold.json` |
