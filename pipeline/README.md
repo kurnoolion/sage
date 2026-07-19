@@ -280,6 +280,54 @@ The extraction prompt has two variants (`--prompt-variant` / env): `v1`
 A/B over the same corpus (`--label v1 …` / `--label v2 --prompt-variant v2` +
 `pipeline.compare`) shows it earns the default.
 
+### Debugging a finished run
+
+`run` prints only an error count and the first ten errors, which is rarely enough
+to act on. Two tools take a completed run apart; both print compact, paste-able
+reports (ids/types/counts only, no clause prose), so they are usable on a machine
+you cannot copy artifacts off.
+
+```bash
+python3 -m pipeline.validate_debug --spec "TS 38.331" --version 19.2.0
+python3 -m pipeline.embed_debug --end-to-end
+```
+
+**`validate_debug`** groups every validation error by category, then explains the
+one that usually dominates — dangling relation endpoints — by asking how closely
+each missing id resembles a real one. That sorts the errors into three different
+fixes:
+
+- **validator gap** — the target is a *pseudo-type*. `ontology.py` gives
+  `DEFINED_IN` the range `["Clause"]` and calls `Clause` "a corpus pseudo-type
+  with no entity record", but `validate.py`'s "unknown entity" check has no
+  exemption for it, so **every such edge errors by construction**. Not an
+  extraction problem; the ontology and validator have to agree.
+- **near-miss id** — the referenced entity exists under a different case,
+  separator, redundant type word (`clause/Clause-5-5-4-26` vs
+  `clause/5-5-4-26`), or type bucket. Addressable by normalizing ids at merge.
+- **unresolved** — nothing resembles it; genuine extractor/prompt work.
+
+It also flags invented entity types, separating those the ontology *names in a
+relation range but never declares* from those made up wholesale, and counts how
+many domain/range errors are just collateral from them. The breakdown is derived
+from `validate.py`'s rules and then **reconciled against a real `validate()`
+call** — a count mismatch is reported loudly, because a drifted breakdown is
+worse than none. Use `--no-corpus` to skip the corpus load (errors are
+unaffected — every corpus check yields warnings only).
+
+**`embed_debug`** diagnoses the alias suggester's quiet degradation. When the
+embeddings endpoint fails, `align.suggest` logs one line and falls back to
+difflib, which is lexical-only — so the ρ distribution is no longer the one D-015
+wants tuned. The tool resolves the config exactly as `align.embed_endpoint()`
+does, confirms the host is reachable and serves the model (so a wrong *host*
+isn't mistaken for a missing *route*), then POSTs to every plausible embeddings
+route and reports status, the `Allow` header on a 405, and — critically — the
+response **shape**: a server answering `200` in Ollama's native shape still
+breaks `align._embed` with a `KeyError` into the same silent fallback. It ends
+with the exact `SAGE_EMBED_BASE_URL` to export, and `--end-to-end` runs
+`align._embed` against both the current and recommended base to prove the failure
+and the fix.
+
 ## Modules
 
 | File | Stage / role |
@@ -293,6 +341,8 @@ A/B over the same corpus (`--label v1 …` / `--label v2 --prompt-variant v2` +
 | `llm.py` | **stage 3** — OpenAI-compatible client + few-shot prompt builder (stub-safe); per-call timing/token logging, timeout/error surfacing, transient-failure retry with backoff, reasoning-strip + truncation salvage |
 | `llm_cache.py` | resumable per-clause LLM cache (`llm-cache.jsonl`) backing `--resume`; header pins extraction params so a mismatched resume is refused |
 | `llm_debug.py` | endpoint probe (`--probe`) + configured-LLM ping (`--check`) for diagnosing hangs/timeouts |
+| `validate_debug.py` | break a snapshot's validation errors down by category; classifies dangling endpoints as validator-gap (pseudo-type) / near-miss id / hallucinated. Reconciles its total against `validate.py` so the breakdown can't silently drift |
+| `embed_debug.py` | diagnose the embeddings endpoint behind `align.py` — route probe (405 `Allow`, 404, auth), response-shape check, and the exact `SAGE_EMBED_BASE_URL` to export |
 | `align.py` | alias suggester — nearest canonical neighbour per unmatched LLM entity (embedding endpoint or difflib; KARMA ρ cutoff: below ρ → propose-only merge, above → new entity). CLI re-runs on an existing snapshot for ρ tuning |
 | `compare.py` | diff snapshots across run labels (entity/relation/LLM-fact overlap, Jaccard, object divergence) for multi-LLM eval |
 | `eval_gold.py` | score a snapshot against a hand-built gold KG (per-type entity/relation P/R + the C3 LLM-vs-expert-gold metric); writes `eval-gold.json` |

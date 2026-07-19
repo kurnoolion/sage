@@ -17,7 +17,7 @@ import shutil
 import tempfile
 import unittest
 
-from . import align, config, llm, llm_cache, ontology, snapshot
+from . import align, config, embed_debug, llm, llm_cache, ontology, snapshot, validate, validate_debug
 from .compare import _object_divergence
 from .error_codes import PipelineError
 from .eval_gold import _norm
@@ -468,6 +468,124 @@ class TestAlign(unittest.TestCase):
         finally:
             align._embed = real
             del os.environ["SAGE_EMBED_MODEL"], os.environ["SAGE_EMBED_BASE_URL"]
+
+
+class _NoCorpus:
+    """Corpus stand-in for validator tests: every corpus check in validate.py
+    emits warnings only, so errors are identical with or without a real store."""
+    version = "19.2.0"
+
+    def __contains__(self, clause):
+        return False
+
+    def haystack(self, clause):
+        return ""
+
+
+def _dbg_fixture():
+    """Entities/relations exercising every error rule validate_debug classifies."""
+    e = lambda i, t, l: {"id": i, "type": t, "label": l, "extractor": "llm", "defined_in": []}
+    r = lambda i, f, t, ty: {"id": i, "from": f, "to": t, "type": ty, "provenance": []}
+    ents = [
+        e("3gpp:rrc/procedure/rrc-reconfiguration", "Procedure", "RRC reconfiguration"),
+        e("3gpp:rrc/message/rrcreconfiguration", "Message", "RRCReconfiguration"),
+        e("3gpp:rrc/timer/t310", "Timer", "T310"),
+        e("3gpp:rrc/ie/spcellconfig", "InformationElement", "spCellConfig"),
+        e("3gpp:rrc/clause/5-3-3-5", "Clause", "5.3.3.5"),        # pseudo-type materialized
+        e("3gpp:rrc/constant/N310", "Constant", "N310"),          # genuinely invented
+    ]
+    rels = [
+        r("r1", "3gpp:rrc/procedure/rrc-reconfiguration", "3gpp:rrc/clause/5-3-5-3", "DEFINED_IN"),
+        r("r3", "3gpp:rrc/procedure/RRC-Reconfiguration", "3gpp:rrc/timer/t310", "STARTS"),
+        r("r4", "3gpp:rrc/procedure/rrc_reconfiguration", "3gpp:rrc/timer/t310", "STOPS"),
+        r("r5", "3gpp:rrc/message/Message-rrcreconfiguration",
+          "3gpp:rrc/ie/spcellconfig", "CONTAINS"),
+        r("r6", "3gpp:rrc/procedure/spcellconfig",
+          "3gpp:rrc/message/rrcreconfiguration", "EXCHANGES"),
+        r("r7", "3gpp:rrc/procedure/made-up-xyz", "3gpp:rrc/timer/t310", "STARTS"),
+        r("r8", "3gpp:rrc/timer/t310", "3gpp:rrc/message/rrcreconfiguration", "EXCHANGES"),
+        # range violation: STARTS ranges over Timer, not Message
+        r("r9", "3gpp:rrc/procedure/rrc-reconfiguration",
+          "3gpp:rrc/message/rrcreconfiguration", "STARTS"),
+        # undeclared relation type — validate.py reports it and skips this relation
+        r("r10", "3gpp:rrc/timer/t310", "3gpp:rrc/timer/t310", "INVENTED_REL"),
+    ]
+    ents[2]["observed_in"] = ["Rel-999"]          # lifecycle-release
+    ents[3]["introduced_in"] = "Rel-999"          # lifecycle-field
+    rels[0]["supersedes"] = "3gpp:rrc/nope/gone"  # lifecycle-supersedes
+    return ents, rels
+
+
+class TestValidateDebug(unittest.TestCase):
+    def test_reconciles_with_validator(self):
+        """The whole tool is only trustworthy if its structured findings match
+        validate.py one-for-one — this is the guard against silent drift."""
+        ents, rels = _dbg_fixture()
+        errs, _ = validate.validate(ents, rels, _NoCorpus(), "19.2.0")
+        findings = validate_debug.analyze(ents, rels, "19.2.0")
+        self.assertEqual(len(findings), len(errs))
+
+    def test_pseudo_types_discovered(self):
+        # Clause is a DEFINED_IN range type with no ENTITY_TYPES declaration.
+        self.assertIn("Clause", validate_debug.PSEUDO_TYPES)
+        self.assertNotIn("Timer", validate_debug.PSEUDO_TYPES)
+        self.assertTrue(validate_debug.pseudo_slot("DEFINED_IN", "to"))
+        self.assertFalse(validate_debug.pseudo_slot("DEFINED_IN", "from"))  # domain is ["*"]
+        self.assertFalse(validate_debug.pseudo_slot("STARTS", "to"))
+
+    def test_resolution_rules(self):
+        ents, _ = _dbg_fixture()
+        idx = validate_debug.build_index(ents)
+        cases = [
+            ("3gpp:rrc/procedure/RRC-Reconfiguration", "case-only"),
+            ("3gpp:rrc/procedure/rrc_reconfiguration", "separator"),
+            ("3gpp:rrc/message/Message-rrcreconfiguration", "type-word-prefix"),
+            ("3gpp:rrc/procedure/spcellconfig", "wrong-type-bucket"),
+            ("3gpp:rrc/procedure/made-up-xyz", "UNRESOLVED"),
+        ]
+        for ref, expected in cases:
+            rule, target = validate_debug.resolve(ref, idx)
+            self.assertEqual(rule, expected, "%s -> %s" % (ref, rule))
+            if expected == "UNRESOLVED":
+                self.assertIsNone(target)
+            else:
+                self.assertIsNotNone(target)
+
+    def test_bucket_classification(self):
+        self.assertEqual(validate_debug._bucket_of("3gpp:rrc/clause/5-3-3-5"), "clause")
+        self.assertIn("timer", validate_debug.VALID_BUCKETS)
+        self.assertNotIn("clause", validate_debug.VALID_BUCKETS)   # invented type slug
+
+
+class TestEmbedDebug(unittest.TestCase):
+    def test_shape_openai_accepted(self):
+        ok, dim, _ = embed_debug.check_shape(
+            {"data": [{"index": 0, "embedding": [0.1, 0.2, 0.3]}]}, "openai")
+        self.assertTrue(ok)
+        self.assertEqual(dim, 3)
+
+    def test_shape_ollama_native_rejected(self):
+        """200 OK but the wrong shape is the silent-failure case: align._embed
+        raises KeyError and suggest() swallows it into difflib."""
+        ok, _, note = embed_debug.check_shape({"embeddings": [[0.1, 0.2]]}, "ollama-embed")
+        self.assertFalse(ok)
+        self.assertIn("difflib", note)
+
+    def test_shape_garbage_rejected(self):
+        ok, _, _ = embed_debug.check_shape({"result": "nope"}, "openai")
+        self.assertFalse(ok)
+
+    def test_root_strips_v1(self):
+        self.assertEqual(embed_debug._root("http://h:8000/v1"), "http://h:8000")
+        self.assertEqual(embed_debug._root("http://h:8000/v1/"), "http://h:8000")
+        self.assertEqual(embed_debug._root("http://h:8000"), "http://h:8000")
+
+    def test_candidates_probe_align_route_first_and_dedup(self):
+        cands = embed_debug.candidates("http://h:8000/v1", "m")
+        urls = [c[1] for c in cands]
+        self.assertEqual(urls[0], "http://h:8000/v1/embeddings")   # what align.py uses
+        self.assertEqual(len(urls), len(set(urls)))                # no duplicate probes
+        self.assertIn("http://h:8000/api/embed", urls)
 
 
 class TestEvalGoldNorm(unittest.TestCase):
