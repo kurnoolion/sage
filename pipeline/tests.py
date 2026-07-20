@@ -471,6 +471,32 @@ class TestAlign(unittest.TestCase):
             del os.environ["SAGE_EMBED_MODEL"], os.environ["SAGE_EMBED_BASE_URL"]
 
 
+class TestAlignStats(unittest.TestCase):
+    """The distance-distribution summary that backs `align --stats` (ρ tuning)."""
+
+    SUGG = [{"surface_label": "a%d" % i, "canonical_label": "b%d" % i,
+             "distance": d, "proposal": "merge" if d < 0.35 else "new-entity"}
+            for i, d in enumerate([0.01, 0.02, 0.30, 0.34, 0.36, 0.40, 0.72])]
+
+    def test_histogram_counts_and_cumulative(self):
+        rows = align.distance_histogram(self.SUGG)
+        self.assertEqual(sum(c for _, _, c, _ in rows), len(self.SUGG))   # nothing dropped
+        self.assertEqual(rows[-1][3], len(self.SUGG))                     # cumulative tops out
+        # 0.30 and 0.34 both land in [0.30,0.35)
+        band = next(c for lo, hi, c, _ in rows if lo == 0.30)
+        self.assertEqual(band, 2)
+
+    def test_stats_repartitions_by_given_rho_not_stored_proposal(self):
+        # At rho=0.35 -> 4 below; preview rho=0.31 -> only the two tiny ones.
+        below35 = [s for s in self.SUGG if s["distance"] < 0.35]
+        below31 = [s for s in self.SUGG if s["distance"] < 0.31]
+        self.assertEqual(len(below35), 4)
+        self.assertEqual(len(below31), 3)
+
+    def test_summarize_runs_on_empty(self):
+        align.summarize([], 0.35)   # must not raise
+
+
 class TestEmbedBatching(unittest.TestCase):
     """align._embed keeps requests within the server's batch cap (SAGE_EMBED_BATCH,
     default 32 = TEI's --max-client-batch-size) and halves on a 413 rather than

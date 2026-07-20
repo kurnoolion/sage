@@ -225,37 +225,120 @@ def review_items(suggestions):
 
 
 # ---------------------------------------------------------------------------
-# CLI — re-run alignment on an existing snapshot (ρ tuning without re-extract)
+# Distance-distribution summary (ρ tuning)
+# ---------------------------------------------------------------------------
+_HIST_EDGES = [0, .05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .6, .7, .8, .9, 1.01]
+
+
+def _trunc(s, n=44):
+    s = s or ""
+    return s if len(s) <= n else s[:n - 1] + "…"
+
+
+def distance_histogram(suggestions):
+    """Counts per fixed distance bin, as ``[(lo, hi, count, cumulative), …]``."""
+    n = len(suggestions)
+    counts = [0] * (len(_HIST_EDGES) - 1)
+    for s in suggestions:
+        d = s["distance"]
+        for i in range(len(_HIST_EDGES) - 1):
+            if _HIST_EDGES[i] <= d < _HIST_EDGES[i + 1]:
+                counts[i] += 1
+                break
+    rows, cum = [], 0
+    for i, c in enumerate(counts):
+        cum += c
+        rows.append((_HIST_EDGES[i], _HIST_EDGES[i + 1], c, cum))
+    return rows
+
+
+def summarize(suggestions, rho_val, samples=8):
+    """Print the distance histogram and the pairs straddling ρ.
+
+    Proposals are recomputed from distance vs ``rho_val`` here (not read from the
+    stored ``proposal`` field), so ``--stats --rho X`` shows what a *different* ρ
+    would decide without re-embedding — distances don't depend on ρ.
+    """
+    n = len(suggestions)
+    if not n:
+        print("  (no surfaces to summarize)")
+        return
+    ordered = sorted(suggestions, key=lambda x: x["distance"])
+    below = [x for x in ordered if x["distance"] < rho_val]
+    above = [x for x in ordered if x["distance"] >= rho_val]
+    print("  rho=%.3f -> %d merge / %d new-entity (of %d)" % (rho_val, len(below), len(above), n))
+    print("  distance histogram (count, cumulative %):")
+    for lo, hi, c, cum in distance_histogram(suggestions):
+        bar = "#" * int(round(40.0 * c / n)) if n else ""
+        print("    [%.2f,%.2f) %5d  %5.1f%%  %s" % (lo, hi, c, 100.0 * cum / n, bar))
+    if below:
+        print("  boundary — last %d merges just below rho (borderline-in):"
+              % min(samples, len(below)))
+        for x in below[-samples:]:
+            print("    %.3f  %s  ->  %s"
+                  % (x["distance"], _trunc(x["surface_label"]), _trunc(x["canonical_label"])))
+    if above:
+        print("  boundary — first %d at/above rho (borderline-out):"
+              % min(samples, len(above)))
+        for x in above[:samples]:
+            print("    %.3f  %s  ->  %s"
+                  % (x["distance"], _trunc(x["surface_label"]), _trunc(x["canonical_label"])))
+
+
+# ---------------------------------------------------------------------------
+# CLI — recompute alignment on an existing snapshot, or (--stats) summarize the
+# distance distribution to tune ρ. Both derive every path from --spec/--version/
+# --label; --stats --rho X previews a cutoff without re-embedding.
 # ---------------------------------------------------------------------------
 def main():
     import argparse
     from . import snapshot
 
     ap = argparse.ArgumentParser(
-        description="(Re)compute alias suggestions for an existing snapshot.")
+        description="(Re)compute alias suggestions for an existing snapshot, or "
+                    "(--stats) summarize the distance distribution for ρ tuning.")
     ap.add_argument("--spec", default="TS 24.229")
     ap.add_argument("--version", default="19.6.0")
     ap.add_argument("--label", default=None)
     ap.add_argument("--rho", type=float, default=None, help="override SAGE_ALIGN_RHO")
+    ap.add_argument("--stats", action="store_true",
+                    help="summarize the EXISTING alias-suggestions.json (histogram + "
+                         "ρ-boundary pairs) without recomputing or hitting the endpoint; "
+                         "combine with --rho to preview a different cutoff for free")
+    ap.add_argument("--samples", type=int, default=8,
+                    help="ρ-boundary pairs to show per side (default 8)")
     a = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
     snap_dir = snapshot.dir_for(a.spec, a.version, a.label)
+    out = os.path.join(snap_dir, "alias-suggestions.json")
+
+    # --stats: analyze the file we already wrote — no snapshot load, no endpoint.
+    if a.stats:
+        if not os.path.exists(out):
+            raise SystemExit("no alias-suggestions.json at %s — run without --stats first" % out)
+        with open(out) as f:
+            data = json.load(f)
+        suggestions = data.get("suggestions", [])
+        rho_val = a.rho if a.rho is not None else (data.get("rho") if data.get("rho") is not None else rho())
+        print("alias suggestions: %d scored (%s), file rho=%s%s"
+              % (len(suggestions), data.get("backend"), data.get("rho"),
+                 "  [previewing rho=%s]" % rho_val if a.rho is not None else ""))
+        summarize(suggestions, rho_val, a.samples)
+        print("source -> %s" % out)
+        return
+
     with open(os.path.join(snap_dir, "snapshot.json")) as f:
         snap = json.load(f)
     suggestions, backend = suggest(snap["entities"], a.rho)
-    out = os.path.join(snap_dir, "alias-suggestions.json")
+    rho_val = a.rho if a.rho is not None else rho()
     with open(out, "w") as f:
         json.dump({"spec": a.spec, "version": a.version, "backend": backend,
-                   "rho": a.rho if a.rho is not None else rho(),
-                   "suggestions": suggestions}, f, indent=2, ensure_ascii=False)
+                   "rho": rho_val, "suggestions": suggestions}, f, indent=2, ensure_ascii=False)
     merges = sum(1 for s in suggestions if s["proposal"] == "merge")
     print("alias suggestions: %d surface entities scored (%s), %d merge proposals (rho=%s)"
-          % (len(suggestions), backend, merges, a.rho if a.rho is not None else rho()))
-    for s in suggestions[:10]:
-        print("  %.3f %-12s %s (%s) -> %s (%s)"
-              % (s["distance"], s["proposal"], s["surface_label"], s["surface_type"],
-                 s["canonical_label"], s["canonical_type"]))
+          % (len(suggestions), backend, merges, rho_val))
+    summarize(suggestions, rho_val, a.samples)
     print("full list -> %s" % out)
 
 
