@@ -16,6 +16,7 @@ import os
 import shutil
 import tempfile
 import unittest
+import urllib.error
 
 from . import align, config, embed_debug, llm, llm_cache, migrate, ontology, snapshot, validate, validate_debug
 from .compare import _object_divergence
@@ -456,7 +457,7 @@ class TestAlign(unittest.TestCase):
 
     def test_mocked_embedding_backend(self):
         real = align._embed
-        align._embed = lambda ep, texts, batch=100: [
+        align._embed = lambda ep, texts, batch=None: [
             [1.0, 0.0] if "t300" in t.lower() else [0.0, 1.0] for t in texts]
         os.environ["SAGE_EMBED_MODEL"] = "fake-model"
         os.environ["SAGE_EMBED_BASE_URL"] = "http://x/v1"
@@ -468,6 +469,78 @@ class TestAlign(unittest.TestCase):
         finally:
             align._embed = real
             del os.environ["SAGE_EMBED_MODEL"], os.environ["SAGE_EMBED_BASE_URL"]
+
+
+class TestEmbedBatching(unittest.TestCase):
+    """align._embed keeps requests within the server's batch cap (SAGE_EMBED_BATCH,
+    default 32 = TEI's --max-client-batch-size) and halves on a 413 rather than
+    letting the whole endpoint fall back to difflib."""
+
+    def test_batch_size_env(self):
+        self.assertEqual(align._embed_batch_size(), 32)          # default
+        os.environ["SAGE_EMBED_BATCH"] = "16"
+        try:
+            self.assertEqual(align._embed_batch_size(), 16)
+        finally:
+            del os.environ["SAGE_EMBED_BATCH"]
+
+    def test_bad_batch_env_falls_back(self):
+        for bad in ("notanint", "0", "-5"):
+            os.environ["SAGE_EMBED_BATCH"] = bad
+            try:
+                self.assertEqual(align._embed_batch_size(), 32, bad)
+            finally:
+                del os.environ["SAGE_EMBED_BATCH"]
+
+    def test_default_batch_stays_within_cap(self):
+        """The first request must already fit TEI's default (100 used to 413)."""
+        seen = []
+
+        def fake_once(ep, texts):
+            seen.append(len(texts))
+            return [[0.0] for _ in texts]
+
+        real = align._embed_once
+        align._embed_once = fake_once
+        try:
+            vecs = align._embed({"base": "x", "model": "m", "key": ""},
+                                ["l%d" % i for i in range(70)])
+            self.assertEqual(len(vecs), 70)
+            self.assertTrue(all(c <= 32 for c in seen), seen)     # never oversized
+        finally:
+            align._embed_once = real
+
+    def test_halves_on_413(self):
+        limit, seen = 3, []
+
+        def fake_once(ep, texts):
+            seen.append(len(texts))
+            if len(texts) > limit:
+                raise urllib.error.HTTPError("u", 413, "too large", {}, None)
+            return [[float(len(t))] for t in texts]
+
+        real = align._embed_once
+        align._embed_once = fake_once
+        try:
+            texts = ["a", "bb", "ccc", "dddd", "e", "ff", "ggg"]   # 7 inputs
+            vecs = align._embed({"base": "x", "model": "m", "key": ""}, texts, batch=100)
+            self.assertEqual(len(vecs), len(texts))               # all recovered
+            self.assertTrue(any(c > limit for c in seen))         # tried too-large first
+            self.assertEqual(vecs[3], [4.0])                      # order preserved
+        finally:
+            align._embed_once = real
+
+    def test_non_413_http_error_propagates(self):
+        def fake_once(ep, texts):
+            raise urllib.error.HTTPError("u", 500, "server error", {}, None)
+
+        real = align._embed_once
+        align._embed_once = fake_once
+        try:
+            with self.assertRaises(urllib.error.HTTPError):
+                align._embed({"base": "x", "model": "m", "key": ""}, ["a", "b"], batch=10)
+        finally:
+            align._embed_once = real
 
 
 class _NoCorpus:

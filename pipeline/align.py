@@ -20,6 +20,8 @@ Backends (stamped on every suggestion):
                              bge-m3 — whatever the endpoint serves)
         SAGE_EMBED_BASE_URL  default: SAGE_LLM_BASE_URL
         SAGE_EMBED_API_KEY   default: SAGE_LLM_API_KEY
+        SAGE_EMBED_BATCH     inputs per request (default 32 = TEI's
+                             --max-client-batch-size); auto-halves on a 413
     Distance = cosine distance (1 - cosine similarity).
   * ``difflib`` — stdlib SequenceMatcher fallback, always available.
     Distance = 1 - ratio(lowercased labels). Lexical only: catches
@@ -69,19 +71,60 @@ def embed_endpoint():
     return {"base": base.rstrip("/"), "model": model, "key": key}
 
 
-def _embed(ep, texts, batch=100):
-    """Return one vector per text via the OpenAI-compatible embeddings API."""
-    out = []
-    for i in range(0, len(texts), batch):
-        body = json.dumps({"model": ep["model"], "input": texts[i:i + batch]}).encode()
-        req = urllib.request.Request(
-            ep["base"] + "/embeddings", data=body,
-            headers={"Content-Type": "application/json",
-                     "Authorization": "Bearer " + ep["key"]})
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            data = json.load(resp)
-        rows = sorted(data["data"], key=lambda d: d["index"])
-        out.extend(r["embedding"] for r in rows)
+# TEI's default --max-client-batch-size is 32; a larger request gets a 413
+# (payload too large), which align.suggest would otherwise swallow into difflib.
+_DEFAULT_EMBED_BATCH = 32
+
+
+def _embed_batch_size():
+    raw = os.environ.get("SAGE_EMBED_BATCH")
+    if raw is None:
+        return _DEFAULT_EMBED_BATCH
+    try:
+        n = int(raw)
+        return n if n > 0 else _DEFAULT_EMBED_BATCH
+    except ValueError:
+        logger.warning("SAGE_EMBED_BATCH=%r is not an int — using %d",
+                       raw, _DEFAULT_EMBED_BATCH)
+        return _DEFAULT_EMBED_BATCH
+
+
+def _embed_once(ep, texts):
+    """One embeddings POST; vectors returned in the input order (by ``index``)."""
+    body = json.dumps({"model": ep["model"], "input": texts}).encode()
+    req = urllib.request.Request(
+        ep["base"] + "/embeddings", data=body,
+        headers={"Content-Type": "application/json",
+                 "Authorization": "Bearer " + ep["key"]})
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        data = json.load(resp)
+    rows = sorted(data["data"], key=lambda d: d["index"])
+    return [r["embedding"] for r in rows]
+
+
+def _embed(ep, texts, batch=None):
+    """Return one vector per text via the OpenAI-compatible embeddings API.
+
+    Sends in batches of ``SAGE_EMBED_BATCH`` (default 32, matching TEI's
+    ``--max-client-batch-size``). On a 413 the batch is halved and retried, so a
+    server with a smaller cap (or unusually long inputs) degrades to smaller
+    requests instead of failing the whole endpoint into difflib.
+    """
+    if batch is None:
+        batch = _embed_batch_size()
+    out, i, n = [], 0, len(texts)
+    while i < n:
+        chunk = texts[i:i + batch]
+        try:
+            out.extend(_embed_once(ep, chunk))
+            i += len(chunk)
+        except urllib.error.HTTPError as exc:
+            if exc.code == 413 and len(chunk) > 1:
+                batch = max(1, len(chunk) // 2)
+                logger.warning("embeddings 413 (payload too large) — halving batch to %d",
+                               batch)
+                continue                       # retry the same start with a smaller chunk
+            raise
     return out
 
 
