@@ -496,6 +496,11 @@ class TestAlignStats(unittest.TestCase):
     def test_summarize_runs_on_empty(self):
         align.summarize([], 0.35)   # must not raise
 
+    def test_default_rho_is_tuned_value(self):
+        # Empirically tuned on the TS 38.331 RRC run (workstream C); not a
+        # placeholder. Guards against an accidental revert to 0.35.
+        self.assertEqual(align._DEFAULT_RHO, 0.18)
+
 
 class TestEmbedBatching(unittest.TestCase):
     """align._embed keeps requests within the server's batch cap (SAGE_EMBED_BATCH,

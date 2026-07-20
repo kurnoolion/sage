@@ -27,10 +27,11 @@ Backends (stamped on every suggestion):
     Distance = 1 - ratio(lowercased labels). Lexical only: catches
     "RRC reconfiguration" ~ "RRCReconfiguration", misses semantic aliases.
 
-ρ (SAGE_ALIGN_RHO, default 0.35) is a placeholder until tuned empirically —
-the suggestions file reports the best-neighbour distance for *every* surface
-entity precisely so the distribution can be inspected and ρ chosen from data
-(strand telcoagent-adoption, workstream C).
+ρ (SAGE_ALIGN_RHO, default 0.18) was tuned empirically on the TS 38.331 RRC run
+(strand telcoagent-adoption, workstream C): the suggestions file reports the
+best-neighbour distance for *every* surface entity, so the distribution was
+inspected via ``align --stats`` and ρ chosen from where the marginal merge turns
+more-likely-wrong-than-right. See the ``_DEFAULT_RHO`` note below for the crossover.
 """
 import difflib
 import json
@@ -44,7 +45,15 @@ from . import ontology
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_RHO = 0.35
+# Tuned empirically on the TS 38.331 RRC run (1182 surfaces, bge-m3), not a
+# placeholder: at 0.35 every merge at the margin was a false pair; the precision
+# crossover — where a marginal merge turns more-likely-wrong-than-right — sits in
+# 0.15–0.20. 0.18 recovers the true aliases hiding at 0.15–0.16 while stopping
+# before the 0.19–0.20 zone where false pairs dominate. The true-alias and
+# distinct-but-related populations overlap in that band (a bi-encoder embeds short
+# spec labels by topic), so no ρ separates them cleanly — a cross-encoder rerank
+# of the borderline band is the real fix (future work). See `align --stats`.
+_DEFAULT_RHO = 0.18
 
 
 def rho():
